@@ -1,0 +1,79 @@
+.dashboard-item {
+  height: 32px;
+  padding-left: 4px;
+  border-bottom: 1px solid #dedede;
+}
+
+.dashboard-item > span.image {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  background: transparent url('images/dashboard.png') no-repeat 0px 0px;
+}
+
+.dashboard-item > span.text {
+  line-height: 32px;
+  margin-left: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.dashboard-item:hover {
+  cursor: pointer;
+  background-color: #efefef;
+}
+
+.dashboard-item-selected {
+  background-color: #efefef;
+}
+
+.dashboard-item-selected > span.image {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  background: transparent url('images/dashboard.png') no-repeat -24px 0px;
+}
+
+.add {
+  width: 16px;
+  height: 16px;
+  background: transparent url('images/icons/add.png') no-repeat center center;
+}
+
+.delete {
+  background: transparent url('images/icons/delete.png') no-repeat center center;
+}
+
+.save {
+  background: transparent url('images/icons/save.png') no-repeat center center;
+}
+
+.refresh {
+  background: transparent url('images/icons/refresh.png') no-repeat center center;
+}
+
+.start {
+  width: 16px;
+  height: 16px;
+  background: transparent url('images/icons/start.png') no-repeat center center;
+}
+
+.pause {
+  width: 16px;
+  height: 16px;
+  background: transparent url('images/icons/pause.png') no-repeat center center;
+}
+
+.stop {
+  width: 16px;
+  height: 16px;
+  background: transparent url('images/icons/stop.png') no-repeat center center;
+}
+
+.restart {
+  width: 16px;
+  height: 16px;
+  background: transparent url('images/icons/restart.png') no-repeat center center;
+}

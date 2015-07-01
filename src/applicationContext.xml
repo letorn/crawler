@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <mvc:annotation-driven>
+    <mvc:message-converters>
+      <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="objectMapper">
+          <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+            <property name="dateFormat">
+              <bean class="java.text.SimpleDateFormat">
+                <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss"/>
+              </bean>
+            </property>
+          </bean>
+        </property>
+      </bean>
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+  
+  <context:component-scan base-package="dao" />
+  <context:component-scan base-package="service" />
+  <context:component-scan base-package="controller" />
+  <context:component-scan base-package="crawler" />
+  <context:component-scan base-package="util" />
+  
+  <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    <property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+    <property name="jdbcUrl" value="jdbc:mysql://mysql:3306/zcdh_uni_test?useUnicode=true&amp;characterEncoding=utf8"></property>
+    <property name="user" value="admin"></property>
+    <property name="password" value="123456"></property>
+  </bean>
+
+  <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">    
+    <property name="caches">
+      <set>
+        <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"/>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="holder" class="crawler.post.Holder" init-method="init" />
+  <bean class="dao.data.Stack" init-method="init" />
+
+</beans>

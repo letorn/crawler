@@ -1,0 +1,500 @@
+package crawler.post;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+
+import org.apache.log4j.Logger;
+
+import crawler.post.model.Enterprise;
+import crawler.post.model.Post;
+import dao.data.C3P0Store;
+
+public class Holder extends C3P0Store {
+
+	private static Logger logger = Logger.getLogger(Holder.class);
+
+	private static Map<String, String> tagCodes = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> areaCodes = new ConcurrentHashMap<String, String>();
+
+	private static Map<String, String> postCategories = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> postNatures = new ConcurrentHashMap<String, String>();
+	private static Map<String, Map<String, String>> postExperiences = new ConcurrentHashMap<String, Map<String, String>>();
+	private static Map<String, Map<String, String>> postEducations = new ConcurrentHashMap<String, Map<String, String>>();
+
+	private static Map<String, String> enterpriseCategories = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> enterpriseNatures = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> enterpriseScales = new ConcurrentHashMap<String, String>();
+
+	private static Map<String, Post> posts = new ConcurrentHashMap<String, Post>();
+	private static Map<String, Enterprise> enterprises = new ConcurrentHashMap<String, Enterprise>();
+	private static Set<String> enterpriseAccounts = new ConcurrentSkipListSet<String>();
+
+	public void init() {
+		logger.info("init crawler data");
+		selectResultSet("select tag_name, tag_code from zcdh_tag where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				tagCodes.put(resultSet.getString("tag_name"), resultSet.getString("tag_code"));
+				return true;
+			}
+		});
+
+		selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 OR is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$'", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int index) throws Exception {
+				areaCodes.put(resultSet.getString("area_name"), resultSet.getString("area_code"));
+				return true;
+			}
+		});
+
+		selectResultSet("select post_name, post_code, post_description from zcdh_post where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				postCategories.put(resultSet.getString("post_code"), resultSet.getString("post_name"));
+				return true;
+			}
+		});
+
+		selectResultSet("select p.param_name, p.param_code, p.param_value, p.param_category_code, t.technical_code, t.techonlogy_gategory_code, t.match_type, g.percent from zcdh_param p left join zcdh_technology t on p.param_category_code=t.param_category_code left join zcdh_technology_gategory g on t.techonlogy_gategory_code=g.technology_gategory_code where (p.is_delete=1 or p.is_delete is null) and (t.is_delete=1 or t.is_delete is null) and (g.is_delete=1 or g.is_delete is null) and p.param_category_code in('007', '005', '004', '010', '011')", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				String category = resultSet.getString("param_category_code");
+				if ("007".equals(category)) {
+					postNatures.put(resultSet.getString("param_code"), resultSet.getString("param_name"));
+				} else if ("005".equals(category)) {
+					Map<String, String> experience = new HashMap<String, String>();
+					experience.put("paramName", resultSet.getString("param_name"));
+					experience.put("paramValue", resultSet.getString("param_value"));
+					experience.put("technicalCode", resultSet.getString("technical_code"));
+					experience.put("techonlogyGategoryCode", resultSet.getString("techonlogy_gategory_code"));
+					experience.put("matchType", resultSet.getString("match_type"));
+					experience.put("percent", resultSet.getString("percent"));
+					postExperiences.put(resultSet.getString("param_code"), experience);
+				} else if ("004".equals(category)) {
+					Map<String, String> education = new HashMap<String, String>();
+					education.put("paramName", resultSet.getString("param_name"));
+					education.put("paramValue", resultSet.getString("param_value"));
+					education.put("technicalCode", resultSet.getString("technical_code"));
+					education.put("techonlogyGategoryCode", resultSet.getString("techonlogy_gategory_code"));
+					education.put("matchType", resultSet.getString("match_type"));
+					education.put("percent", resultSet.getString("percent"));
+					postEducations.put(resultSet.getString("param_code"), education);
+				} else if ("010".equals(category)) {
+					enterpriseNatures.put(resultSet.getString("param_code"), resultSet.getString("param_name"));
+				} else if ("011".equals(category)) {
+					enterpriseScales.put(resultSet.getString("param_code"), resultSet.getString("param_name"));
+				}
+				return true;
+			}
+		});
+
+		selectResultSet("select industry_name, industry_code from zcdh_industry where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				enterpriseCategories.put(resultSet.getString("industry_code"), resultSet.getString("industry_name"));
+				return true;
+			}
+		});
+
+		selectResultSet("select id, update_date, remark from zcdh_ent_post where remark is not null and update_date is not null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				Post post = new Post();
+				post.setId(resultSet.getLong("id"));
+				post.setDate(resultSet.getDate("update_date"));
+				posts.put(resultSet.getString("remark"), post);
+				return true;
+			}
+		});
+
+		selectResultSet("select e.ent_id, e.parea, l.latitude lbs_lat, l.longitude lbs_lon, e.create_date, e.remark from zcdh_ent_enterprise e left join zcdh_ent_lbs l on e.lbs_id=l.lbs_id where e.remark is not null and e.create_date is not null and e.lbs_id is not null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				Enterprise enterprise = new Enterprise();
+				enterprise.setId(resultSet.getLong("ent_id"));
+				enterprise.setAreaCode(resultSet.getString("parea"));
+				enterprise.setLBSLat(resultSet.getDouble("lbs_lat"));
+				enterprise.setLBSLon(resultSet.getDouble("lbs_lon"));
+				enterprise.setDate(resultSet.getDate("create_date"));
+				enterprises.put(resultSet.getString("remark"), enterprise);
+				return true;
+			}
+		});
+
+		selectResultSet("select e.ent_name from zcdh_ent_account a join zcdh_ent_enterprise e on a.ent_id=e.ent_id where e.ent_name is not null", new Iterator<ResultSet>() {
+			public boolean next(ResultSet resultSet, int i) throws Exception {
+				enterpriseAccounts.add(resultSet.getString("ent_name"));
+				return true;
+			}
+		});
+	}
+
+	public static String getTagCode(String tagName) {
+		return tagCodes.get(tagName);
+	}
+
+	public static String getAreaCode(String areaName) {
+		return areaCodes.get(areaName);
+	}
+
+	public static String getPostCategory(String category) {
+		return postCategories.get(category);
+	}
+
+	public static String getPostNature(String paramName) {
+		return postNatures.get(paramName);
+	}
+
+	public static Map<String, String> getPostExperience(String paramName) {
+		return postExperiences.get(paramName);
+	}
+
+	public static Map<String, String> getPostEducation(String paramName) {
+		return postEducations.get(paramName);
+	}
+
+	public static String getEnterpriseCategory(String category) {
+		return enterpriseCategories.get(category);
+	}
+
+	public static String getEnterpriseNature(String paramName) {
+		return enterpriseNatures.get(paramName);
+	}
+
+	public static String getEnterpriseScale(String paramName) {
+		return enterpriseScales.get(paramName);
+	}
+
+	public static Boolean existEnterpriseAccount(String enterpriseName) {
+		return enterpriseAccounts.contains(enterpriseName);
+	}
+
+	public static void saveOrUpdatePosts(List<Post> list, Integer updateInterval) {
+		if (null == updateInterval) {
+			updateInterval = 3;
+		}
+		String entPostUpdateSQL = "update zcdh_ent_post set update_date=? where id=?";
+		String entLBSInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
+		String entPostInsertSQL = "insert into zcdh_ent_post(publish_date, update_date, ent_id, post_aliases, post_name, post_code, pjob_category, headcounts, is_several, psalary, salary_type, tag_selected, post_address, parea, lbs_id, post_remark, remark) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String entPostStatusInsertSQL = "insert into zcdh_ent_post_status(post_id, post_status, employ, employed, employ_total, un_employ, skim_count) values(?, ?, ?, ?, ?, ?, ?)";
+		String entPromotionInsertSQL = "insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)";
+		String entAbilityRequireInsertSQL = "insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, max_salary, min_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		Connection connection = openConnection();
+		PreparedStatement entPostUpdateStatement = null;
+		PreparedStatement entLBSInsertStatement = null;
+		PreparedStatement entPostInsertStatement = null;
+		PreparedStatement entPostStatusInsertStatement = null;
+		PreparedStatement entPromotionInsertStatement = null;
+		PreparedStatement entAbilityRequireInsertStatement = null;
+		PreparedStatement viewEntPostInsertStatement = null;
+		ResultSet entLBSInsertedKeyResultSet = null;
+		ResultSet entPostInsertedKeyResultSet = null;
+		List<Post> updatedPosts = new ArrayList<Post>();
+		List<Post> insertedPosts = new ArrayList<Post>();
+		try {
+			entPostUpdateStatement = connection.prepareStatement(entPostUpdateSQL);
+			entLBSInsertStatement = connection.prepareStatement(entLBSInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+			entPostInsertStatement = connection.prepareStatement(entPostInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+			entPostStatusInsertStatement = connection.prepareStatement(entPostStatusInsertSQL);
+			entPromotionInsertStatement = connection.prepareStatement(entPromotionInsertSQL);
+			entAbilityRequireInsertStatement = connection.prepareStatement(entAbilityRequireInsertSQL);
+			viewEntPostInsertStatement = connection.prepareStatement(viewEntPostInsertSQL);
+			for (Post p : list) {
+				p.setStatus(1);
+				String url = p.getURL();
+				if (posts.containsKey(url)) {
+					Post post = posts.get(url);
+					p.setId(post.getId());
+					if (null != p.getDate() && null != post.getDate() && p.getDate().getTime() - post.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
+						entPostUpdateStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
+						entPostUpdateStatement.setLong(2, p.getId());
+						entPostUpdateStatement.addBatch();
+						updatedPosts.add(p);
+					}
+				} else {
+					Enterprise enterprise = enterprises.get(p.getEnterpriseURL());
+					entLBSInsertStatement.setDouble(1, enterprise.getLBSLon());
+					entLBSInsertStatement.setDouble(2, enterprise.getLBSLat());
+					entLBSInsertStatement.addBatch();
+					insertedPosts.add(p);
+				}
+
+			}
+
+			entPostUpdateStatement.executeBatch();
+			for (Post p : updatedPosts) {
+				p.setStatus(3);
+			}
+
+			entLBSInsertStatement.executeBatch();
+			entLBSInsertedKeyResultSet = entLBSInsertStatement.getGeneratedKeys();
+			for (int i = 0; entLBSInsertedKeyResultSet.next(); i++) {
+				Post p = insertedPosts.get(i);
+				Enterprise enterprise = enterprises.get(p.getEnterpriseURL());
+
+				entPostInsertStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
+				entPostInsertStatement.setDate(2, new java.sql.Date(p.getDate().getTime()));
+				entPostInsertStatement.setLong(3, enterprise.getId());
+				entPostInsertStatement.setString(4, p.getName());
+				entPostInsertStatement.setString(5, p.getCategory());
+				entPostInsertStatement.setString(6, p.getCategoryCode());
+				entPostInsertStatement.setString(7, p.getNatureCode());
+				entPostInsertStatement.setInt(8, p.getNumber());
+				entPostInsertStatement.setInt(9, p.getIsSeveral());
+				entPostInsertStatement.setString(10, p.getSalary());
+				entPostInsertStatement.setInt(11, p.getSalaryType());
+				entPostInsertStatement.setString(12, p.getWelfareCode());
+				entPostInsertStatement.setString(13, p.getAddress());
+				entPostInsertStatement.setString(14, enterprise.getAreaCode());
+				entPostInsertStatement.setLong(15, entLBSInsertedKeyResultSet.getLong(1));
+				entPostInsertStatement.setString(16, p.getIntroduction());
+				entPostInsertStatement.setString(17, p.getURL());
+				entPostInsertStatement.addBatch();
+			}
+			entPostInsertStatement.executeBatch();
+			entPostInsertedKeyResultSet = entPostInsertStatement.getGeneratedKeys();
+			for (int i = 0; entPostInsertedKeyResultSet.next(); i++) {
+				Post p = insertedPosts.get(i);
+				Enterprise enterprise = enterprises.get(p.getEnterpriseURL());
+
+				p.setId(entPostInsertedKeyResultSet.getLong(1));
+				p.setStatus(2);
+				posts.put(p.getURL(), p);
+
+				entPostStatusInsertStatement.setLong(1, p.getId());
+				entPostStatusInsertStatement.setInt(2, 1);
+				entPostStatusInsertStatement.setInt(3, 0);
+				entPostStatusInsertStatement.setInt(4, 0);
+				entPostStatusInsertStatement.setInt(5, p.getNumber());
+				entPostStatusInsertStatement.setInt(6, p.getNumber());
+				entPostStatusInsertStatement.setInt(7, 0);
+				entPostStatusInsertStatement.addBatch();
+
+				entPromotionInsertStatement.setLong(1, p.getId());
+				entPromotionInsertStatement.setLong(2, enterprise.getId());
+				entPromotionInsertStatement.setString(3, "");
+				entPromotionInsertStatement.addBatch();
+
+				viewEntPostInsertStatement.setLong(1, p.getId());
+				viewEntPostInsertStatement.setString(2, enterprise.getName());
+				viewEntPostInsertStatement.setString(3, enterprise.getCategoryCode());
+				viewEntPostInsertStatement.setString(4, enterprise.getNatureCode());
+				viewEntPostInsertStatement.setString(5, enterprise.getScaleCode());
+				viewEntPostInsertStatement.setString(6, p.getName());
+				viewEntPostInsertStatement.setString(7, p.getCategoryCode());
+				viewEntPostInsertStatement.setString(8, p.getSalary());
+				Integer maxSalary = null;
+				Integer minSalary = null;
+				if (null != p.getSalary() && p.getSalary().contains("-")) {
+					String[] salaries = p.getSalary().split("-", 2);
+					try {
+						maxSalary = Integer.parseInt(salaries[0]);
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}
+					try {
+						minSalary = Integer.parseInt(salaries[1]);
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}
+				}
+				if (null != maxSalary) {
+					viewEntPostInsertStatement.setInt(9, maxSalary);
+				} else {
+					viewEntPostInsertStatement.setNull(9, Types.INTEGER);
+				}
+				if (null != minSalary) {
+					viewEntPostInsertStatement.setInt(10, minSalary);
+				} else {
+					viewEntPostInsertStatement.setNull(10, Types.INTEGER);
+				}
+				viewEntPostInsertStatement.setInt(11, p.getSalaryType());
+				viewEntPostInsertStatement.setString(12, p.getNatureCode());
+				viewEntPostInsertStatement.setDate(13, new java.sql.Date(p.getDate().getTime()));
+				viewEntPostInsertStatement.addBatch();
+
+				Integer abilities = 0;
+				if (null != p.getExperienceAbility()) {
+					abilities++;
+				}
+				if (null != p.getEducationAbility()) {
+					abilities++;
+				}
+
+				if (null != p.getExperienceAbility()) {
+					Map<String, String> experience = p.getExperienceAbility();
+					Integer paramValue = Integer.parseInt(experience.get("paramValue"));
+					Integer matchType = Integer.parseInt(experience.get("matchType"));
+					String technicalCode = experience.get("technicalCode");
+					String techonlogyGategoryCode = experience.get("techonlogyGategoryCode");
+					Double percent = Double.parseDouble(experience.get("percent"));
+					Double totalPoint = percent / abilities;
+					entAbilityRequireInsertStatement.setLong(1, p.getId());
+					entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+					entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
+					entAbilityRequireInsertStatement.setString(4, p.getExperienceCode());
+					entAbilityRequireInsertStatement.setInt(5, paramValue);
+					entAbilityRequireInsertStatement.setInt(6, matchType);
+					entAbilityRequireInsertStatement.setString(7, technicalCode);
+					entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
+					entAbilityRequireInsertStatement.setDouble(9, totalPoint);
+					entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
+					entAbilityRequireInsertStatement.addBatch();
+				}
+
+				if (null != p.getEducationAbility()) {
+					Map<String, String> education = p.getEducationAbility();
+					Integer paramValue = Integer.parseInt(education.get("paramValue"));
+					Integer matchType = Integer.parseInt(education.get("matchType"));
+					String technicalCode = education.get("technicalCode");
+					String techonlogyGategoryCode = education.get("techonlogyGategoryCode");
+					Double percent = Double.parseDouble(education.get("percent"));
+					Double totalPoint = percent / abilities;
+					entAbilityRequireInsertStatement.setLong(1, p.getId());
+					entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+					entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
+					entAbilityRequireInsertStatement.setString(4, p.getEducationCode());
+					entAbilityRequireInsertStatement.setInt(5, paramValue);
+					entAbilityRequireInsertStatement.setInt(6, matchType);
+					entAbilityRequireInsertStatement.setString(7, technicalCode);
+					entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
+					entAbilityRequireInsertStatement.setDouble(9, totalPoint);
+					entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
+					entAbilityRequireInsertStatement.addBatch();
+				}
+			}
+			entPostStatusInsertStatement.executeBatch();
+			entPromotionInsertStatement.executeBatch();
+			viewEntPostInsertStatement.executeBatch();
+			entAbilityRequireInsertStatement.executeBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (null != entLBSInsertedKeyResultSet && !entLBSInsertedKeyResultSet.isClosed()) {
+					entLBSInsertedKeyResultSet.close();
+				}
+				if (null != entPostInsertedKeyResultSet && !entPostInsertedKeyResultSet.isClosed()) {
+					entPostInsertedKeyResultSet.close();
+				}
+				if (null != entPostUpdateStatement && !entPostUpdateStatement.isClosed()) {
+					entPostUpdateStatement.close();
+				}
+				if (null != entLBSInsertStatement && !entLBSInsertStatement.isClosed()) {
+					entLBSInsertStatement.close();
+				}
+				if (null != entPostInsertStatement && !entPostInsertStatement.isClosed()) {
+					entPostInsertStatement.close();
+				}
+				if (null != entAbilityRequireInsertStatement && !entAbilityRequireInsertStatement.isClosed()) {
+					entAbilityRequireInsertStatement.close();
+				}
+				if (null != viewEntPostInsertStatement && !viewEntPostInsertStatement.isClosed()) {
+					viewEntPostInsertStatement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static void saveOrUpdateEnterprises(List<Enterprise> list, Integer updateInterval) {
+		if (null == updateInterval) {
+			updateInterval = 3;
+		}
+		String entEnterpriseUpdateSQL = "update zcdh_ent_enterprise set create_date=? where ent_id=?";
+		String entLBSInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
+		String entEnterpriseInsertSQL = "insert into zcdh_ent_enterprise(create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, remark) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		Connection connection = openConnection();
+		PreparedStatement entEnterpriseUpdateStatement = null;
+		PreparedStatement entLBSInsertStatement = null;
+		PreparedStatement entEnterpriseInsertStatement = null;
+		ResultSet entLBSInsertedKeyResultSet = null;
+		ResultSet entEnterpriseInsertedKeyResultSet = null;
+		List<Enterprise> updatedEnterprises = new ArrayList<Enterprise>();
+		List<Enterprise> insertedEnterprises = new ArrayList<Enterprise>();
+		try {
+			entEnterpriseUpdateStatement = connection.prepareStatement(entEnterpriseUpdateSQL);
+			entLBSInsertStatement = connection.prepareStatement(entLBSInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+			entEnterpriseInsertStatement = connection.prepareStatement(entEnterpriseInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+			for (Enterprise ent : list) {
+				ent.setStatus(1);
+				String url = ent.getURL();
+				if (enterprises.containsKey(url)) {
+					Enterprise enterprise = enterprises.get(url);
+					ent.setId(enterprise.getId());
+					if (null != ent.getDate() && null != enterprise.getDate() && ent.getDate().getTime() - enterprise.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
+						entEnterpriseUpdateStatement.setDate(1, new java.sql.Date(ent.getDate().getTime()));
+						entEnterpriseUpdateStatement.setLong(2, ent.getId());
+						entEnterpriseUpdateStatement.addBatch();
+						updatedEnterprises.add(ent);
+					}
+				} else {
+					entLBSInsertStatement.setDouble(1, ent.getLBSLon());
+					entLBSInsertStatement.setDouble(2, ent.getLBSLat());
+					entLBSInsertStatement.addBatch();
+					insertedEnterprises.add(ent);
+				}
+			}
+
+			entEnterpriseUpdateStatement.executeBatch();
+			for (Enterprise ent : updatedEnterprises) {
+				ent.setStatus(3);
+			}
+
+			entLBSInsertStatement.executeBatch();
+			entLBSInsertedKeyResultSet = entLBSInsertStatement.getGeneratedKeys();
+			for (int i = 0; entLBSInsertedKeyResultSet.next(); i++) {
+				Enterprise ent = insertedEnterprises.get(i);
+
+				entEnterpriseInsertStatement.setDate(1, new java.sql.Date(ent.getDate().getTime()));
+				entEnterpriseInsertStatement.setString(2, ent.getName());
+				entEnterpriseInsertStatement.setString(3, ent.getCategoryCode());
+				entEnterpriseInsertStatement.setString(4, ent.getNatureCode());
+				entEnterpriseInsertStatement.setString(5, ent.getScaleCode());
+				entEnterpriseInsertStatement.setString(6, ent.getWebsite());
+				entEnterpriseInsertStatement.setString(7, ent.getAddress());
+				entEnterpriseInsertStatement.setString(8, ent.getAreaCode());
+				entEnterpriseInsertStatement.setLong(9, entLBSInsertedKeyResultSet.getLong(1));
+				entEnterpriseInsertStatement.setString(10, ent.getIntroduction());
+				entEnterpriseInsertStatement.setString(11, ent.getURL());
+				entEnterpriseInsertStatement.addBatch();
+			}
+			entEnterpriseInsertStatement.executeBatch();
+			entEnterpriseInsertedKeyResultSet = entEnterpriseInsertStatement.getGeneratedKeys();
+			for (int i = 0; entEnterpriseInsertedKeyResultSet.next(); i++) {
+				Enterprise ent = insertedEnterprises.get(i);
+				ent.setId(entEnterpriseInsertedKeyResultSet.getLong(1));
+				ent.setStatus(2);
+				enterprises.put(ent.getURL(), ent);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (null != entLBSInsertedKeyResultSet && !entLBSInsertedKeyResultSet.isClosed()) {
+					entLBSInsertedKeyResultSet.close();
+				}
+				if (null != entEnterpriseInsertedKeyResultSet && !entEnterpriseInsertedKeyResultSet.isClosed()) {
+					entEnterpriseInsertedKeyResultSet.close();
+				}
+				if (null != entLBSInsertStatement && !entLBSInsertStatement.isClosed()) {
+					entLBSInsertStatement.close();
+				}
+				if (null != entEnterpriseUpdateStatement && !entEnterpriseUpdateStatement.isClosed()) {
+					entEnterpriseUpdateStatement.close();
+				}
+				if (null != entEnterpriseInsertStatement && !entEnterpriseInsertStatement.isClosed()) {
+					entEnterpriseInsertStatement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+}

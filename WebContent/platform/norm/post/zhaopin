@@ -1,0 +1,56 @@
+{
+  nid: 'zhaopin',
+  bill: {
+    url: 'http://sou.zhaopin.com/jobs/searchresult.ashx',
+    data: {
+      sm: '0'
+    },
+    pageKey: 'p',
+    areaKey: 'jl',
+    areas: {
+      '广东省': '广东', '广州': '广州', '惠州': '惠州',
+      '深圳': '深圳',
+      '江苏省': '江苏', '南京': '南京', '苏州': '苏州'
+    },
+    container: 'table[class=newList] > tbody > tr',
+    attribute: {
+      date: 'td[class=gxsj] > span',
+      postURL: 'td[class=zwmc] > div > a#attr(href)',
+      postName: 'td[class=zwmc] > div > a',
+      enterpriseURL: 'td[class=gsmc] > a#attr(href)',
+      enterpriseName: 'td[class=gsmc] > a'
+    }
+  },
+  post: {
+    updateInterval: 3,
+    attribute: {
+      date: 'span:matches(^发布日期) + strong',
+      name: 'div[class^=inner-left] > h1',
+      category: 'span:matches(^职位类别) + strong',
+      number: 'span:matches(^招聘人数) + strong',
+      nature: 'span:matches(^工作性质) + strong',
+      salary: 'span:matches(^职位月薪) + strong',
+      experience: 'span:matches(^工作经验) + strong',
+      education: 'span:matches(^最低学历) + strong',
+      welfare: 'div[class=welfare-tab-box] > span',
+      address: 'span:matches(^工作地点) + strong',
+      introduction: 'div[class=tab-inner-cont]:eq(0)#ptext'
+    },
+    mapper: {
+    }
+  },
+  enterprise: {
+    updateInterval: 3,
+    attribute: {
+      name: 'p[class=company-name-t] > a',
+      category: 'span:matches(^公司行业) + strong',
+      nature: 'span:matches(^公司性质) + strong',
+      scale: 'span:matches(^公司规模) + strong',
+      website: 'span:matches(^公司主页) + strong > a',
+      address: 'span:matches(^公司地址) + strong',
+      introduction: 'div[class=tab-inner-cont]:eq(1)#ptext'
+    },
+    mapper: {
+    }
+  }
+}
