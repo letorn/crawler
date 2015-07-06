@@ -13,14 +13,6 @@ public class Store<T> extends C3P0Store {
 		storeModel = new StoreModel<T>(Store.class, this.getClass());
 	}
 
-	public T get(Object id) {
-		return select(storeModel.selectByIdSQL(), new Object[] { id });
-	}
-
-	public T get(Object[] ids) {
-		return select(storeModel.selectByIdsSQL(ids));
-	}
-
 	public Boolean add(final T t) {
 		if (storeModel.tableModel() != null) {
 			executeWithGeneratedKey(storeModel.insertSQL(), new Setter() {
@@ -112,9 +104,16 @@ public class Store<T> extends C3P0Store {
 		return b;
 	}
 
+	public Boolean deleteAll() {
+		if (storeModel.tableModel() != null) {
+			return execute(storeModel.deleteAllSQL());
+		}
+		return false;
+	}
+
 	public Boolean delete(final Object t) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.deleteSQL(), new Setter() {
+			return execute(storeModel.deleteByIdSQL(), new Setter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					if (t.getClass() == storeModel.tlazz())
 						preparedStatement.setObject(1, storeModel.idModel().get(t));
@@ -127,32 +126,29 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean delete(final Object[] ids) {
+	public Boolean delete(Object[] ids) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.deleteSQL(), new Setter() {
-				public void invoke(PreparedStatement preparedStatement) throws Exception {
-					for (Object id : ids) {
-						preparedStatement.setObject(1, id);
-						preparedStatement.addBatch();
-					}
-				}
-			});
+			return execute(storeModel.deleteByIdsSQL(ids));
 		}
 		return false;
 	}
 
-	public Boolean delete(final List<T> list) {
+	public Boolean delete(List<T> list) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.deleteSQL(), new Setter() {
-				public void invoke(PreparedStatement preparedStatement) throws Exception {
-					for (T t : list) {
-						preparedStatement.setObject(1, storeModel.idModel().get(t));
-						preparedStatement.addBatch();
-					}
-				}
-			});
+			Object[] ids = new Object[list.size()];
+			for (int i = 0; i < ids.length; i++)
+				ids[i] = storeModel.idModel().get(list.get(i));
+			return execute(storeModel.deleteByIdsSQL(ids));
 		}
 		return false;
+	}
+
+	public T get(Object id) {
+		return select(storeModel.selectByIdSQL(), new Object[] { id });
+	}
+
+	public List<T> get(Object[] ids) {
+		return selectList(storeModel.selectByIdsSQL(ids));
 	}
 
 	public T select(Object id) {

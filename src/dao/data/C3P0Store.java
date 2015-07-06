@@ -200,6 +200,34 @@ public class C3P0Store implements ApplicationContextAware {
 		});
 	}
 
+	public static List<Long> selectLongList(String sql) {
+		return executeWithResultSet(sql, new Getter<List<Long>>() {
+			public List<Long> invoke(ResultSet resultSet) throws Exception {
+				List<Long> list = new ArrayList<Long>();
+				while (resultSet.next())
+					list.add(resultSet.getLong(1));
+				return list;
+			}
+		});
+	}
+
+	public static List<Long> selectLongList(String sql, final Object[] params) {
+		return executeWithResultSet(sql, new Setter() {
+			public void invoke(PreparedStatement preparedStatement) throws Exception {
+				for (int i = 0; i < params.length; i++)
+					preparedStatement.setObject(i + 1, params[i]);
+				preparedStatement.addBatch();
+			}
+		}, new Getter<List<Long>>() {
+			public List<Long> invoke(ResultSet resultSet) throws Exception {
+				List<Long> list = new ArrayList<Long>();
+				while (resultSet.next())
+					list.add(resultSet.getLong(1));
+				return list;
+			}
+		});
+	}
+
 	public static String selectString(String sql) {
 		return executeWithResultSet(sql, new Getter<String>() {
 			public String invoke(ResultSet resultSet) throws Exception {

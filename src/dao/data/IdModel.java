@@ -47,9 +47,8 @@ public class IdModel extends ColumnModel {
 
 	public void set(Object object, Object value) {
 		try {
-			if (value != null && value instanceof Long && field.getType() == Integer.class) {
+			if (value != null && value instanceof Long && field.getType() == Integer.class)
 				value = ((Long) value).intValue();
-			}
 			field.set(object, value);
 		} catch (Exception e) {
 			e.printStackTrace();
