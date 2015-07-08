@@ -6,6 +6,7 @@ import java.util.Map;
 public class Post {
 
 	private Long id;
+	private String src;
 	private String url;
 	private Date date;
 	private String name;
@@ -27,7 +28,7 @@ public class Post {
 	private String welfareCode;
 	private String address;
 	private String introduction;
-	private String enterpriseURL;
+	private String enterpriseUrl;
 	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
 
 	private Map<String, String> experienceAbility;
@@ -41,11 +42,19 @@ public class Post {
 		this.id = id;
 	}
 
-	public String getURL() {
+	public String getSrc() {
+		return src;
+	}
+
+	public void setSrc(String src) {
+		this.src = src;
+	}
+	
+	public String getUrl() {
 		return url;
 	}
 
-	public void setURL(String url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
@@ -209,12 +218,12 @@ public class Post {
 		this.introduction = introduction;
 	}
 
-	public String getEnterpriseURL() {
-		return enterpriseURL;
+	public String getEnterpriseUrl() {
+		return enterpriseUrl;
 	}
 
-	public void setEnterpriseURL(String enterpriseURL) {
-		this.enterpriseURL = enterpriseURL;
+	public void setEnterpriseUrl(String enterpriseUrl) {
+		this.enterpriseUrl = enterpriseUrl;
 	}
 
 	public Integer getStatus() {

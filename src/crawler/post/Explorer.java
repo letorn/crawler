@@ -35,30 +35,26 @@ public class Explorer {
 	public Explorer(Collector collector) {
 		this.collector = collector;
 
-		Map<String, Object> billNorm = Heap.getBillNorm(collector.getNorm());
+		Map<String, Object> norm = collector.getNorm();
+		Map<String, Object> billNorm = (Map<String, Object>) norm.get("bill");
 
 		url = (String) billNorm.get("url");
 		data = (Map<String, String>) billNorm.get("data");
 		pageKey = (String) billNorm.get("pageKey");
 		areaKey = (String) billNorm.get("areaKey");
 		Map<String, String> areaCodes = (Map<String, String>) billNorm.get("area");
-		if (StringUtils.isBlank(collector.getArea())) {
-			areaValue = areaCodes.get(collector.getRegion());
-		} else {
-			areaValue = areaCodes.get(collector.getArea());
-		}
+		areaValue = StringUtils.isBlank(collector.getArea()) ? areaCodes.get(collector.getRegion()) : areaCodes.get(collector.getArea());
 
 		billContainerSelector = (String) billNorm.get("container");
 		billAttributeSelectors = (Map<String, String>) billNorm.get("attribute");
 	}
 
 	public Boolean start() {
-		if (null == areaValue || null != thread) {
+		if (areaValue == null || thread != null) {
 			return false;
 		} else {
-			if (3 == status) {
+			if (status == 3)
 				clear();
-			}
 			status = 1;
 			thread = new Thread(new Runnable() {
 				public void run() {
@@ -87,7 +83,7 @@ public class Explorer {
 							Bill bill = toBill(billAttributes);
 							if (null != bill && 1 == status) {
 								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000) {
-									Heap.saveBill(collector.getId(), bill);
+									collector.saveBill(bill);
 								} else {
 									finish();
 									break;
@@ -122,8 +118,7 @@ public class Explorer {
 	}
 
 	public Boolean clear() {
-		Heap.clearBills(collector.getId());
-		return true;
+		return collector.clearBill();
 	}
 
 	public Integer getStatus() {
@@ -137,19 +132,19 @@ public class Explorer {
 			date = parseDate(dateString);
 		}
 
-		String postURL = map.get("postURL");
+		String postUrl = map.get("postUrl");
 		String postName = map.get("postName");
-		String enterpriseURL = map.get("enterpriseURL");
+		String enterpriseUrl = map.get("enterpriseUrl");
 		String enterpriseName = map.get("enterpriseName");
 
-		if (null == date || null == postURL || null == postName || null == enterpriseURL || null == enterpriseName) {
+		if (null == date || null == postUrl || null == postName || null == enterpriseUrl || null == enterpriseName) {
 			return null;
 		} else {
 			Bill bill = new Bill();
 			bill.setDate(date);
-			bill.setPostURL(postURL);
+			bill.setPostUrl(postUrl);
 			bill.setPostName(postName);
-			bill.setEnterpriseURL(enterpriseURL);
+			bill.setEnterpriseUrl(enterpriseUrl);
 			bill.setEnterpriseName(enterpriseName);
 			return bill;
 		}

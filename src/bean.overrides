@@ -1,0 +1,10 @@
+dataSource.driverClass = net.sf.log4jdbc.DriverSpy
+dataSource.jdbcUrl = jdbc:log4jdbc:mysql://172.18.100.4:3306/zcdh_uni?useUnicode=true&amp;characterEncoding=utf8
+dataSource.user = admin
+dataSource.password = zcdh*obj.cct
+dataSource.maxPoolSize = 20
+dataSource.minPoolSize = 2
+dataSource.initialPoolSize = 3
+dataSource.acquireIncrement = 3
+dataSource.maxIdleTime = 60
+dataSource.idleConnectionTestPeriod = 60

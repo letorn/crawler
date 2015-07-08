@@ -5,11 +5,11 @@ import java.util.Date;
 public class Bill {
 
 	private Date date;
-	private String postURL;
+	private String postUrl;
 	private String postName;
-	private String enterpriseURL;
+	private String enterpriseUrl;
 	private String enterpriseName;
-	private Integer status = 0; //0 未处理, 1 存在问题，已忽略, 2 已提取
+	private Integer status = 0; // 0 未处理, 1 存在问题，已忽略, 2 已提取
 
 	public Date getDate() {
 		return date;
@@ -19,12 +19,12 @@ public class Bill {
 		this.date = date;
 	}
 
-	public String getPostURL() {
-		return postURL;
+	public String getPostUrl() {
+		return postUrl;
 	}
 
-	public void setPostURL(String postURL) {
-		this.postURL = postURL;
+	public void setPostUrl(String postUrl) {
+		this.postUrl = postUrl;
 	}
 
 	public String getPostName() {
@@ -35,12 +35,12 @@ public class Bill {
 		this.postName = postName;
 	}
 
-	public String getEnterpriseURL() {
-		return enterpriseURL;
+	public String getEnterpriseUrl() {
+		return enterpriseUrl;
 	}
 
-	public void setEnterpriseURL(String enterpriseURL) {
-		this.enterpriseURL = enterpriseURL;
+	public void setEnterpriseUrl(String enterpriseUrl) {
+		this.enterpriseUrl = enterpriseUrl;
 	}
 
 	public String getEnterpriseName() {

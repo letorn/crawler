@@ -5,6 +5,7 @@ import java.util.Date;
 public class Enterprise {
 
 	private Long id;
+	private String src;
 	private String url;
 	private Date date;
 	private String name;
@@ -20,6 +21,7 @@ public class Enterprise {
 	private Integer status = 0;// 0 未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
 
 	private String areaCode;
+	private Long lbsId;
 	private Double lbsLon;
 	private Double lbsLat;
 
@@ -31,11 +33,19 @@ public class Enterprise {
 		this.id = id;
 	}
 
-	public String getURL() {
+	public String getSrc() {
+		return src;
+	}
+
+	public void setSrc(String src) {
+		this.src = src;
+	}
+
+	public String getUrl() {
 		return url;
 	}
 
-	public void setURL(String url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
@@ -143,19 +153,27 @@ public class Enterprise {
 		this.areaCode = areaCode;
 	}
 
-	public Double getLBSLon() {
+	public Long getLbsId() {
+		return lbsId;
+	}
+
+	public void setLbsId(Long lbsId) {
+		this.lbsId = lbsId;
+	}
+
+	public Double getLbsLon() {
 		return lbsLon;
 	}
 
-	public void setLBSLon(Double lbsLon) {
+	public void setLbsLon(Double lbsLon) {
 		this.lbsLon = lbsLon;
 	}
 
-	public Double getLBSLat() {
+	public Double getLbsLat() {
 		return lbsLat;
 	}
 
-	public void setLBSLat(Double lbsLat) {
+	public void setLbsLat(Double lbsLat) {
 		this.lbsLat = lbsLat;
 	}
 
