@@ -120,7 +120,7 @@ public class Processor {
 							collector.saveEnterprise(enterprise);
 							collector.savePost(post);
 
-							if (post.getStatus() != -1 && enterprise.getStatus() != -1) {
+							if (enterprise.getStatus() != -1 && post.getStatus() != -1) {
 								if (Holder.existEnterpriseAccount(enterprise.getName())) {
 									logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
 								} else {
@@ -211,15 +211,23 @@ public class Processor {
 		Map<String, String> educationMapper = postAttributeMappers.get("education");
 
 		Post post = new Post();
-		post.setSrc(collector.getNid());
-		post.setUrl(url);
-		post.setDate(date);
-		post.setName(name);
 
-		if (category != null && categoryMapper != null) {
+		if (StringUtils.isNotBlank(collector.getNid()))
+			post.setSrc(collector.getNid());
+
+		if (StringUtils.isNotBlank(url))
+			post.setUrl(url);
+
+		if (date != null)
+			post.setDate(date);
+
+		if (StringUtils.isNotBlank(name))
+			post.setName(name);
+
+		if (StringUtils.isNotBlank(category) && categoryMapper != null) {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
-				if (categoryCode != null) {
+				if (StringUtils.isNotBlank(categoryCode)) {
 					Map<String, String> categoryMap = Holder.getPostCategory(categoryCode);
 					if (categoryMap != null) {
 						post.setCategoryCode(categoryCode);
@@ -236,7 +244,7 @@ public class Processor {
 			post.setIsSeveral(0);
 		} else {
 			String num = numberMapper.get(number);
-			if (num == null) {
+			if (StringUtils.isBlank(num)) {
 				post.setNumber(number.matches("^\\d+$") ? Integer.parseInt(number) : 3);
 				post.setNumberText(String.valueOf(number));
 				post.setIsSeveral(0);
@@ -248,7 +256,7 @@ public class Processor {
 		}
 
 		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "007.001" : natureMapper.get(nature);
-		if (natureCode != null) {
+		if (StringUtils.isNotBlank(natureCode)) {
 			String natureName = Holder.getPostNature(natureCode);
 			if (natureName != null) {
 				post.setNatureCode(natureCode);
@@ -265,7 +273,7 @@ public class Processor {
 			post.setSalaryText(salary);
 			if (salaryMapper != null) {
 				String num = salaryMapper.get(salary);
-				if (num != null) {
+				if (StringUtils.isNotBlank(num)) {
 					post.setSalary(num);
 					post.setSalaryText(num);
 				}
@@ -273,7 +281,7 @@ public class Processor {
 		}
 
 		String experienceCode = StringUtils.isBlank(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
-		if (experienceCode != null) {
+		if (StringUtils.isNotBlank(experienceCode)) {
 			Map<String, String> experienceAbility = Holder.getPostExperience(experienceCode);
 			if (experienceAbility != null) {
 				post.setExperienceCode(experienceCode);
@@ -283,7 +291,7 @@ public class Processor {
 		}
 
 		String educationCode = StringUtils.isBlank(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
-		if (educationCode != null) {
+		if (StringUtils.isNotBlank(educationCode)) {
 			Map<String, String> educationAbility = Holder.getPostEducation(educationCode);
 			if (educationAbility != null) {
 				post.setEducationCode(educationCode);
@@ -309,19 +317,17 @@ public class Processor {
 			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
 		}
 
-		if (StringUtils.isNotBlank(address)) {
+		if (StringUtils.isNotBlank(address))
 			post.setAddress(address);
-		}
 
-		if (StringUtils.isNotBlank(introduction)) {
+		if (StringUtils.isNotBlank(introduction))
 			post.setIntroduction(introduction);
-		}
 
-		post.setEnterpriseUrl(enterpriseUrl);
+		if (StringUtils.isNotBlank(enterpriseUrl))
+			post.setEnterpriseUrl(enterpriseUrl);
 
-		if (StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getEnterpriseUrl())) {
+		if (StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getEnterpriseUrl())) 
 			post.setStatus(-1);
-		}
 
 		return post;
 	}
@@ -343,15 +349,23 @@ public class Processor {
 		Map<String, String> scaleMapper = enterpriseAttributeMappers.get("scale");
 
 		Enterprise enterprise = new Enterprise();
-		enterprise.setSrc(collector.getNid());
-		enterprise.setUrl(url);
-		enterprise.setDate(date);
-		enterprise.setName(name);
 
-		if (category != null && categoryMapper != null) {
+		if (StringUtils.isNotBlank(collector.getNid()))
+			enterprise.setSrc(collector.getNid());
+
+		if (StringUtils.isNotBlank(url))
+			enterprise.setUrl(url);
+
+		if (date != null)
+			enterprise.setDate(date);
+
+		if (StringUtils.isNotBlank(name))
+			enterprise.setName(name);
+
+		if (StringUtils.isNotBlank(category) && categoryMapper != null) {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
-				if (categoryCode != null) {
+				if (StringUtils.isNotBlank(categoryCode)) {
 					String categoryName = Holder.getEnterpriseCategory(categoryCode);
 					if (categoryName != null) {
 						enterprise.setCategoryCode(categoryCode);
@@ -363,7 +377,7 @@ public class Processor {
 		}
 
 		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "010.006" : natureMapper.get(nature);
-		if (natureCode != null) {
+		if (StringUtils.isNotBlank(natureCode)) {
 			String natureName = Holder.getEnterpriseNature(natureCode);
 			if (natureName != null) {
 				enterprise.setNatureCode(natureCode);
@@ -372,7 +386,7 @@ public class Processor {
 		}
 
 		String scaleCode = StringUtils.isBlank(scale) || scaleMapper == null ? "011.001" : scaleMapper.get(scale);
-		if (scaleCode != null) {
+		if (StringUtils.isNotBlank(scaleCode)) {
 			String scaleName = Holder.getEnterpriseScale(scaleCode);
 			if (scaleName != null) {
 				enterprise.setScaleCode(scaleCode);
@@ -380,37 +394,25 @@ public class Processor {
 			}
 		}
 
-		enterprise.setWebsite(website);
+		if (StringUtils.isNotBlank(website))
+			enterprise.setWebsite(website);
 
-		if (address != null) {
+		if (StringUtils.isNotBlank(address)) {
 			address = address.replaceAll("^地 址：", "");
-			Integer provinceIndex = address.indexOf("省");
-			Integer cityIndex = address.indexOf("市");
-			if (cityIndex != -1) {
-				String area = null;
-				if (-1 == provinceIndex || provinceIndex > cityIndex) {
-					area = address.substring(0, cityIndex + 1);
-				} else {
-					area = address.substring(provinceIndex + 1, cityIndex + 1);
-				}
-				String areaCode = Holder.getAreaCode(area);
-				if (areaCode != null) {
-					enterprise.setAreaCode(areaCode);
-				}
-			}
+			enterprise.setAddress(address);
+			enterprise.setAreaCode(Holder.getAreaCode(address));
 			Double[] point = Client.getPoint(address);
 			if (point != null) {
 				enterprise.setLbsLon(point[0]);
 				enterprise.setLbsLat(point[1]);
 			}
-			enterprise.setAddress(address);
 		}
 
-		enterprise.setIntroduction(introduction);
+		if (StringUtils.isNotBlank(introduction))
+			enterprise.setIntroduction(introduction);
 
-		if (StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null) {
+		if (StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
 			enterprise.setStatus(-1);
-		}
 
 		return enterprise;
 	}

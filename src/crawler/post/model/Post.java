@@ -34,6 +34,8 @@ public class Post {
 	private Map<String, String> experienceAbility;
 	private Map<String, String> educationAbility;
 
+	private Long lbsId;
+
 	public Long getId() {
 		return id;
 	}
@@ -49,7 +51,7 @@ public class Post {
 	public void setSrc(String src) {
 		this.src = src;
 	}
-	
+
 	public String getUrl() {
 		return url;
 	}
@@ -248,6 +250,14 @@ public class Post {
 
 	public void setEducationAbility(Map<String, String> educationAbility) {
 		this.educationAbility = educationAbility;
+	}
+
+	public Long getLbsId() {
+		return lbsId;
+	}
+
+	public void setLbsId(Long lbsId) {
+		this.lbsId = lbsId;
 	}
 
 }

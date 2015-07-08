@@ -199,6 +199,9 @@ public class PostTaskController {
 			Collector collector = postTaskService.getCollector(cid);
 			Post post = collector.getPost(url);
 			Map<String, Object> postData = new HashMap<String, Object>();
+			postData.put("id", post.getId());
+			postData.put("lbsId", post.getLbsId());
+			postData.put("status", post.getStatus());
 			postData.put("url", post.getUrl());
 			postData.put("date", post.getDate());
 			postData.put("name", post.getName());
@@ -210,12 +213,14 @@ public class PostTaskController {
 			postData.put("experienceCode", post.getExperienceCode());
 			postData.put("educationCode", post.getEducationCode());
 			postData.put("welfare", post.getWelfare());
-			postData.put("address", post.getAddress());
 			postData.put("introduction", post.getIntroduction());
 			resultMap.put("post", postData);
 
 			Enterprise enterprise = collector.getEnterprise(post.getEnterpriseUrl());
 			Map<String, Object> enterpriseData = new HashMap<String, Object>();
+			enterpriseData.put("id", enterprise.getId());
+			enterpriseData.put("lbsId", enterprise.getLbsId());
+			enterpriseData.put("status", enterprise.getStatus());
 			enterpriseData.put("url", enterprise.getUrl());
 			enterpriseData.put("name", enterprise.getName());
 			enterpriseData.put("category", enterprise.getCategory());

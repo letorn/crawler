@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.log4j.Logger;
-
-import com.sun.jmx.snmp.Timestamp;
 
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
@@ -51,9 +48,9 @@ public class Holder extends C3P0Store {
 			}
 		});
 
-		selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 OR is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$'", new Iterator<ResultSet>() {
+		selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 OR is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$' and area_name not regexp '行政'", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
-				areaCodes.put(resultSet.getString("area_name"), resultSet.getString("area_code"));
+				areaCodes.put(resultSet.getString("area_name").replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), resultSet.getString("area_code"));
 				return true;
 			}
 		});
@@ -146,8 +143,11 @@ public class Holder extends C3P0Store {
 		return tagCodes.get(tagName);
 	}
 
-	public static String getAreaCode(String areaName) {
-		return areaCodes.get(areaName);
+	public static String getAreaCode(String address) {
+		for (String areaName : areaCodes.keySet())
+			if (address.contains(areaName))
+				return areaCodes.get(areaName);
+		return null;
 	}
 
 	public static Map<String, Map<String, String>> getPostCategories() {
@@ -207,9 +207,8 @@ public class Holder extends C3P0Store {
 	}
 
 	public static void savePost(List<Post> list, Integer updateInterval) {
-		if (null == updateInterval) {
+		if (updateInterval == null)
 			updateInterval = 3;
-		}
 		String entPostUpdateSQL = "update zcdh_ent_post set update_date=? where id=?";
 		String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 		String entPostInsertSQL = "insert into zcdh_ent_post(publish_date, update_date, ent_id, post_aliases, post_name, post_code, pjob_category, headcounts, is_several, psalary, salary_type, tag_selected, post_address, parea, lbs_id, post_remark, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -243,7 +242,7 @@ public class Holder extends C3P0Store {
 				if (posts.containsKey(url)) {
 					Post post = posts.get(url);
 					p.setId(post.getId());
-					if (null != p.getDate() && null != post.getDate() && p.getDate().getTime() - post.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
+					if (p.getDate() != null && post.getDate() != null && p.getDate().getTime() - post.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
 						entPostUpdateStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
 						entPostUpdateStatement.setLong(2, p.getId());
 						entPostUpdateStatement.addBatch();
@@ -260,14 +259,15 @@ public class Holder extends C3P0Store {
 			}
 
 			entPostUpdateStatement.executeBatch();
-			for (Post p : updatedPosts) {
+			for (Post p : updatedPosts)
 				p.setStatus(3);
-			}
 
 			entLbsInsertStatement.executeBatch();
 			entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();
 			for (int i = 0; entLbsInsertedKeyResultSet.next(); i++) {
 				Post p = insertedPosts.get(i);
+				p.setLbsId(entLbsInsertedKeyResultSet.getLong(1));
+
 				Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
 
 				entPostInsertStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
@@ -282,9 +282,9 @@ public class Holder extends C3P0Store {
 				entPostInsertStatement.setString(10, p.getSalary());
 				entPostInsertStatement.setInt(11, p.getSalaryType());
 				entPostInsertStatement.setString(12, p.getWelfareCode());
-				entPostInsertStatement.setString(13, p.getAddress());
+				entPostInsertStatement.setString(13, enterprise.getAddress());
 				entPostInsertStatement.setString(14, enterprise.getAreaCode());
-				entPostInsertStatement.setLong(15, entLbsInsertedKeyResultSet.getLong(1));
+				entPostInsertStatement.setLong(15, p.getLbsId());
 				entPostInsertStatement.setString(16, p.getIntroduction());
 				entPostInsertStatement.setString(17, p.getSrc());
 				entPostInsertStatement.setString(18, p.getUrl());
@@ -294,11 +294,11 @@ public class Holder extends C3P0Store {
 			entPostInsertedKeyResultSet = entPostInsertStatement.getGeneratedKeys();
 			for (int i = 0; entPostInsertedKeyResultSet.next(); i++) {
 				Post p = insertedPosts.get(i);
-				Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
-
 				p.setId(entPostInsertedKeyResultSet.getLong(1));
 				p.setStatus(2);
 				posts.put(p.getUrl(), p);
+
+				Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
 
 				entPostStatusInsertStatement.setLong(1, p.getId());
 				entPostStatusInsertStatement.setInt(2, 1);
@@ -324,28 +324,19 @@ public class Holder extends C3P0Store {
 				viewEntPostInsertStatement.setString(8, p.getSalary());
 				Integer maxSalary = null;
 				Integer minSalary = null;
-				if (null != p.getSalary() && p.getSalary().contains("-")) {
+				if (p.getSalary() != null && p.getSalary().contains("-")) {
 					String[] salaries = p.getSalary().split("-", 2);
-					try {
+					if (salaries[0].matches("^\\d+$"))
 						maxSalary = Integer.parseInt(salaries[0]);
-					} catch (NumberFormatException e) {
-						e.printStackTrace();
-					}
-					try {
+					if (salaries[1].matches("^\\d+$"))
 						minSalary = Integer.parseInt(salaries[1]);
-					} catch (NumberFormatException e) {
-						e.printStackTrace();
-					}
 				}
-				if (null != maxSalary) {
-					viewEntPostInsertStatement.setInt(9, maxSalary);
-				} else {
+				if (maxSalary == null || minSalary == null) {
 					viewEntPostInsertStatement.setNull(9, Types.INTEGER);
-				}
-				if (null != minSalary) {
-					viewEntPostInsertStatement.setInt(10, minSalary);
-				} else {
 					viewEntPostInsertStatement.setNull(10, Types.INTEGER);
+				} else {
+					viewEntPostInsertStatement.setInt(9, maxSalary);
+					viewEntPostInsertStatement.setInt(10, minSalary);
 				}
 				viewEntPostInsertStatement.setInt(11, p.getSalaryType());
 				viewEntPostInsertStatement.setString(12, p.getNatureCode());
@@ -353,14 +344,12 @@ public class Holder extends C3P0Store {
 				viewEntPostInsertStatement.addBatch();
 
 				Integer abilities = 0;
-				if (null != p.getExperienceAbility()) {
+				if (p.getExperienceAbility() != null)
 					abilities++;
-				}
-				if (null != p.getEducationAbility()) {
+				if (p.getEducationAbility() != null)
 					abilities++;
-				}
 
-				if (null != p.getExperienceAbility()) {
+				if (p.getExperienceAbility() != null) {
 					Map<String, String> experience = p.getExperienceAbility();
 					Integer paramValue = Integer.parseInt(experience.get("paramValue"));
 					Integer matchType = Integer.parseInt(experience.get("matchType"));
@@ -381,7 +370,7 @@ public class Holder extends C3P0Store {
 					entAbilityRequireInsertStatement.addBatch();
 				}
 
-				if (null != p.getEducationAbility()) {
+				if (p.getEducationAbility() != null) {
 					Map<String, String> education = p.getEducationAbility();
 					Integer paramValue = Integer.parseInt(education.get("paramValue"));
 					Integer matchType = Integer.parseInt(education.get("matchType"));
@@ -410,34 +399,28 @@ public class Holder extends C3P0Store {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (null != entLbsInsertedKeyResultSet && !entLbsInsertedKeyResultSet.isClosed()) {
+				if (entLbsInsertedKeyResultSet != null && !entLbsInsertedKeyResultSet.isClosed())
 					entLbsInsertedKeyResultSet.close();
-				}
-				if (null != entPostInsertedKeyResultSet && !entPostInsertedKeyResultSet.isClosed()) {
+				if (entPostInsertedKeyResultSet != null && !entPostInsertedKeyResultSet.isClosed())
 					entPostInsertedKeyResultSet.close();
-				}
-				if (null != entPostUpdateStatement && !entPostUpdateStatement.isClosed()) {
+				if (entPostUpdateStatement != null && !entPostUpdateStatement.isClosed())
 					entPostUpdateStatement.close();
-				}
-				if (null != entLbsInsertStatement && !entLbsInsertStatement.isClosed()) {
+				if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 					entLbsInsertStatement.close();
-				}
-				if (null != entPostInsertStatement && !entPostInsertStatement.isClosed()) {
+				if (entPostInsertStatement != null && !entPostInsertStatement.isClosed())
 					entPostInsertStatement.close();
-				}
-				if (null != entAbilityRequireInsertStatement && !entAbilityRequireInsertStatement.isClosed()) {
+				if (entAbilityRequireInsertStatement != null && !entAbilityRequireInsertStatement.isClosed())
 					entAbilityRequireInsertStatement.close();
-				}
-				if (null != viewEntPostInsertStatement && !viewEntPostInsertStatement.isClosed()) {
+				if (viewEntPostInsertStatement != null && !viewEntPostInsertStatement.isClosed())
 					viewEntPostInsertStatement.close();
-				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	public static Boolean savePost(Post post) {
+		post.setStatus(1);
 		if (post.getId() == null) {
 			String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 			String entPostInsertSQL = "insert into zcdh_ent_post(publish_date, update_date, ent_id, post_aliases, post_name, post_code, pjob_category, headcounts, is_several, psalary, salary_type, tag_selected, post_address, parea, lbs_id, post_remark, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -446,7 +429,6 @@ public class Holder extends C3P0Store {
 			String entAbilityRequireInsertSQL = "insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, max_salary, min_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			Connection connection = openConnection();
-			PreparedStatement entPostUpdateStatement = null;
 			PreparedStatement entLbsInsertStatement = null;
 			PreparedStatement entPostInsertStatement = null;
 			PreparedStatement entPostStatusInsertStatement = null;
@@ -455,8 +437,6 @@ public class Holder extends C3P0Store {
 			PreparedStatement viewEntPostInsertStatement = null;
 			ResultSet entLbsInsertedKeyResultSet = null;
 			ResultSet entPostInsertedKeyResultSet = null;
-			List<Post> updatedPosts = new ArrayList<Post>();
-			List<Post> insertedPosts = new ArrayList<Post>();
 			try {
 				entLbsInsertStatement = connection.prepareStatement(entLbsInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 				entPostInsertStatement = connection.prepareStatement(entPostInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -464,214 +444,167 @@ public class Holder extends C3P0Store {
 				entPromotionInsertStatement = connection.prepareStatement(entPromotionInsertSQL);
 				entAbilityRequireInsertStatement = connection.prepareStatement(entAbilityRequireInsertSQL);
 				viewEntPostInsertStatement = connection.prepareStatement(viewEntPostInsertSQL);
-				for (Post p : list) {
-					p.setStatus(1);
-					String url = p.getUrl();
-					if (posts.containsKey(url)) {
-						Post post = posts.get(url);
-						p.setId(post.getId());
-						if (null != p.getDate() && null != post.getDate() && p.getDate().getTime() - post.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
-							entPostUpdateStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
-							entPostUpdateStatement.setLong(2, p.getId());
-							entPostUpdateStatement.addBatch();
-							updatedPosts.add(p);
-						}
-					} else {
-						Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
-						entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
-						entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
-						entLbsInsertStatement.addBatch();
-						insertedPosts.add(p);
-					}
 
-				}
+				Enterprise enterprise = enterprises.get(post.getEnterpriseUrl());
+				entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
+				entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
+				entLbsInsertStatement.executeUpdate();
 
-				entPostUpdateStatement.executeBatch();
-				for (Post p : updatedPosts) {
-					p.setStatus(3);
-				}
-
-				entLbsInsertStatement.executeBatch();
 				entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();
-				for (int i = 0; entLbsInsertedKeyResultSet.next(); i++) {
-					Post p = insertedPosts.get(i);
-					Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
+				if (entLbsInsertedKeyResultSet.next()) {
+					post.setLbsId(entLbsInsertedKeyResultSet.getLong(1));
 
-					entPostInsertStatement.setDate(1, new java.sql.Date(p.getDate().getTime()));
-					entPostInsertStatement.setDate(2, new java.sql.Date(p.getDate().getTime()));
+					entPostInsertStatement.setDate(1, new java.sql.Date(post.getDate().getTime()));
+					entPostInsertStatement.setDate(2, new java.sql.Date(post.getDate().getTime()));
 					entPostInsertStatement.setLong(3, enterprise.getId());
-					entPostInsertStatement.setString(4, p.getName());
-					entPostInsertStatement.setString(5, p.getCategory());
-					entPostInsertStatement.setString(6, p.getCategoryCode());
-					entPostInsertStatement.setString(7, p.getNatureCode());
-					entPostInsertStatement.setInt(8, p.getNumber());
-					entPostInsertStatement.setInt(9, p.getIsSeveral());
-					entPostInsertStatement.setString(10, p.getSalary());
-					entPostInsertStatement.setInt(11, p.getSalaryType());
-					entPostInsertStatement.setString(12, p.getWelfareCode());
-					entPostInsertStatement.setString(13, p.getAddress());
+					entPostInsertStatement.setString(4, post.getName());
+					entPostInsertStatement.setString(5, post.getCategory());
+					entPostInsertStatement.setString(6, post.getCategoryCode());
+					entPostInsertStatement.setString(7, post.getNatureCode());
+					entPostInsertStatement.setInt(8, post.getNumber());
+					entPostInsertStatement.setInt(9, post.getIsSeveral());
+					entPostInsertStatement.setString(10, post.getSalary());
+					entPostInsertStatement.setInt(11, post.getSalaryType());
+					entPostInsertStatement.setString(12, post.getWelfareCode());
+					entPostInsertStatement.setString(13, enterprise.getAddress());
 					entPostInsertStatement.setString(14, enterprise.getAreaCode());
-					entPostInsertStatement.setLong(15, entLbsInsertedKeyResultSet.getLong(1));
-					entPostInsertStatement.setString(16, p.getIntroduction());
-					entPostInsertStatement.setString(17, p.getSrc());
-					entPostInsertStatement.setString(18, p.getUrl());
-					entPostInsertStatement.addBatch();
-				}
-				entPostInsertStatement.executeBatch();
-				entPostInsertedKeyResultSet = entPostInsertStatement.getGeneratedKeys();
-				for (int i = 0; entPostInsertedKeyResultSet.next(); i++) {
-					Post p = insertedPosts.get(i);
-					Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
+					entPostInsertStatement.setLong(15, post.getLbsId());
+					entPostInsertStatement.setString(16, post.getIntroduction());
+					entPostInsertStatement.setString(17, post.getSrc());
+					entPostInsertStatement.setString(18, post.getUrl());
+					entPostInsertStatement.executeUpdate();
 
-					p.setId(entPostInsertedKeyResultSet.getLong(1));
-					p.setStatus(2);
-					posts.put(p.getUrl(), p);
+					entPostInsertedKeyResultSet = entPostInsertStatement.getGeneratedKeys();
+					if (entPostInsertedKeyResultSet.next()) {
+						post.setId(entPostInsertedKeyResultSet.getLong(1));
+						post.setStatus(2);
+						posts.put(post.getUrl(), post);
 
-					entPostStatusInsertStatement.setLong(1, p.getId());
-					entPostStatusInsertStatement.setInt(2, 1);
-					entPostStatusInsertStatement.setInt(3, 0);
-					entPostStatusInsertStatement.setInt(4, 0);
-					entPostStatusInsertStatement.setInt(5, p.getNumber());
-					entPostStatusInsertStatement.setInt(6, p.getNumber());
-					entPostStatusInsertStatement.setInt(7, 0);
-					entPostStatusInsertStatement.addBatch();
+						entPostStatusInsertStatement.setLong(1, post.getId());
+						entPostStatusInsertStatement.setInt(2, 1);
+						entPostStatusInsertStatement.setInt(3, 0);
+						entPostStatusInsertStatement.setInt(4, 0);
+						entPostStatusInsertStatement.setInt(5, post.getNumber());
+						entPostStatusInsertStatement.setInt(6, post.getNumber());
+						entPostStatusInsertStatement.setInt(7, 0);
+						entPostStatusInsertStatement.executeUpdate();
 
-					entPromotionInsertStatement.setLong(1, p.getId());
-					entPromotionInsertStatement.setLong(2, enterprise.getId());
-					entPromotionInsertStatement.setString(3, "");
-					entPromotionInsertStatement.addBatch();
+						entPromotionInsertStatement.setLong(1, post.getId());
+						entPromotionInsertStatement.setLong(2, enterprise.getId());
+						entPromotionInsertStatement.setString(3, "");
+						entPromotionInsertStatement.executeUpdate();
 
-					viewEntPostInsertStatement.setLong(1, p.getId());
-					viewEntPostInsertStatement.setString(2, enterprise.getName());
-					viewEntPostInsertStatement.setString(3, enterprise.getCategoryCode());
-					viewEntPostInsertStatement.setString(4, enterprise.getNatureCode());
-					viewEntPostInsertStatement.setString(5, enterprise.getScaleCode());
-					viewEntPostInsertStatement.setString(6, p.getName());
-					viewEntPostInsertStatement.setString(7, p.getCategoryCode());
-					viewEntPostInsertStatement.setString(8, p.getSalary());
-					Integer maxSalary = null;
-					Integer minSalary = null;
-					if (null != p.getSalary() && p.getSalary().contains("-")) {
-						String[] salaries = p.getSalary().split("-", 2);
-						try {
-							maxSalary = Integer.parseInt(salaries[0]);
-						} catch (NumberFormatException e) {
-							e.printStackTrace();
+						viewEntPostInsertStatement.setLong(1, post.getId());
+						viewEntPostInsertStatement.setString(2, enterprise.getName());
+						viewEntPostInsertStatement.setString(3, enterprise.getCategoryCode());
+						viewEntPostInsertStatement.setString(4, enterprise.getNatureCode());
+						viewEntPostInsertStatement.setString(5, enterprise.getScaleCode());
+						viewEntPostInsertStatement.setString(6, post.getName());
+						viewEntPostInsertStatement.setString(7, post.getCategoryCode());
+						viewEntPostInsertStatement.setString(8, post.getSalary());
+						Integer maxSalary = null;
+						Integer minSalary = null;
+						if (post.getSalary() != null && post.getSalary().contains("-")) {
+							String[] salaries = post.getSalary().split("-", 2);
+							if (salaries[0].matches("^\\d+$"))
+								maxSalary = Integer.parseInt(salaries[0]);
+							if (salaries[1].matches("^\\d+$"))
+								minSalary = Integer.parseInt(salaries[1]);
 						}
-						try {
-							minSalary = Integer.parseInt(salaries[1]);
-						} catch (NumberFormatException e) {
-							e.printStackTrace();
+						if (maxSalary == null || minSalary == null) {
+							viewEntPostInsertStatement.setNull(9, Types.INTEGER);
+							viewEntPostInsertStatement.setNull(10, Types.INTEGER);
+						} else {
+							viewEntPostInsertStatement.setInt(9, maxSalary);
+							viewEntPostInsertStatement.setInt(10, minSalary);
 						}
-					}
-					if (null != maxSalary) {
-						viewEntPostInsertStatement.setInt(9, maxSalary);
-					} else {
-						viewEntPostInsertStatement.setNull(9, Types.INTEGER);
-					}
-					if (null != minSalary) {
-						viewEntPostInsertStatement.setInt(10, minSalary);
-					} else {
-						viewEntPostInsertStatement.setNull(10, Types.INTEGER);
-					}
-					viewEntPostInsertStatement.setInt(11, p.getSalaryType());
-					viewEntPostInsertStatement.setString(12, p.getNatureCode());
-					viewEntPostInsertStatement.setDate(13, new java.sql.Date(p.getDate().getTime()));
-					viewEntPostInsertStatement.addBatch();
 
-					Integer abilities = 0;
-					if (null != p.getExperienceAbility()) {
-						abilities++;
-					}
-					if (null != p.getEducationAbility()) {
-						abilities++;
-					}
+						viewEntPostInsertStatement.setInt(11, post.getSalaryType());
+						viewEntPostInsertStatement.setString(12, post.getNatureCode());
+						viewEntPostInsertStatement.setDate(13, new java.sql.Date(post.getDate().getTime()));
+						viewEntPostInsertStatement.executeUpdate();
 
-					if (null != p.getExperienceAbility()) {
-						Map<String, String> experience = p.getExperienceAbility();
-						Integer paramValue = Integer.parseInt(experience.get("paramValue"));
-						Integer matchType = Integer.parseInt(experience.get("matchType"));
-						String technicalCode = experience.get("technicalCode");
-						String techonlogyGategoryCode = experience.get("techonlogyGategoryCode");
-						Double percent = Double.parseDouble(experience.get("percent"));
-						Double totalPoint = percent / abilities;
-						entAbilityRequireInsertStatement.setLong(1, p.getId());
-						entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-						entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
-						entAbilityRequireInsertStatement.setString(4, p.getExperienceCode());
-						entAbilityRequireInsertStatement.setInt(5, paramValue);
-						entAbilityRequireInsertStatement.setInt(6, matchType);
-						entAbilityRequireInsertStatement.setString(7, technicalCode);
-						entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-						entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-						entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-						entAbilityRequireInsertStatement.addBatch();
-					}
+						Integer abilities = 0;
+						if (post.getExperienceAbility() != null)
+							abilities++;
+						if (post.getEducationAbility() != null)
+							abilities++;
 
-					if (null != p.getEducationAbility()) {
-						Map<String, String> education = p.getEducationAbility();
-						Integer paramValue = Integer.parseInt(education.get("paramValue"));
-						Integer matchType = Integer.parseInt(education.get("matchType"));
-						String technicalCode = education.get("technicalCode");
-						String techonlogyGategoryCode = education.get("techonlogyGategoryCode");
-						Double percent = Double.parseDouble(education.get("percent"));
-						Double totalPoint = percent / abilities;
-						entAbilityRequireInsertStatement.setLong(1, p.getId());
-						entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-						entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
-						entAbilityRequireInsertStatement.setString(4, p.getEducationCode());
-						entAbilityRequireInsertStatement.setInt(5, paramValue);
-						entAbilityRequireInsertStatement.setInt(6, matchType);
-						entAbilityRequireInsertStatement.setString(7, technicalCode);
-						entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-						entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-						entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-						entAbilityRequireInsertStatement.addBatch();
+						if (post.getExperienceAbility() != null) {
+							Map<String, String> experience = post.getExperienceAbility();
+							Integer paramValue = Integer.parseInt(experience.get("paramValue"));
+							Integer matchType = Integer.parseInt(experience.get("matchType"));
+							String technicalCode = experience.get("technicalCode");
+							String techonlogyGategoryCode = experience.get("techonlogyGategoryCode");
+							Double percent = Double.parseDouble(experience.get("percent"));
+							Double totalPoint = percent / abilities;
+							entAbilityRequireInsertStatement.setLong(1, post.getId());
+							entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+							entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
+							entAbilityRequireInsertStatement.setString(4, post.getExperienceCode());
+							entAbilityRequireInsertStatement.setInt(5, paramValue);
+							entAbilityRequireInsertStatement.setInt(6, matchType);
+							entAbilityRequireInsertStatement.setString(7, technicalCode);
+							entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
+							entAbilityRequireInsertStatement.setDouble(9, totalPoint);
+							entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
+							entAbilityRequireInsertStatement.addBatch();
+						}
+
+						if (post.getEducationAbility() != null) {
+							Map<String, String> education = post.getEducationAbility();
+							Integer paramValue = Integer.parseInt(education.get("paramValue"));
+							Integer matchType = Integer.parseInt(education.get("matchType"));
+							String technicalCode = education.get("technicalCode");
+							String techonlogyGategoryCode = education.get("techonlogyGategoryCode");
+							Double percent = Double.parseDouble(education.get("percent"));
+							Double totalPoint = percent / abilities;
+							entAbilityRequireInsertStatement.setLong(1, post.getId());
+							entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+							entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
+							entAbilityRequireInsertStatement.setString(4, post.getEducationCode());
+							entAbilityRequireInsertStatement.setInt(5, paramValue);
+							entAbilityRequireInsertStatement.setInt(6, matchType);
+							entAbilityRequireInsertStatement.setString(7, technicalCode);
+							entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
+							entAbilityRequireInsertStatement.setDouble(9, totalPoint);
+							entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
+							entAbilityRequireInsertStatement.addBatch();
+						}
+						entAbilityRequireInsertStatement.executeBatch();
+						return true;
 					}
 				}
-				entPostStatusInsertStatement.executeBatch();
-				entPromotionInsertStatement.executeBatch();
-				viewEntPostInsertStatement.executeBatch();
-				entAbilityRequireInsertStatement.executeBatch();
-				return true;
+				return false;
 			} catch (SQLException e) {
 				e.printStackTrace();
 				return false;
 			} finally {
 				try {
-					if (null != entLbsInsertedKeyResultSet && !entLbsInsertedKeyResultSet.isClosed()) {
+					if (entLbsInsertedKeyResultSet != null && !entLbsInsertedKeyResultSet.isClosed())
 						entLbsInsertedKeyResultSet.close();
-					}
-					if (null != entPostInsertedKeyResultSet && !entPostInsertedKeyResultSet.isClosed()) {
+					if (entPostInsertedKeyResultSet != null && !entPostInsertedKeyResultSet.isClosed())
 						entPostInsertedKeyResultSet.close();
-					}
-					if (null != entPostUpdateStatement && !entPostUpdateStatement.isClosed()) {
-						entPostUpdateStatement.close();
-					}
-					if (null != entLbsInsertStatement && !entLbsInsertStatement.isClosed()) {
+					if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 						entLbsInsertStatement.close();
-					}
-					if (null != entPostInsertStatement && !entPostInsertStatement.isClosed()) {
+					if (entPostInsertStatement != null && !entPostInsertStatement.isClosed())
 						entPostInsertStatement.close();
-					}
-					if (null != entAbilityRequireInsertStatement && !entAbilityRequireInsertStatement.isClosed()) {
+					if (entAbilityRequireInsertStatement != null && !entAbilityRequireInsertStatement.isClosed())
 						entAbilityRequireInsertStatement.close();
-					}
-					if (null != viewEntPostInsertStatement && !viewEntPostInsertStatement.isClosed()) {
+					if (viewEntPostInsertStatement != null && !viewEntPostInsertStatement.isClosed())
 						viewEntPostInsertStatement.close();
-					}
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
+		} else {
+			return false;
 		}
-		
 	}
-	
+
 	public static void saveEnterprise(List<Enterprise> list, Integer updateInterval) {
-		if (null == updateInterval) {
+		if (updateInterval == null)
 			updateInterval = 3;
-		}
 		String entEnterpriseUpdateSQL = "update zcdh_ent_enterprise set create_date=? where ent_id=?";
 		String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 		String entEnterpriseInsertSQL = "insert into zcdh_ent_enterprise(create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -693,7 +626,7 @@ public class Holder extends C3P0Store {
 				if (enterprises.containsKey(url)) {
 					Enterprise enterprise = enterprises.get(url);
 					ent.setId(enterprise.getId());
-					if (null != ent.getDate() && null != enterprise.getDate() && ent.getDate().getTime() - enterprise.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
+					if (ent.getDate() != null && enterprise.getDate() != null && ent.getDate().getTime() - enterprise.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
 						entEnterpriseUpdateStatement.setDate(1, new java.sql.Date(ent.getDate().getTime()));
 						entEnterpriseUpdateStatement.setLong(2, ent.getId());
 						entEnterpriseUpdateStatement.addBatch();
@@ -708,15 +641,15 @@ public class Holder extends C3P0Store {
 			}
 
 			entEnterpriseUpdateStatement.executeBatch();
-			for (Enterprise ent : updatedEnterprises) {
+			for (Enterprise ent : updatedEnterprises)
 				ent.setStatus(3);
-			}
 
 			entLbsInsertStatement.executeBatch();
 			entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();
 			for (int i = 0; entLbsInsertedKeyResultSet.next(); i++) {
 				Enterprise ent = insertedEnterprises.get(i);
 				ent.setLbsId(entLbsInsertedKeyResultSet.getLong(1));
+
 				entEnterpriseInsertStatement.setDate(1, new java.sql.Date(ent.getDate().getTime()));
 				entEnterpriseInsertStatement.setString(2, ent.getName());
 				entEnterpriseInsertStatement.setString(3, ent.getCategoryCode());
@@ -743,21 +676,16 @@ public class Holder extends C3P0Store {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (null != entLbsInsertedKeyResultSet && !entLbsInsertedKeyResultSet.isClosed()) {
+				if (entLbsInsertedKeyResultSet != null && !entLbsInsertedKeyResultSet.isClosed())
 					entLbsInsertedKeyResultSet.close();
-				}
-				if (null != entEnterpriseInsertedKeyResultSet && !entEnterpriseInsertedKeyResultSet.isClosed()) {
+				if (entEnterpriseInsertedKeyResultSet != null && !entEnterpriseInsertedKeyResultSet.isClosed())
 					entEnterpriseInsertedKeyResultSet.close();
-				}
-				if (null != entLbsInsertStatement && !entLbsInsertStatement.isClosed()) {
+				if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 					entLbsInsertStatement.close();
-				}
-				if (null != entEnterpriseUpdateStatement && !entEnterpriseUpdateStatement.isClosed()) {
+				if (entEnterpriseUpdateStatement != null && !entEnterpriseUpdateStatement.isClosed())
 					entEnterpriseUpdateStatement.close();
-				}
-				if (null != entEnterpriseInsertStatement && !entEnterpriseInsertStatement.isClosed()) {
+				if (entEnterpriseInsertStatement != null && !entEnterpriseInsertStatement.isClosed())
 					entEnterpriseInsertStatement.close();
-				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -765,6 +693,7 @@ public class Holder extends C3P0Store {
 	}
 
 	public static Boolean saveEnterprise(Enterprise enterprise) {
+		enterprise.setStatus(1);
 		if (enterprise.getId() == null) {
 			String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 			String entEnterpriseInsertSQL = "insert into zcdh_ent_enterprise(create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -780,10 +709,11 @@ public class Holder extends C3P0Store {
 				entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
 				entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
 				entLbsInsertStatement.executeUpdate();
-				
+
 				entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();
 				if (entLbsInsertedKeyResultSet.next()) {
 					enterprise.setLbsId(entLbsInsertedKeyResultSet.getLong(1));
+
 					entEnterpriseInsertStatement.setDate(1, new java.sql.Date(enterprise.getDate().getTime()));
 					entEnterpriseInsertStatement.setString(2, enterprise.getName());
 					entEnterpriseInsertStatement.setString(3, enterprise.getCategoryCode());
@@ -797,7 +727,7 @@ public class Holder extends C3P0Store {
 					entEnterpriseInsertStatement.setString(11, enterprise.getSrc());
 					entEnterpriseInsertStatement.setString(12, enterprise.getUrl());
 					entEnterpriseInsertStatement.executeUpdate();
-					
+
 					entEnterpriseInsertedKeyResultSet = entEnterpriseInsertStatement.getGeneratedKeys();
 					if (entEnterpriseInsertedKeyResultSet.next()) {
 						enterprise.setId(entEnterpriseInsertedKeyResultSet.getLong(1));
@@ -812,18 +742,14 @@ public class Holder extends C3P0Store {
 				return false;
 			} finally {
 				try {
-					if (null != entLbsInsertedKeyResultSet && !entLbsInsertedKeyResultSet.isClosed()) {
+					if (entLbsInsertedKeyResultSet != null && !entLbsInsertedKeyResultSet.isClosed())
 						entLbsInsertedKeyResultSet.close();
-					}
-					if (null != entEnterpriseInsertedKeyResultSet && !entEnterpriseInsertedKeyResultSet.isClosed()) {
+					if (entEnterpriseInsertedKeyResultSet != null && !entEnterpriseInsertedKeyResultSet.isClosed())
 						entEnterpriseInsertedKeyResultSet.close();
-					}
-					if (null != entLbsInsertStatement && !entLbsInsertStatement.isClosed()) {
+					if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 						entLbsInsertStatement.close();
-					}
-					if (null != entEnterpriseInsertStatement && !entEnterpriseInsertStatement.isClosed()) {
+					if (entEnterpriseInsertStatement != null && !entEnterpriseInsertStatement.isClosed())
 						entEnterpriseInsertStatement.close();
-					}
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -866,12 +792,10 @@ public class Holder extends C3P0Store {
 				return false;
 			} finally {
 				try {
-					if (entLbsUpdateStatement != null && !entLbsUpdateStatement.isClosed()) {
+					if (entLbsUpdateStatement != null && !entLbsUpdateStatement.isClosed())
 						entLbsUpdateStatement.close();
-					}
-					if (entEnterpriseUpdateStatement != null && !entEnterpriseUpdateStatement.isClosed()) {
+					if (entEnterpriseUpdateStatement != null && !entEnterpriseUpdateStatement.isClosed())
 						entEnterpriseUpdateStatement.close();
-					}
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}

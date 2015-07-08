@@ -18,16 +18,21 @@ import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import util.WebContext;
+import crawler.Client;
 import crawler.post.Collector;
 import crawler.post.Holder;
+import crawler.post.Processor;
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
 
 @Service
 public class PostTaskService {
+
+	private static Logger logger = Logger.getLogger(PostTaskService.class);
 
 	private static Map<String, Map<String, Object>> norms = new ConcurrentHashMap<String, Map<String, Object>>();
 	private static Map<String, Map<String, Object>> billNorms = new ConcurrentHashMap<String, Map<String, Object>>();
@@ -241,7 +246,30 @@ public class PostTaskService {
 	}
 
 	public Boolean savePost(String cid, Post post, Enterprise enterprise) {
+		if (StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getEnterpriseUrl()))
+			post.setStatus(-1);
+
+		if (StringUtils.isNotBlank(enterprise.getAddress())) {
+			enterprise.setAreaCode(Holder.getAreaCode(enterprise.getAddress()));
+			Double[] point = Client.getPoint(enterprise.getAddress());
+			if (point != null) {
+				enterprise.setLbsLon(point[0]);
+				enterprise.setLbsLat(point[1]);
+			}
+		}
+
+		if (StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
+			enterprise.setStatus(-1);
+
 		Collector collector = collectors.get(cid);
+		if (enterprise.getStatus() != -1 && post.getStatus() != -1)
+			if (Holder.existEnterpriseAccount(enterprise.getName()))
+				logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
+			else if (Holder.saveEnterprise(enterprise))
+				if (Holder.savePost(post))
+					if (collector.saveEnterprise(enterprise))
+						if (collector.savePost(post))
+							return true;
 		return false;
 	}
 

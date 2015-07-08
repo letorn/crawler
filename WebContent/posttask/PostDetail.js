@@ -21,6 +21,15 @@ Ext.define('Platform.posttask.PostDetail', {
         width: 320
       },
       items: [{
+        xtype: 'hiddenfield',
+        name: 'id'
+      }, {
+        xtype: 'hiddenfield',
+        name: 'lbsId'
+      }, {
+        xtype: 'hiddenfield',
+        name: 'status'
+      }, {
         xtype: 'textfield',
         fieldLabel: '链接',
         name: 'url',
@@ -86,10 +95,6 @@ Ext.define('Platform.posttask.PostDetail', {
         fieldLabel: '福利',
         name: 'welfare'
       }, {
-        xtype: 'textfield',
-        fieldLabel: '工作地点',
-        name: 'address'
-      }, {
         xtype: 'textarea',
         fieldLabel: '介绍',
         name: 'introduction',
@@ -107,6 +112,15 @@ Ext.define('Platform.posttask.PostDetail', {
         width: 320
       },
       items: [{
+        xtype: 'hiddenfield',
+        name: 'id'
+      }, {
+        xtype: 'hiddenfield',
+        name: 'lbsId'
+      }, {
+        xtype: 'hiddenfield',
+        name: 'status'
+      }, {
         xtype: 'textfield',
         fieldLabel: '链接',
         name: 'url',
