@@ -151,7 +151,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pagedEnterprise(String cid, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid) || !postTaskService.existCollector(cid) || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+		if (!postTaskService.existCollector(cid) || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
 			resultMap.put("success", false);
 		} else {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
@@ -296,6 +296,19 @@ public class PostTaskController {
 			resultMap.put("success", false);
 		} else {
 			resultMap.put("success", postTaskService.deleteCollector(cid));
+		}
+		return resultMap;
+	}
+
+	@RequestMapping("postPoints.do")
+	@ResponseBody
+	public Map<String, Object> postPoints(String cid) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		if (!postTaskService.existCollector(cid)) {
+			resultMap.put("success", false);
+		} else {
+			resultMap.put("data", postTaskService.getPostPoints(cid));
+			resultMap.put("success", true);
 		}
 		return resultMap;
 	}

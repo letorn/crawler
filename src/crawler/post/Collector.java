@@ -190,6 +190,10 @@ public class Collector {
 		return posts.get(postUrlIndexes.get(url));
 	}
 
+	public List<Post> getPosts() {
+		return posts;
+	}
+
 	public List<Post> findPost(Integer status, Integer start, Integer limit) {
 		List<Post> list = new ArrayList<Post>();
 		Integer last = posts.size() - 1;
@@ -259,6 +263,10 @@ public class Collector {
 
 	public Enterprise getEnterprise(String url) {
 		return enterprises.get(enterpriseUrlIndexes.get(url));
+	}
+
+	public List<Enterprise> getEnterprises() {
+		return enterprises;
 	}
 
 	public List<Enterprise> findEnterprise(Integer start, Integer limit) {

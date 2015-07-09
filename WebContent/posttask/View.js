@@ -1,7 +1,7 @@
 Ext.define('Platform.posttask.View', {
   extend: 'Ext.grid.Panel',
   xtype: 'platform-posttask',
-  uses: ['Platform.posttask.Bill', 'Platform.posttask.Post'],
+  uses: ['Platform.posttask.Bill', 'Platform.posttask.Post', 'Platform.posttask.Map'],
   title: '岗位作业',
   initComponent: function() {
     var me = this;
@@ -99,7 +99,7 @@ Ext.define('Platform.posttask.View', {
     }, {
       xtype: 'actioncolumn',
       text: '操作',
-      width: 120,
+      width: 160,
       items: [{
         iconCls: 'start',
         tooltip: '启动',
@@ -116,6 +116,10 @@ Ext.define('Platform.posttask.View', {
         iconCls: 'delete',
         tooltip: '删除',
         handler: Ext.bind(me.onDeleteBtnClick, me)
+      }, '-', {
+        iconCls: 'refresh',
+        tooltip: '地图',
+        handler: Ext.bind(me.onMapBtnClick, me)
       }]
     }];
 
@@ -146,8 +150,7 @@ Ext.define('Platform.posttask.View', {
       if (!me.billWindow) {
         me.billWindow = Platform.widget('posttask-bill');
       }
-      me.billWindow.cid = record.get('cid');
-      me.billWindow.loadData();
+      me.billWindow.loadData(record.get('cid'));
       me.billWindow.show();
     } else if (className == 'insertedPostSize' || className == 'updatedPostSize' || className == 'ignoredPostSize' || className == 'failedPostSize') {
       if (!me.postWindow) {
@@ -233,24 +236,24 @@ Ext.define('Platform.posttask.View', {
         });
       }
       progressbar.updateText(tip1);
-    }, 100);
+    }, 500);
     return Ext.String.format('<div id={0} style="margin:0px; padding:0px;"></div><div>{1}</div>', progressbarId, tip2);
   },
   onStartBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    this.executeTask('posttask/startCollector.do', record.get('cid'));
+    this.executeTask(ctx + '/posttask/startCollector.do', record.get('cid'));
   },
   onPauseBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    this.executeTask('posttask/pauseCollector.do', record.get('cid'));
+    this.executeTask(ctx + '/posttask/pauseCollector.do', record.get('cid'));
   },
   onStopBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    this.executeTask('posttask/stopCollector.do', record.get('cid'));
+    this.executeTask(ctx + '/posttask/stopCollector.do', record.get('cid'));
   },
   onDeleteBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    this.executeTask('posttask/deleteCollector.do', record.get('cid'));
+    this.executeTask(ctx + '/posttask/deleteCollector.do', record.get('cid'));
   },
   executeTask: function(url, cid) {
-    var me = this, view = me.getView();
-    view.setLoading(true);
+    var me = this;
+    me.setLoading(true);
     Ext.Ajax.request({
       method: 'post',
       url: url,
@@ -260,10 +263,18 @@ Ext.define('Platform.posttask.View', {
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
-          me.onRefreshBtnClick();
-          view.setLoading(false);
+          me.getStore().load();
         }
+        me.setLoading(false);
       }
     });
+  },
+  onMapBtnClick: function(table, rowIndex, colIndex, item, e, record) {
+    var me = this;
+    if (!me.mapWindow) {
+      me.mapWindow = Platform.widget('posttask-map');
+    }
+    me.mapWindow.show();
+    me.mapWindow.loadData(record.get('cid'));
   }
 });

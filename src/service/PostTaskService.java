@@ -160,9 +160,10 @@ public class PostTaskService {
 	}
 
 	public Boolean existCollector(String cid) {
-		for (String id : collectors.keySet())
-			if (cid.contains(id))
-				return true;
+		if (StringUtils.isNotBlank(cid))
+			for (String id : collectors.keySet())
+				if (cid.contains(id))
+					return true;
 		return false;
 	}
 
@@ -250,7 +251,7 @@ public class PostTaskService {
 		Enterprise enterprise = collector.getEnterprise(updatedEnterprise.getUrl());
 		if (post != null && enterprise != null) {
 			post.setStatus(0);
-			
+
 			if (StringUtils.isNotBlank(updatedPost.getName()))
 				post.setName(updatedPost.getName());
 
@@ -266,7 +267,7 @@ public class PostTaskService {
 				post.setStatus(-1);
 
 			enterprise.setStatus(0);
-			
+
 			if (StringUtils.isNotBlank(updatedEnterprise.getName()))
 				enterprise.setName(updatedEnterprise.getName());
 
@@ -304,6 +305,19 @@ public class PostTaskService {
 								return true;
 		}
 		return false;
+	}
+
+	public List<Double[]> getPostPoints(String cid) {
+		List<Double[]> points = new ArrayList<Double[]>();
+		List<Enterprise> enterprises = collectors.get(cid).getEnterprises();
+		for (int i = 0; i < enterprises.size(); i++) {
+			Double[] point = new Double[2];
+			Enterprise enterprise = enterprises.get(i);
+			point[0] = enterprise.getLbsLon();
+			point[1] = enterprise.getLbsLat();
+			points.add(point);
+		}
+		return points;
 	}
 
 	private static Map<String, Object> toMap(File file) {
