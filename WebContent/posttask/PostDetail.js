@@ -21,15 +21,6 @@ Ext.define('Platform.posttask.PostDetail', {
         width: 320
       },
       items: [{
-        xtype: 'hiddenfield',
-        name: 'id'
-      }, {
-        xtype: 'hiddenfield',
-        name: 'lbsId'
-      }, {
-        xtype: 'hiddenfield',
-        name: 'status'
-      }, {
         xtype: 'textfield',
         fieldLabel: '链接',
         name: 'url',
@@ -61,11 +52,13 @@ Ext.define('Platform.posttask.PostDetail', {
       }, {
         xtype: 'textfield',
         fieldLabel: '招聘人数',
-        name: 'numberText'
+        name: 'numberText',
+        readOnly: true
       }, {
         xtype: 'textfield',
         fieldLabel: '薪酬',
-        name: 'salaryText'
+        name: 'salaryText',
+        readOnly: true
       }, {
         itemId: 'experienceComboBox',
         xtype: 'combobox',
@@ -74,6 +67,7 @@ Ext.define('Platform.posttask.PostDetail', {
         displayField: 'name',
         valueField: 'code',
         editable: false,
+        readOnly: true,
         queryMode: 'local',
         store: Store.create({
           fields: ['code', 'name']
@@ -86,6 +80,7 @@ Ext.define('Platform.posttask.PostDetail', {
         displayField: 'name',
         valueField: 'code',
         editable: false,
+        readOnly: true,
         queryMode: 'local',
         store: Store.create({
           fields: ['code', 'name']
@@ -93,11 +88,13 @@ Ext.define('Platform.posttask.PostDetail', {
       }, {
         xtype: 'textfield',
         fieldLabel: '福利',
-        name: 'welfare'
+        name: 'welfare',
+        readOnly: true
       }, {
         xtype: 'textarea',
         fieldLabel: '介绍',
         name: 'introduction',
+        readOnly: true,
         height: 220
       }]
     })
@@ -112,15 +109,6 @@ Ext.define('Platform.posttask.PostDetail', {
         width: 320
       },
       items: [{
-        xtype: 'hiddenfield',
-        name: 'id'
-      }, {
-        xtype: 'hiddenfield',
-        name: 'lbsId'
-      }, {
-        xtype: 'hiddenfield',
-        name: 'status'
-      }, {
         xtype: 'textfield',
         fieldLabel: '链接',
         name: 'url',
@@ -149,6 +137,7 @@ Ext.define('Platform.posttask.PostDetail', {
         displayField: 'name',
         valueField: 'code',
         editable: false,
+        readOnly: true,
         queryMode: 'local',
         store: Store.create({
           fields: ['code', 'name']
@@ -161,6 +150,7 @@ Ext.define('Platform.posttask.PostDetail', {
         displayField: 'name',
         valueField: 'code',
         editable: false,
+        readOnly: true,
         queryMode: 'local',
         store: Store.create({
           fields: ['code', 'name']
@@ -168,7 +158,8 @@ Ext.define('Platform.posttask.PostDetail', {
       }, {
         xtype: 'textfield',
         fieldLabel: '主页',
-        name: 'website'
+        name: 'website',
+        readOnly: true
       }, {
         xtype: 'textfield',
         fieldLabel: '地址',
@@ -177,6 +168,7 @@ Ext.define('Platform.posttask.PostDetail', {
         xtype: 'textarea',
         fieldLabel: '介绍',
         name: 'introduction',
+        readOnly: true,
         height: 220
       }]
     })
@@ -218,6 +210,7 @@ Ext.define('Platform.posttask.PostDetail', {
   },
   loadData: function(cid, url) {
     var me = this;
+    me.cid = cid;
     me.loadCodes();
     me.postView.reset();
     me.enterpriseView.reset();
@@ -242,6 +235,7 @@ Ext.define('Platform.posttask.PostDetail', {
     var me = this, postView = me.postView, enterpriseView = me.enterpriseView;
     me.setLoading(true);
     var map = {
+      cid: me.cid,
       post: postView.getValues(),
       enterprise: enterpriseView.getValues()
     };
@@ -252,9 +246,27 @@ Ext.define('Platform.posttask.PostDetail', {
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
-          response.post.date = new Date(response.post.date);
-          me.postView.getForm().setValues(response.post);
-          me.enterpriseView.getForm().setValues(response.enterprise);
+          me.postGridStore.reload();
+          me.close();
+          Ext.toast({
+            title: '提示',
+            html: '保存成功！',
+            align: 't',
+            slideInDuration: 100,
+            slideBackDuration: 800,
+            hideDuration: 100,
+            autoCloseDelay: 1000,
+          });
+        } else {
+          Ext.toast({
+            title: '提示',
+            html: '保存失败！',
+            align: 't',
+            slideInDuration: 100,
+            slideBackDuration: 800,
+            hideDuration: 100,
+            autoCloseDelay: 1000,
+          });
         }
         me.setLoading(false);
       }

@@ -215,7 +215,7 @@ public class Holder extends C3P0Store {
 		String entPostStatusInsertSQL = "insert into zcdh_ent_post_status(post_id, post_status, employ, employed, employ_total, un_employ, skim_count) values(?, ?, ?, ?, ?, ?, ?)";
 		String entPromotionInsertSQL = "insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)";
 		String entAbilityRequireInsertSQL = "insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, max_salary, min_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, min_salary, max_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		Connection connection = openConnection();
 		PreparedStatement entPostUpdateStatement = null;
 		PreparedStatement entLbsInsertStatement = null;
@@ -314,6 +314,43 @@ public class Holder extends C3P0Store {
 				entPromotionInsertStatement.setString(3, "");
 				entPromotionInsertStatement.addBatch();
 
+				Map<String, String> experience = p.getExperienceAbility();
+				Integer experienceParamValue = Integer.parseInt(experience.get("paramValue"));
+				Integer experienceMatchType = Integer.parseInt(experience.get("matchType"));
+				String experienceTechnicalCode = experience.get("technicalCode");
+				String experienceTechonlogyGategoryCode = experience.get("techonlogyGategoryCode");
+				Double experiencePercent = Double.parseDouble(experience.get("percent"));
+				Double experienceTotalPoint = experiencePercent / 2;
+				entAbilityRequireInsertStatement.setLong(1, p.getId());
+				entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+				entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
+				entAbilityRequireInsertStatement.setString(4, p.getExperienceCode());
+				entAbilityRequireInsertStatement.setInt(5, experienceParamValue);
+				entAbilityRequireInsertStatement.setInt(6, experienceMatchType);
+				entAbilityRequireInsertStatement.setString(7, experienceTechnicalCode);
+				entAbilityRequireInsertStatement.setString(8, experienceTechonlogyGategoryCode);
+				entAbilityRequireInsertStatement.setDouble(9, experienceTotalPoint);
+				entAbilityRequireInsertStatement.setDouble(10, experienceTotalPoint / experienceParamValue);
+				entAbilityRequireInsertStatement.addBatch();
+				Map<String, String> education = p.getEducationAbility();
+				Integer educationParamValue = Integer.parseInt(education.get("paramValue"));
+				Integer educationMatchType = Integer.parseInt(education.get("matchType"));
+				String educationTechnicalCode = education.get("technicalCode");
+				String educationTechonlogyGategoryCode = education.get("techonlogyGategoryCode");
+				Double educationPercent = Double.parseDouble(education.get("percent"));
+				Double educationTotalPoint = educationPercent / 2;
+				entAbilityRequireInsertStatement.setLong(1, p.getId());
+				entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+				entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
+				entAbilityRequireInsertStatement.setString(4, p.getEducationCode());
+				entAbilityRequireInsertStatement.setInt(5, educationParamValue);
+				entAbilityRequireInsertStatement.setInt(6, educationMatchType);
+				entAbilityRequireInsertStatement.setString(7, educationTechnicalCode);
+				entAbilityRequireInsertStatement.setString(8, educationTechonlogyGategoryCode);
+				entAbilityRequireInsertStatement.setDouble(9, educationTotalPoint);
+				entAbilityRequireInsertStatement.setDouble(10, educationTotalPoint / educationParamValue);
+				entAbilityRequireInsertStatement.addBatch();
+
 				viewEntPostInsertStatement.setLong(1, p.getId());
 				viewEntPostInsertStatement.setString(2, enterprise.getName());
 				viewEntPostInsertStatement.setString(3, enterprise.getCategoryCode());
@@ -322,79 +359,31 @@ public class Holder extends C3P0Store {
 				viewEntPostInsertStatement.setString(6, p.getName());
 				viewEntPostInsertStatement.setString(7, p.getCategoryCode());
 				viewEntPostInsertStatement.setString(8, p.getSalary());
-				Integer maxSalary = null;
 				Integer minSalary = null;
+				Integer maxSalary = null;
 				if (p.getSalary() != null && p.getSalary().contains("-")) {
 					String[] salaries = p.getSalary().split("-", 2);
 					if (salaries[0].matches("^\\d+$"))
-						maxSalary = Integer.parseInt(salaries[0]);
+						minSalary = Integer.parseInt(salaries[0]);
 					if (salaries[1].matches("^\\d+$"))
-						minSalary = Integer.parseInt(salaries[1]);
+						maxSalary = Integer.parseInt(salaries[1]);
 				}
-				if (maxSalary == null || minSalary == null) {
+				if (minSalary == null || maxSalary == null) {
 					viewEntPostInsertStatement.setNull(9, Types.INTEGER);
 					viewEntPostInsertStatement.setNull(10, Types.INTEGER);
 				} else {
-					viewEntPostInsertStatement.setInt(9, maxSalary);
-					viewEntPostInsertStatement.setInt(10, minSalary);
+					viewEntPostInsertStatement.setInt(9, minSalary);
+					viewEntPostInsertStatement.setInt(10, maxSalary);
 				}
 				viewEntPostInsertStatement.setInt(11, p.getSalaryType());
 				viewEntPostInsertStatement.setString(12, p.getNatureCode());
 				viewEntPostInsertStatement.setDate(13, new java.sql.Date(p.getDate().getTime()));
 				viewEntPostInsertStatement.addBatch();
-
-				Integer abilities = 0;
-				if (p.getExperienceAbility() != null)
-					abilities++;
-				if (p.getEducationAbility() != null)
-					abilities++;
-
-				if (p.getExperienceAbility() != null) {
-					Map<String, String> experience = p.getExperienceAbility();
-					Integer paramValue = Integer.parseInt(experience.get("paramValue"));
-					Integer matchType = Integer.parseInt(experience.get("matchType"));
-					String technicalCode = experience.get("technicalCode");
-					String techonlogyGategoryCode = experience.get("techonlogyGategoryCode");
-					Double percent = Double.parseDouble(experience.get("percent"));
-					Double totalPoint = percent / abilities;
-					entAbilityRequireInsertStatement.setLong(1, p.getId());
-					entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-					entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
-					entAbilityRequireInsertStatement.setString(4, p.getExperienceCode());
-					entAbilityRequireInsertStatement.setInt(5, paramValue);
-					entAbilityRequireInsertStatement.setInt(6, matchType);
-					entAbilityRequireInsertStatement.setString(7, technicalCode);
-					entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-					entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-					entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-					entAbilityRequireInsertStatement.addBatch();
-				}
-
-				if (p.getEducationAbility() != null) {
-					Map<String, String> education = p.getEducationAbility();
-					Integer paramValue = Integer.parseInt(education.get("paramValue"));
-					Integer matchType = Integer.parseInt(education.get("matchType"));
-					String technicalCode = education.get("technicalCode");
-					String techonlogyGategoryCode = education.get("techonlogyGategoryCode");
-					Double percent = Double.parseDouble(education.get("percent"));
-					Double totalPoint = percent / abilities;
-					entAbilityRequireInsertStatement.setLong(1, p.getId());
-					entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-					entAbilityRequireInsertStatement.setString(3, p.getCategoryCode());
-					entAbilityRequireInsertStatement.setString(4, p.getEducationCode());
-					entAbilityRequireInsertStatement.setInt(5, paramValue);
-					entAbilityRequireInsertStatement.setInt(6, matchType);
-					entAbilityRequireInsertStatement.setString(7, technicalCode);
-					entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-					entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-					entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-					entAbilityRequireInsertStatement.addBatch();
-				}
 			}
 			entPostStatusInsertStatement.executeBatch();
 			entPromotionInsertStatement.executeBatch();
-			viewEntPostInsertStatement.executeBatch();
 			entAbilityRequireInsertStatement.executeBatch();
+			viewEntPostInsertStatement.executeBatch();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -409,6 +398,10 @@ public class Holder extends C3P0Store {
 					entLbsInsertStatement.close();
 				if (entPostInsertStatement != null && !entPostInsertStatement.isClosed())
 					entPostInsertStatement.close();
+				if (entPostStatusInsertStatement != null && !entPostStatusInsertStatement.isClosed())
+					entPostStatusInsertStatement.close();
+				if (entPromotionInsertStatement != null && !entPromotionInsertStatement.isClosed())
+					entPromotionInsertStatement.close();
 				if (entAbilityRequireInsertStatement != null && !entAbilityRequireInsertStatement.isClosed())
 					entAbilityRequireInsertStatement.close();
 				if (viewEntPostInsertStatement != null && !viewEntPostInsertStatement.isClosed())
@@ -427,7 +420,7 @@ public class Holder extends C3P0Store {
 			String entPostStatusInsertSQL = "insert into zcdh_ent_post_status(post_id, post_status, employ, employed, employ_total, un_employ, skim_count) values(?, ?, ?, ?, ?, ?, ?)";
 			String entPromotionInsertSQL = "insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)";
 			String entAbilityRequireInsertSQL = "insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-			String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, max_salary, min_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String viewEntPostInsertSQL = "insert into zcdh_view_ent_post(post_id, ent_name, industry, property, employ_num, post_aliases, post_code, salary_code, min_salary, max_salary, salary_type, post_property_code, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			Connection connection = openConnection();
 			PreparedStatement entLbsInsertStatement = null;
 			PreparedStatement entPostInsertStatement = null;
@@ -494,6 +487,44 @@ public class Holder extends C3P0Store {
 						entPromotionInsertStatement.setString(3, "");
 						entPromotionInsertStatement.executeUpdate();
 
+						Map<String, String> experience = post.getExperienceAbility();
+						Integer experienceParamValue = Integer.parseInt(experience.get("paramValue"));
+						Integer experienceMatchType = Integer.parseInt(experience.get("matchType"));
+						String experienceTechnicalCode = experience.get("technicalCode");
+						String experienceTechonlogyGategoryCode = experience.get("techonlogyGategoryCode");
+						Double experiencePercent = Double.parseDouble(experience.get("percent"));
+						Double experienceTotalPoint = experiencePercent / 2;
+						entAbilityRequireInsertStatement.setLong(1, post.getId());
+						entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+						entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
+						entAbilityRequireInsertStatement.setString(4, post.getExperienceCode());
+						entAbilityRequireInsertStatement.setInt(5, experienceParamValue);
+						entAbilityRequireInsertStatement.setInt(6, experienceMatchType);
+						entAbilityRequireInsertStatement.setString(7, experienceTechnicalCode);
+						entAbilityRequireInsertStatement.setString(8, experienceTechonlogyGategoryCode);
+						entAbilityRequireInsertStatement.setDouble(9, experienceTotalPoint);
+						entAbilityRequireInsertStatement.setDouble(10, experienceTotalPoint / experienceParamValue);
+						entAbilityRequireInsertStatement.addBatch();
+						Map<String, String> education = post.getEducationAbility();
+						Integer educationParamValue = Integer.parseInt(education.get("paramValue"));
+						Integer educationMatchType = Integer.parseInt(education.get("matchType"));
+						String educationTechnicalCode = education.get("technicalCode");
+						String educationTechonlogyGategoryCode = education.get("techonlogyGategoryCode");
+						Double educationPercent = Double.parseDouble(education.get("percent"));
+						Double educationTotalPoint = educationPercent / 2;
+						entAbilityRequireInsertStatement.setLong(1, post.getId());
+						entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
+						entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
+						entAbilityRequireInsertStatement.setString(4, post.getEducationCode());
+						entAbilityRequireInsertStatement.setInt(5, educationParamValue);
+						entAbilityRequireInsertStatement.setInt(6, educationMatchType);
+						entAbilityRequireInsertStatement.setString(7, educationTechnicalCode);
+						entAbilityRequireInsertStatement.setString(8, educationTechonlogyGategoryCode);
+						entAbilityRequireInsertStatement.setDouble(9, educationTotalPoint);
+						entAbilityRequireInsertStatement.setDouble(10, educationTotalPoint / educationParamValue);
+						entAbilityRequireInsertStatement.addBatch();
+						entAbilityRequireInsertStatement.executeBatch();
+
 						viewEntPostInsertStatement.setLong(1, post.getId());
 						viewEntPostInsertStatement.setString(2, enterprise.getName());
 						viewEntPostInsertStatement.setString(3, enterprise.getCategoryCode());
@@ -502,76 +533,27 @@ public class Holder extends C3P0Store {
 						viewEntPostInsertStatement.setString(6, post.getName());
 						viewEntPostInsertStatement.setString(7, post.getCategoryCode());
 						viewEntPostInsertStatement.setString(8, post.getSalary());
-						Integer maxSalary = null;
 						Integer minSalary = null;
+						Integer maxSalary = null;
 						if (post.getSalary() != null && post.getSalary().contains("-")) {
 							String[] salaries = post.getSalary().split("-", 2);
 							if (salaries[0].matches("^\\d+$"))
-								maxSalary = Integer.parseInt(salaries[0]);
+								minSalary = Integer.parseInt(salaries[0]);
 							if (salaries[1].matches("^\\d+$"))
-								minSalary = Integer.parseInt(salaries[1]);
+								maxSalary = Integer.parseInt(salaries[1]);
 						}
-						if (maxSalary == null || minSalary == null) {
+						if (minSalary == null || maxSalary == null) {
 							viewEntPostInsertStatement.setNull(9, Types.INTEGER);
 							viewEntPostInsertStatement.setNull(10, Types.INTEGER);
 						} else {
-							viewEntPostInsertStatement.setInt(9, maxSalary);
-							viewEntPostInsertStatement.setInt(10, minSalary);
+							viewEntPostInsertStatement.setInt(9, minSalary);
+							viewEntPostInsertStatement.setInt(10, maxSalary);
 						}
-
 						viewEntPostInsertStatement.setInt(11, post.getSalaryType());
 						viewEntPostInsertStatement.setString(12, post.getNatureCode());
 						viewEntPostInsertStatement.setDate(13, new java.sql.Date(post.getDate().getTime()));
 						viewEntPostInsertStatement.executeUpdate();
 
-						Integer abilities = 0;
-						if (post.getExperienceAbility() != null)
-							abilities++;
-						if (post.getEducationAbility() != null)
-							abilities++;
-
-						if (post.getExperienceAbility() != null) {
-							Map<String, String> experience = post.getExperienceAbility();
-							Integer paramValue = Integer.parseInt(experience.get("paramValue"));
-							Integer matchType = Integer.parseInt(experience.get("matchType"));
-							String technicalCode = experience.get("technicalCode");
-							String techonlogyGategoryCode = experience.get("techonlogyGategoryCode");
-							Double percent = Double.parseDouble(experience.get("percent"));
-							Double totalPoint = percent / abilities;
-							entAbilityRequireInsertStatement.setLong(1, post.getId());
-							entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-							entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
-							entAbilityRequireInsertStatement.setString(4, post.getExperienceCode());
-							entAbilityRequireInsertStatement.setInt(5, paramValue);
-							entAbilityRequireInsertStatement.setInt(6, matchType);
-							entAbilityRequireInsertStatement.setString(7, technicalCode);
-							entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-							entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-							entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-							entAbilityRequireInsertStatement.addBatch();
-						}
-
-						if (post.getEducationAbility() != null) {
-							Map<String, String> education = post.getEducationAbility();
-							Integer paramValue = Integer.parseInt(education.get("paramValue"));
-							Integer matchType = Integer.parseInt(education.get("matchType"));
-							String technicalCode = education.get("technicalCode");
-							String techonlogyGategoryCode = education.get("techonlogyGategoryCode");
-							Double percent = Double.parseDouble(education.get("percent"));
-							Double totalPoint = percent / abilities;
-							entAbilityRequireInsertStatement.setLong(1, post.getId());
-							entAbilityRequireInsertStatement.setLong(2, enterprise.getId());
-							entAbilityRequireInsertStatement.setString(3, post.getCategoryCode());
-							entAbilityRequireInsertStatement.setString(4, post.getEducationCode());
-							entAbilityRequireInsertStatement.setInt(5, paramValue);
-							entAbilityRequireInsertStatement.setInt(6, matchType);
-							entAbilityRequireInsertStatement.setString(7, technicalCode);
-							entAbilityRequireInsertStatement.setString(8, techonlogyGategoryCode);
-							entAbilityRequireInsertStatement.setDouble(9, totalPoint);
-							entAbilityRequireInsertStatement.setDouble(10, totalPoint / paramValue);
-							entAbilityRequireInsertStatement.addBatch();
-						}
-						entAbilityRequireInsertStatement.executeBatch();
 						return true;
 					}
 				}
@@ -589,6 +571,10 @@ public class Holder extends C3P0Store {
 						entLbsInsertStatement.close();
 					if (entPostInsertStatement != null && !entPostInsertStatement.isClosed())
 						entPostInsertStatement.close();
+					if (entPostStatusInsertStatement != null && !entPostStatusInsertStatement.isClosed())
+						entPostStatusInsertStatement.close();
+					if (entPromotionInsertStatement != null && !entPromotionInsertStatement.isClosed())
+						entPromotionInsertStatement.close();
 					if (entAbilityRequireInsertStatement != null && !entAbilityRequireInsertStatement.isClosed())
 						entAbilityRequireInsertStatement.close();
 					if (viewEntPostInsertStatement != null && !viewEntPostInsertStatement.isClosed())
@@ -598,7 +584,121 @@ public class Holder extends C3P0Store {
 				}
 			}
 		} else {
-			return false;
+			String entLbsUpdateSQL = "update zcdh_ent_lbs set longitude=?, latitude=? where lbs_id=?";
+			String entPostUpdateSQL = "update zcdh_ent_post set update_date=?, post_aliases=?, post_name=?, post_code=?, pjob_category=?, headcounts=?, is_several=?, psalary=?, salary_type=?, tag_selected=?, post_address=?, parea=?, post_remark=? where id=?";
+			String entPostStatusUpdateSQL = "update zcdh_ent_post_status set employ_total=?, un_employ=employ_total-employed where post_id=?";
+			String entAbilityRequireUpdateSQL = "update zcdh_ent_ability_require set post_code=?, param_code=?, grade=?, weight_point=total_point/grade where post_id=? and technology_code=?";
+			String viewEntPostUpdateSQL = "update zcdh_view_ent_post set ent_name=?, industry=?, property=?, employ_num=?, post_aliases=?, post_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, post_property_code=? where post_id=?";
+			Connection connection = openConnection();
+			PreparedStatement entLbsUpdateStatement = null;
+			PreparedStatement entPostUpdateStatement = null;
+			PreparedStatement entPostStatusUpdateStatement = null;
+			PreparedStatement entAbilityRequireUpdateStatement = null;
+			PreparedStatement viewEntPostUpdateStatement = null;
+			try {
+				entLbsUpdateStatement = connection.prepareStatement(entLbsUpdateSQL);
+				entPostUpdateStatement = connection.prepareStatement(entPostUpdateSQL);
+				entPostStatusUpdateStatement = connection.prepareStatement(entPostStatusUpdateSQL);
+				entAbilityRequireUpdateStatement = connection.prepareStatement(entAbilityRequireUpdateSQL);
+				viewEntPostUpdateStatement = connection.prepareStatement(viewEntPostUpdateSQL);
+
+				Enterprise enterprise = enterprises.get(post.getEnterpriseUrl());
+				entLbsUpdateStatement.setDouble(1, enterprise.getLbsLon());
+				entLbsUpdateStatement.setDouble(2, enterprise.getLbsLat());
+				entLbsUpdateStatement.setDouble(3, post.getLbsId());
+				entLbsUpdateStatement.executeUpdate();
+
+				entPostUpdateStatement.setDate(1, new java.sql.Date(System.currentTimeMillis()));
+				entPostUpdateStatement.setString(2, post.getName());
+				entPostUpdateStatement.setString(3, post.getCategory());
+				entPostUpdateStatement.setString(4, post.getCategoryCode());
+				entPostUpdateStatement.setString(5, post.getNatureCode());
+				entPostUpdateStatement.setInt(6, post.getNumber());
+				entPostUpdateStatement.setInt(7, post.getIsSeveral());
+				entPostUpdateStatement.setString(8, post.getSalary());
+				entPostUpdateStatement.setInt(9, post.getSalaryType());
+				entPostUpdateStatement.setString(10, post.getWelfareCode());
+				entPostUpdateStatement.setString(11, enterprise.getAddress());
+				entPostUpdateStatement.setString(12, enterprise.getAreaCode());
+				entPostUpdateStatement.setString(13, post.getIntroduction());
+				entPostUpdateStatement.setLong(14, post.getId());
+				entPostUpdateStatement.executeUpdate();
+
+				post.setStatus(3);
+				posts.put(post.getUrl(), post);
+
+				entPostStatusUpdateStatement.setInt(1, post.getNumber());
+				entPostStatusUpdateStatement.setLong(2, post.getId());
+				entPostStatusUpdateStatement.executeUpdate();
+
+				Map<String, String> experience = post.getExperienceAbility();
+				Integer experienceParamValue = Integer.parseInt(experience.get("paramValue"));
+				String experienceTechnicalCode = experience.get("technicalCode");
+				entAbilityRequireUpdateStatement.setString(1, post.getCategoryCode());
+				entAbilityRequireUpdateStatement.setString(2, post.getExperienceCode());
+				entAbilityRequireUpdateStatement.setInt(3, experienceParamValue);
+				entAbilityRequireUpdateStatement.setLong(4, post.getId());
+				entAbilityRequireUpdateStatement.setString(5, experienceTechnicalCode);
+				entAbilityRequireUpdateStatement.addBatch();
+				Map<String, String> education = post.getEducationAbility();
+				Integer educationParamValue = Integer.parseInt(education.get("paramValue"));
+				String educationTechnicalCode = education.get("technicalCode");
+				entAbilityRequireUpdateStatement.setString(1, post.getCategoryCode());
+				entAbilityRequireUpdateStatement.setString(2, post.getExperienceCode());
+				entAbilityRequireUpdateStatement.setInt(3, educationParamValue);
+				entAbilityRequireUpdateStatement.setLong(4, post.getId());
+				entAbilityRequireUpdateStatement.setString(5, educationTechnicalCode);
+				entAbilityRequireUpdateStatement.addBatch();
+				entAbilityRequireUpdateStatement.executeBatch();
+
+				viewEntPostUpdateStatement.setString(1, enterprise.getName());
+				viewEntPostUpdateStatement.setString(2, enterprise.getCategoryCode());
+				viewEntPostUpdateStatement.setString(3, enterprise.getNatureCode());
+				viewEntPostUpdateStatement.setString(4, enterprise.getScaleCode());
+				viewEntPostUpdateStatement.setString(5, post.getName());
+				viewEntPostUpdateStatement.setString(6, post.getCategoryCode());
+				viewEntPostUpdateStatement.setString(7, post.getSalary());
+				Integer minSalary = null;
+				Integer maxSalary = null;
+				if (post.getSalary() != null && post.getSalary().contains("-")) {
+					String[] salaries = post.getSalary().split("-", 2);
+					if (salaries[0].matches("^\\d+$"))
+						minSalary = Integer.parseInt(salaries[0]);
+					if (salaries[1].matches("^\\d+$"))
+						maxSalary = Integer.parseInt(salaries[1]);
+				}
+				if (minSalary == null || maxSalary == null) {
+					viewEntPostUpdateStatement.setNull(8, Types.INTEGER);
+					viewEntPostUpdateStatement.setNull(9, Types.INTEGER);
+				} else {
+					viewEntPostUpdateStatement.setInt(8, minSalary);
+					viewEntPostUpdateStatement.setInt(9, maxSalary);
+				}
+				viewEntPostUpdateStatement.setInt(10, post.getSalaryType());
+				viewEntPostUpdateStatement.setString(11, post.getNatureCode());
+				viewEntPostUpdateStatement.setLong(12, post.getId());
+				viewEntPostUpdateStatement.executeUpdate();
+
+				return true;
+			} catch (SQLException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				try {
+					if (entLbsUpdateStatement != null && !entLbsUpdateStatement.isClosed())
+						entLbsUpdateStatement.close();
+					if (entPostUpdateStatement != null && !entPostUpdateStatement.isClosed())
+						entPostUpdateStatement.close();
+					if (entPostStatusUpdateStatement != null && !entPostStatusUpdateStatement.isClosed())
+						entPostStatusUpdateStatement.close();
+					if (entAbilityRequireUpdateStatement != null && !entAbilityRequireUpdateStatement.isClosed())
+						entAbilityRequireUpdateStatement.close();
+					if (viewEntPostUpdateStatement != null && !viewEntPostUpdateStatement.isClosed())
+						viewEntPostUpdateStatement.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -755,8 +855,8 @@ public class Holder extends C3P0Store {
 				}
 			}
 		} else {
-			String entLbsUpdateSQL = "update zcdh_ent_lbs set longitude=?,latitude=? where lbs_id=?";
-			String entEnterpriseUpdateSQL = "update zcdh_ent_enterprise set create_date=?,ent_name=?,industry=?,property=?,employ_num=?,ent_web=?,address=?,parea=?,lbs_id=?,introduction=?,data_src=?,data_url=? where ent_id";
+			String entLbsUpdateSQL = "update zcdh_ent_lbs set longitude=?, latitude=? where lbs_id=?";
+			String entEnterpriseUpdateSQL = "update zcdh_ent_enterprise set ent_name=?, industry=?, property=?, employ_num=?, ent_web=?, address=?, parea=?, introduction=? where ent_id=?";
 			Connection connection = openConnection();
 			PreparedStatement entLbsUpdateStatement = null;
 			PreparedStatement entEnterpriseUpdateStatement = null;
@@ -769,19 +869,15 @@ public class Holder extends C3P0Store {
 				entLbsUpdateStatement.setLong(3, enterprise.getLbsId());
 				entLbsUpdateStatement.executeUpdate();
 
-				entEnterpriseUpdateStatement.setDate(1, new java.sql.Date(enterprise.getDate().getTime()));
-				entEnterpriseUpdateStatement.setString(2, enterprise.getName());
-				entEnterpriseUpdateStatement.setString(3, enterprise.getCategoryCode());
-				entEnterpriseUpdateStatement.setString(4, enterprise.getNatureCode());
-				entEnterpriseUpdateStatement.setString(5, enterprise.getScaleCode());
-				entEnterpriseUpdateStatement.setString(6, enterprise.getWebsite());
-				entEnterpriseUpdateStatement.setString(7, enterprise.getAddress());
-				entEnterpriseUpdateStatement.setString(8, enterprise.getAreaCode());
-				entEnterpriseUpdateStatement.setLong(9, enterprise.getLbsId());
-				entEnterpriseUpdateStatement.setString(10, enterprise.getIntroduction());
-				entEnterpriseUpdateStatement.setString(11, enterprise.getSrc());
-				entEnterpriseUpdateStatement.setString(12, enterprise.getUrl());
-				entEnterpriseUpdateStatement.setLong(13, enterprise.getId());
+				entEnterpriseUpdateStatement.setString(1, enterprise.getName());
+				entEnterpriseUpdateStatement.setString(2, enterprise.getCategoryCode());
+				entEnterpriseUpdateStatement.setString(3, enterprise.getNatureCode());
+				entEnterpriseUpdateStatement.setString(4, enterprise.getScaleCode());
+				entEnterpriseUpdateStatement.setString(5, enterprise.getWebsite());
+				entEnterpriseUpdateStatement.setString(6, enterprise.getAddress());
+				entEnterpriseUpdateStatement.setString(7, enterprise.getAreaCode());
+				entEnterpriseUpdateStatement.setString(8, enterprise.getIntroduction());
+				entEnterpriseUpdateStatement.setLong(9, enterprise.getId());
 				entEnterpriseUpdateStatement.executeUpdate();
 
 				enterprise.setStatus(3);

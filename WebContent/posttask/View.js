@@ -141,7 +141,7 @@ Ext.define('Platform.posttask.View', {
     this.getStore().load();
   },
   onCellClick: function(table, td, cellIndex, record, tr, rowIndex, e) {
-    var me = this, target = e.getTarget(), className = target.className, statusValue = target.getAttribute('status'), postStatus = '1';
+    var me = this, target = e.getTarget(), className = target.className, statusValue = target.getAttribute('status');
     if ('billSize' == className) {
       if (!me.billWindow) {
         me.billWindow = Platform.widget('posttask-bill');
@@ -149,13 +149,11 @@ Ext.define('Platform.posttask.View', {
       me.billWindow.cid = record.get('cid');
       me.billWindow.loadData();
       me.billWindow.show();
-    } else if ('insertedPostSize' == className || 'updatedPostSize' == className || 'ignoredPostSize' == className || 'processedPostSize' == className) {
+    } else if (className == 'insertedPostSize' || className == 'updatedPostSize' || className == 'ignoredPostSize' || className == 'failedPostSize') {
       if (!me.postWindow) {
         me.postWindow = Platform.widget('posttask-post');
       }
-      me.postWindow.postStatusField.setValue(statusValue);
-      me.postWindow.cid = record.get('cid');
-      me.postWindow.loadData();
+      me.postWindow.loadData(record.get('cid'), statusValue);
       me.postWindow.show();
     }
   },
@@ -204,24 +202,24 @@ Ext.define('Platform.posttask.View', {
     var ignoredBillSize = record.get('ignoredBillSize'), billSize = record.get('billSize');
     var failedPostSize = record.get('failedPostSize'), ignoredPostSize = record.get('ignoredPostSize'), insertedPostSize = record.get('insertedPostSize'), updatedPostSize = record.get('updatedPostSize'), processedPostSize = record.get('processedPostSize');
     var collectorStatus = record.get('collectorStatus'), explorerStatus = record.get('explorerStatus');
-    var progressbarId = Ext.id(), progressbarValue = processedPostSize == 0 ? 0 : processedPostSize / (billSize - ignoredBillSize), tip1, tip2;
+    var progressbarId = Ext.id(), progressbarValue = processedPostSize == 0 ? 0 : processedPostSize / (billSize - failedPostSize), tip1, tip2;
     if (collectorStatus == 0) {
       tip1 = '已停止';
-      tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="ignoredPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
+      tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
     } else if (collectorStatus == 1) {
       if (explorerStatus == 1) {
         tip1 = '正在收集...';
-        tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="ignoredPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
+        tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
       } else if (explorerStatus == 3) {
         tip1 = Ext.String.format('已处理: {0}', Ext.util.Format.percent(progressbarValue));
-        tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 共收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="ignoredPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
+        tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 共收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
       }
     } else if (collectorStatus == 2) {
       tip1 = Ext.String.format('已暂停: {0}', Ext.util.Format.percent(progressbarValue));
-      tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="ignoredPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
+      tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
     } else if (collectorStatus == 3) {
       tip1 = '已完成';
-      tip2 = Ext.String.format('共处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 共收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="ignoredPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
+      tip2 = Ext.String.format('共处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 共收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
     }
     Ext.defer(function() {
       var progressbar = Ext.widget('progressbar', {

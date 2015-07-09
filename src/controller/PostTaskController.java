@@ -199,16 +199,11 @@ public class PostTaskController {
 			Collector collector = postTaskService.getCollector(cid);
 			Post post = collector.getPost(url);
 			Map<String, Object> postData = new HashMap<String, Object>();
-			postData.put("id", post.getId());
-			postData.put("lbsId", post.getLbsId());
-			postData.put("status", post.getStatus());
 			postData.put("url", post.getUrl());
 			postData.put("date", post.getDate());
 			postData.put("name", post.getName());
-			postData.put("category", post.getCategory());
 			postData.put("categoryCode", post.getCategoryCode());
 			postData.put("numberText", post.getNumberText());
-			postData.put("nature", post.getNature());
 			postData.put("salaryText", post.getSalaryText());
 			postData.put("experienceCode", post.getExperienceCode());
 			postData.put("educationCode", post.getEducationCode());
@@ -218,16 +213,10 @@ public class PostTaskController {
 
 			Enterprise enterprise = collector.getEnterprise(post.getEnterpriseUrl());
 			Map<String, Object> enterpriseData = new HashMap<String, Object>();
-			enterpriseData.put("id", enterprise.getId());
-			enterpriseData.put("lbsId", enterprise.getLbsId());
-			enterpriseData.put("status", enterprise.getStatus());
 			enterpriseData.put("url", enterprise.getUrl());
 			enterpriseData.put("name", enterprise.getName());
-			enterpriseData.put("category", enterprise.getCategory());
 			enterpriseData.put("categoryCode", enterprise.getCategoryCode());
-			enterpriseData.put("nature", enterprise.getNature());
 			enterpriseData.put("natureCode", enterprise.getNatureCode());
-			enterpriseData.put("scale", enterprise.getScale());
 			enterpriseData.put("scaleCode", enterprise.getScaleCode());
 			enterpriseData.put("website", enterprise.getWebsite());
 			enterpriseData.put("address", enterprise.getAddress());
@@ -241,19 +230,23 @@ public class PostTaskController {
 
 	@RequestMapping("savePost.do")
 	@ResponseBody
-	public Map<String, Object> savePost(@RequestBody Map<String, Map<String, Object>> map) {
+	public Map<String, Object> savePost(@RequestBody Map<String, Object> map) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		if (map == null) {
 			resultMap.put("success", false);
 		} else {
 			JSONObject requestBody = JSONObject.fromObject(map);
-			String cid = requestBody.getString("cid");
-			Post post = (Post) JSONObject.toBean(requestBody.getJSONObject("post"), Post.class);
-			Enterprise enterprise = (Enterprise) JSONObject.toBean(requestBody.getJSONObject("enterprise"), Enterprise.class);
-			if (!postTaskService.existCollector(cid) || post == null || enterprise == null) {
-				resultMap.put("success", false);
+			if (requestBody.has("cid")) {
+				String cid = requestBody.getString("cid");
+				Post post = (Post) JSONObject.toBean(requestBody.getJSONObject("post"), Post.class);
+				Enterprise enterprise = (Enterprise) JSONObject.toBean(requestBody.getJSONObject("enterprise"), Enterprise.class);
+				if (!postTaskService.existCollector(cid) || post == null || StringUtils.isBlank(post.getUrl()) || enterprise == null || StringUtils.isBlank(enterprise.getUrl())) {
+					resultMap.put("success", false);
+				} else {
+					resultMap.put("success", postTaskService.savePost(cid, post, enterprise));
+				}
 			} else {
-				resultMap.put("success", postTaskService.savePost(cid, post, enterprise));
+				resultMap.put("success", false);
 			}
 		}
 		return resultMap;

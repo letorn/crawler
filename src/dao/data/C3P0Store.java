@@ -505,7 +505,7 @@ public class C3P0Store implements ApplicationContextAware {
 	public static Connection openConnection() {
 		try {
 			Connection connection = dataSource.getConnection();
-			connection.prepareStatement("set names utf8mb4").executeQuery();
+			// connection.prepareStatement("set names utf8mb4").executeQuery();
 			return connection;
 		} catch (Exception e) {
 			e.printStackTrace();

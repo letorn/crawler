@@ -326,7 +326,7 @@ public class Processor {
 		if (StringUtils.isNotBlank(enterpriseUrl))
 			post.setEnterpriseUrl(enterpriseUrl);
 
-		if (StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getEnterpriseUrl())) 
+		if (StringUtils.isBlank(post.getSrc()) || StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getNatureCode()) || StringUtils.isBlank(post.getExperienceCode()) || StringUtils.isBlank(post.getEducationCode()) || StringUtils.isBlank(post.getEnterpriseUrl()))
 			post.setStatus(-1);
 
 		return post;
@@ -400,18 +400,21 @@ public class Processor {
 		if (StringUtils.isNotBlank(address)) {
 			address = address.replaceAll("^地 址：", "");
 			enterprise.setAddress(address);
-			enterprise.setAreaCode(Holder.getAreaCode(address));
-			Double[] point = Client.getPoint(address);
-			if (point != null) {
-				enterprise.setLbsLon(point[0]);
-				enterprise.setLbsLat(point[1]);
+			String areaCode = Holder.getAreaCode(address);
+			if (areaCode != null) {
+				enterprise.setAreaCode(areaCode);
+				Double[] point = Client.getPoint(address);
+				if (point != null) {
+					enterprise.setLbsLon(point[0]);
+					enterprise.setLbsLat(point[1]);
+				}
 			}
 		}
 
 		if (StringUtils.isNotBlank(introduction))
 			enterprise.setIntroduction(introduction);
 
-		if (StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
+		if (StringUtils.isBlank(enterprise.getSrc()) || StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || StringUtils.isBlank(enterprise.getNatureCode()) || StringUtils.isBlank(enterprise.getScaleCode()) || StringUtils.isBlank(enterprise.getAddress()) || StringUtils.isBlank(enterprise.getAreaCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
 			enterprise.setStatus(-1);
 
 		return enterprise;

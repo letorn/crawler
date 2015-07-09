@@ -9,7 +9,7 @@ Ext.define('Platform.posttask.Bill', {
   initComponent: function() {
     var me = this;
 
-    var gridStore = Store.create({
+    me.gridStore = Store.create({
       pageSize: 50,
       fields: ['date', 'postUrl', 'postName', 'enterpriseUrl', 'enterpriseName', 'status'],
       proxy: {
@@ -25,7 +25,7 @@ Ext.define('Platform.posttask.Bill', {
     });
 
     me.gridPanel = Ext.widget('grid', {
-      store: gridStore,
+      store: me.gridStore,
       columns: [{
         xtype: 'rownumberer',
         width: 32
@@ -62,7 +62,7 @@ Ext.define('Platform.posttask.Bill', {
         width: 80
       }],
       bbar: Ext.widget('pagingtoolbar', {
-        store: gridStore,
+        store: me.gridStore,
         displayInfo: true,
         displayMsg: '显示 {0} - {1} / 共 {2} 条'
       })
@@ -72,12 +72,15 @@ Ext.define('Platform.posttask.Bill', {
 
     me.callParent();
   },
-  loadData: function() {
-    var me = this, cid = me.cid, gridStore = me.gridPanel.getStore();
-    gridStore.proxy.extraParams = {
-      cid: cid
+  loadData: function(cid) {
+    var me = this;
+    if (cid !== undefined) {
+      me.cid = cid;
+    }
+    me.gridStore.proxy.extraParams = {
+      cid: me.cid
     };
-    gridStore.loadPage(1);
+    me.gridStore.loadPage(1);
   },
   columnFormatter: function(value, metaData, record, rowIndex, colIndex, store, el, e) {
     if (value != null) {

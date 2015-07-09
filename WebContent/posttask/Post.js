@@ -11,6 +11,12 @@ Ext.define('Platform.posttask.Post', {
     var me = this;
 
     me.postStatusField = Ext.widget('combobox', {
+
+    });
+
+    me.tbar = [{
+      itemId: 'postStatusComboBox',
+      xtype: 'combobox',
       displayField: 'name',
       valueField: 'value',
       queryMode: 'local',
@@ -26,11 +32,9 @@ Ext.define('Platform.posttask.Post', {
       listeners: {
         change: Ext.bind(me.onStatusComboBoxChange, me)
       }
-    });
+    }];
 
-    me.tbar = [me.postStatusField];
-
-    var gridStore = Store.create({
+    me.gridStore = Store.create({
       fields: ['url', 'date', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
       proxy: {
         type: 'ajax',
@@ -44,8 +48,8 @@ Ext.define('Platform.posttask.Post', {
       }
     });
 
-    me.grid = Ext.widget('grid', {
-      store: gridStore,
+    me.gridPanel = Ext.widget('grid', {
+      store: me.gridStore,
       columns: [{
         xtype: 'rownumberer',
         width: 32
@@ -102,7 +106,7 @@ Ext.define('Platform.posttask.Post', {
         width: 80
       }],
       bbar: Ext.widget('pagingtoolbar', {
-        store: gridStore,
+        store: me.gridStore,
         displayInfo: true,
         displayMsg: '显示 {0} - {1} / 共 {2} 条'
       }),
@@ -111,17 +115,23 @@ Ext.define('Platform.posttask.Post', {
       }
     });
 
-    me.items = [me.grid];
+    me.items = [me.gridPanel];
 
     me.callParent();
   },
-  loadData: function() {
-    var me = this, cid = me.cid, postStatus = me.postStatusField.getValue(), gridStore = me.grid.getStore();
-    gridStore.proxy.extraParams = {
-      cid: cid,
-      postStatus: postStatus
+  loadData: function(cid, statusValue) {
+    var me = this, postStatusComboBox = me.down('#postStatusComboBox');
+    if (cid !== undefined) {
+      me.cid = cid;
+    }
+    if (statusValue !== undefined) {
+      postStatusComboBox.setRawValue(statusValue);
+    }
+    me.gridStore.proxy.extraParams = {
+      cid: me.cid,
+      postStatus: postStatusComboBox.getValue()
     };
-    gridStore.loadPage(1);
+    me.gridStore.loadPage(1);
   },
   onStatusComboBoxChange: function() {
     this.loadData();
@@ -138,6 +148,7 @@ Ext.define('Platform.posttask.Post', {
     var me = this;
     if (!me.detailWindow) {
       me.detailWindow = Platform.widget('posttask-post-detail');
+      me.detailWindow.postGridStore = me.gridStore;
     }
     me.detailWindow.loadData(me.cid, record.get('url'));
     me.detailWindow.show();

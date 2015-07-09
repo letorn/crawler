@@ -160,7 +160,7 @@ public class Collector {
 		String url = post.getUrl();
 		Integer urlIndex = postUrlIndexes.get(url);
 		if (urlIndex != null) {
-			posts.add(urlIndex, post);
+			posts.set(urlIndex, post);
 		} else {
 			posts.add(post);
 			postUrlIndexes.put(url, posts.size() - 1);
@@ -249,7 +249,7 @@ public class Collector {
 		String url = enterprise.getUrl();
 		Integer urlIndex = enterpriseUrlIndexes.get(url);
 		if (urlIndex != null) {
-			enterprises.add(urlIndex, enterprise);
+			enterprises.set(urlIndex, enterprise);
 		} else {
 			enterprises.add(enterprise);
 			enterpriseUrlIndexes.put(url, enterprises.size() - 1);
