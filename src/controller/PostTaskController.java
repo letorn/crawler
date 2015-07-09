@@ -302,12 +302,12 @@ public class PostTaskController {
 
 	@RequestMapping("postPoints.do")
 	@ResponseBody
-	public Map<String, Object> postPoints(String cid) {
+	public Map<String, Object> postPoints(String cid, Integer zoom) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (!postTaskService.existCollector(cid)) {
+		if (!postTaskService.existCollector(cid) || zoom == null) {
 			resultMap.put("success", false);
 		} else {
-			resultMap.put("data", postTaskService.getPostPoints(cid));
+			resultMap.put("data", postTaskService.getPostPoints(cid, zoom));
 			resultMap.put("success", true);
 		}
 		return resultMap;
