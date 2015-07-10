@@ -31,7 +31,7 @@ Ext.define('Platform.posttask.Map', {
     me.map.addControl(scaleControl);
     me.map.addControl(navigationControl);
     me.map.enableScrollWheelZoom();
-    me.map.centerAndZoom(new BMap.Point(113.429075, 22.903801), 8);
+    me.map.centerAndZoom(new BMap.Point(111.958836,23.402762), 8);
     me.map.addEventListener('zoomend', function(e) {
       var target = e.target, zoom = target.getZoom();
       me.loadData(me.cid, zoom);
@@ -63,9 +63,12 @@ Ext.define('Platform.posttask.Map', {
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
+          var points = [];
           for (var i = 0; i < response.data.length; i++) {
             var data = response.data[i];
-            var marker = new BMap.Marker(new BMap.Point(data.center[0], data.center[1]));
+            var point = new BMap.Point(data.center[0], data.center[1]);
+            points.push(point);
+            var marker = new BMap.Marker(point);
             marker.data = data;
             marker.setTitle(data.postCount);
             var label = new BMap.Label(data.postCount);
@@ -84,6 +87,7 @@ Ext.define('Platform.posttask.Map', {
             });
             me.map.addOverlay(marker);
           }
+          // me.map.setViewport(points);
         }
         me.setLoading(false);
       }
