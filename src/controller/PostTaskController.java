@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import map.Marker;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
@@ -307,7 +308,14 @@ public class PostTaskController {
 		if (!postTaskService.existCollector(cid) || zoom == null) {
 			resultMap.put("success", false);
 		} else {
-			resultMap.put("data", postTaskService.getPostPoints(cid, zoom));
+			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+			for (Marker<Post> marker : postTaskService.getPostMarkers(cid, zoom)) {
+				Map<String, Object> d = new HashMap<String, Object>();
+				d.put("center", marker.center());
+				d.put("postCount", marker.points().size());
+				data.add(d);
+			}
+			resultMap.put("data", data);
 			resultMap.put("success", true);
 		}
 		return resultMap;

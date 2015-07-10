@@ -3,7 +3,9 @@ package crawler.post.model;
 import java.util.Date;
 import java.util.Map;
 
-public class Post {
+import map.Point;
+
+public class Post implements Point {
 
 	private Long id;
 	private String src;
@@ -29,12 +31,15 @@ public class Post {
 	private String address;
 	private String introduction;
 	private String enterpriseUrl;
-	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
+	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新,
+								// 大于1表示已经处理
 
 	private Map<String, String> experienceAbility;
 	private Map<String, String> educationAbility;
 
 	private Long lbsId;
+	private Double lbsLon;
+	private Double lbsLat;
 
 	public Long getId() {
 		return id;
@@ -258,6 +263,26 @@ public class Post {
 
 	public void setLbsId(Long lbsId) {
 		this.lbsId = lbsId;
+	}
+
+	public Double getLbsLon() {
+		return lbsLon;
+	}
+
+	public void setLbsLon(Double lbsLon) {
+		this.lbsLon = lbsLon;
+	}
+
+	public Double getLbsLat() {
+		return lbsLat;
+	}
+
+	public void setLbsLat(Double lbsLat) {
+		this.lbsLat = lbsLat;
+	}
+
+	public double[] getPoint() {
+		return new double[] { lbsLon, lbsLat };
 	}
 
 }

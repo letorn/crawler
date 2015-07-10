@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import map.Marker;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 
@@ -21,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import util.GeoHash;
 import util.WebContext;
 import crawler.Client;
 import crawler.post.Collector;
@@ -308,17 +308,8 @@ public class PostTaskService {
 		return false;
 	}
 
-	public Map<String, Object> getPostPoints(String cid, Integer zoom) {
-		Map<String, Map<String, Object>> pointMap = new HashMap<String, Map<String, Object>>();
-		List<Enterprise> enterprises = collectors.get(cid).getEnterprises();
-		for (int i = 0; i < enterprises.size(); i++) {
-			Enterprise enterprise = enterprises.get(i);
-			String geohash = GeoHash.encode(enterprise.getLbsLon(), enterprise.getLbsLat());
-			Double[] point = GeoHash.decode(geohash, zoom);
-			String serialPoint = String.format("%f-%f", point[0], point[0]);
-			
-		}
-		return null;
+	public List<Marker<Post>> getPostMarkers(String cid, Integer zoom) {
+		return collectors.get(cid).getPostCluster().getMarkers(zoom);
 	}
 
 	private static Map<String, Object> toMap(File file) {
@@ -344,4 +335,5 @@ public class PostTaskService {
 		jsonConfig.setIgnoreDefaultExcludes(true);
 		return (Map<String, Object>) JSONObject.fromObject(fileBuffer.toString(), jsonConfig);
 	}
+
 }

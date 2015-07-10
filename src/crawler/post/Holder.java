@@ -250,8 +250,11 @@ public class Holder extends C3P0Store {
 					}
 				} else {
 					Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
-					entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
-					entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
+					p.setLbsLon(enterprise.getLbsLon());
+					p.setLbsLat(enterprise.getLbsLat());
+
+					entLbsInsertStatement.setDouble(1, p.getLbsLon());
+					entLbsInsertStatement.setDouble(2, p.getLbsLat());
 					entLbsInsertStatement.addBatch();
 					insertedPosts.add(p);
 				}
@@ -439,8 +442,11 @@ public class Holder extends C3P0Store {
 				viewEntPostInsertStatement = connection.prepareStatement(viewEntPostInsertSQL);
 
 				Enterprise enterprise = enterprises.get(post.getEnterpriseUrl());
-				entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
-				entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
+				post.setLbsLon(enterprise.getLbsLon());
+				post.setLbsLat(enterprise.getLbsLat());
+
+				entLbsInsertStatement.setDouble(1, post.getLbsLon());
+				entLbsInsertStatement.setDouble(2, post.getLbsLat());
 				entLbsInsertStatement.executeUpdate();
 
 				entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();

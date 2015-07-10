@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import map.Cluster;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -43,6 +45,8 @@ public class Collector {
 	private Explorer explorer;
 	private Processor processor;
 
+	private Cluster<Post> postCluster;
+
 	public Collector(String region, String area, Map<String, Object> norm) {
 		date = new Date();
 		nid = (String) norm.get("nid");
@@ -64,6 +68,7 @@ public class Collector {
 		explorer = new Explorer(this);
 		processor = new Processor(this);
 
+		postCluster = new Cluster<Post>();
 	}
 
 	public Boolean start() {
@@ -338,5 +343,9 @@ public class Collector {
 
 	public Processor getProcessor() {
 		return processor;
+	}
+
+	public Cluster<Post> getPostCluster() {
+		return postCluster;
 	}
 }

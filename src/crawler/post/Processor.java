@@ -426,6 +426,7 @@ public class Processor {
 		enterpriseUrlIndexes.clear();
 
 		Holder.savePost(posts, postUpdateInterval);
+		collector.getPostCluster().addAll(posts);
 		posts.clear();
 	}
 

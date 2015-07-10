@@ -236,7 +236,7 @@ Ext.define('Platform.posttask.View', {
         });
       }
       progressbar.updateText(tip1);
-    }, 500);
+    }, 50);
     return Ext.String.format('<div id={0} style="margin:0px; padding:0px;"></div><div>{1}</div>', progressbarId, tip2);
   },
   onStartBtnClick: function(table, rowIndex, colIndex, item, e, record) {
