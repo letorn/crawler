@@ -3,6 +3,7 @@ Ext.define('Platform.posttask.Bill', {
   xtype: 'platform-posttask-bill',
   title: '清单',
   closeAction: 'hide',
+  resizable: false,
   width: 1000,
   height: 500,
   layout: 'fit',

@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Cluster<T extends Point> {
 
-	private static int[] zoomScale = { 5, 5, 5, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19, 21, 21, 21, 21 };
+	private static int[] zoomScale = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15, 17, 17, 19, 19 };
 	private static Map<Integer, Integer> gradeMapper = new HashMap<Integer, Integer>();
 	private Map<Integer, Map<String, Marker<T>>> lookup = new HashMap<Integer, Map<String, Marker<T>>>();
 
@@ -47,6 +47,10 @@ public class Cluster<T extends Point> {
 	}
 
 	public List<Marker<T>> getMarkers(int zoom) {
+		if (zoom < 0)
+			zoom = 0;
+		if (zoom > zoomScale.length - 1)
+			zoom = zoomScale.length - 1;
 		Map<String, Marker<T>> markerMap = lookup.get(zoomScale[zoom]);
 		return new ArrayList<Marker<T>>(markerMap.values());
 	}

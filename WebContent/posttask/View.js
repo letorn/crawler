@@ -117,7 +117,7 @@ Ext.define('Platform.posttask.View', {
         tooltip: '删除',
         handler: Ext.bind(me.onDeleteBtnClick, me)
       }, '-', {
-        iconCls: 'refresh',
+        iconCls: 'map',
         tooltip: '地图',
         handler: Ext.bind(me.onMapBtnClick, me)
       }]

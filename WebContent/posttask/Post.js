@@ -4,6 +4,7 @@ Ext.define('Platform.posttask.Post', {
   uses: ['Platform.posttask.PostDetail'],
   title: '岗位',
   closeAction: 'hide',
+  resizable: false,
   width: 1000,
   height: 500,
   layout: 'fit',

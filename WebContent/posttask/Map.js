@@ -3,6 +3,7 @@ Ext.define('Platform.posttask.Map', {
   xtype: 'platform-posttask-map',
   title: '地图',
   closeAction: 'hide',
+  maximizable: true,
   width: 1000,
   height: 500,
   layout: 'fit',
@@ -10,12 +11,12 @@ Ext.define('Platform.posttask.Map', {
     var me = this;
 
     me.listeners = {
-      onshow: me.onShow
+      afterrender: me.onAfterRender
     };
 
     me.callParent();
   },
-  onShow: function() {
+  onAfterRender: function() {
     if (!this.map) {
       this.initBMap();
     }
@@ -34,6 +35,9 @@ Ext.define('Platform.posttask.Map', {
     me.map.addEventListener('zoomend', function(e) {
       var target = e.target, zoom = target.getZoom();
       me.loadData(me.cid, zoom);
+    });
+    Ext.query('.anchorBL').forEach(function(el) {
+      el.style.display = 'none';
     });
     me.mapTip = Ext.widget('window', {
       title: 'AA',
@@ -60,19 +64,23 @@ Ext.define('Platform.posttask.Map', {
         var response = Ext.decode(response.responseText);
         if (response.success) {
           for (var i = 0; i < response.data.length; i++) {
-            var d = response.data[i];
-            var marker = new BMap.Marker(new BMap.Point(d.center[0], d.center[1]));
-            marker.setTitle(d.postCount);
-            var label = new BMap.Label(d.postCount);
-            label.setOffset(new BMap.Size(6 - (d.postCount + '').length * 3, 3));
+            var data = response.data[i];
+            var marker = new BMap.Marker(new BMap.Point(data.center[0], data.center[1]));
+            marker.data = data;
+            marker.setTitle(data.postCount);
+            var label = new BMap.Label(data.postCount);
+            label.setOffset(new BMap.Size(6 - (data.postCount + '').length * 3, 3));
             label.setStyle({
               borderColor: 'transparent',
               backgroundColor: 'transparent'
             });
             marker.setLabel(label);
             marker.addEventListener('click', function(e) {
-              var infoWindow = new BMap.InfoWindow('共：' + d.postCount + ' 岗位');
-              this.openInfoWindow(infoWindow);
+              var marker = this, data = marker.data;
+              if (!marker.infoWindow) {
+                marker.infoWindow = new BMap.InfoWindow('共：' + data.postCount + ' 岗位');
+              }
+              marker.openInfoWindow(marker.infoWindow);
             });
             me.map.addOverlay(marker);
           }
