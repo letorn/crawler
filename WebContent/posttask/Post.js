@@ -11,10 +11,6 @@ Ext.define('Platform.posttask.Post', {
   initComponent: function() {
     var me = this;
 
-    me.postStatusField = Ext.widget('combobox', {
-
-    });
-
     me.tbar = [{
       itemId: 'postStatusComboBox',
       xtype: 'combobox',
@@ -126,7 +122,9 @@ Ext.define('Platform.posttask.Post', {
       me.cid = cid;
     }
     if (statusValue !== undefined) {
-      postStatusComboBox.setRawValue(statusValue);
+      postStatusComboBox.suspendEvent('change');
+      postStatusComboBox.setValue(statusValue);
+      postStatusComboBox.resumeEvent('change');
     }
     me.gridStore.proxy.extraParams = {
       cid: me.cid,
@@ -134,7 +132,7 @@ Ext.define('Platform.posttask.Post', {
     };
     me.gridStore.loadPage(1);
   },
-  onStatusComboBoxChange: function() {
+  onStatusComboBoxChange: function(field, newValue) {
     this.loadData();
   },
   columnFormatter: function(value, metaData, record, rowIndex, colIndex, store, el, e) {

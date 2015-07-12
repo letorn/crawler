@@ -60,9 +60,9 @@ public class Client {
 		String userAgent = userAgents[random.nextInt(userAgents.length - 1)];
 		try {
 			if (null == data) {
-				document = Jsoup.connect(url).timeout(timeout).userAgent(userAgent).get();
+				document = Jsoup.connect(url).timeout(timeout).userAgent(userAgent).followRedirects(false).get();
 			} else {
-				document = Jsoup.connect(url).data(data).timeout(timeout).userAgent(userAgent).get();
+				document = Jsoup.connect(url).data(data).timeout(timeout).userAgent(userAgent).followRedirects(false).get();
 			}
 		} catch (IOException e) {
 			logger.error(e.toString() + ", [userAgent=" + userAgent + ", url=" + url + "]will try again with random userAgent after 5min");
@@ -101,6 +101,11 @@ public class Client {
 			jsonObject = jsonObjectGetter(url, data);
 		}
 		return jsonObject;
+	}
+
+	public static void main(String[] args) {
+		Document doc = get("http://search.51job.com/job/68665595,c.html");
+		System.out.println(doc);
 	}
 
 }

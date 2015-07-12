@@ -249,10 +249,6 @@ public class Holder extends C3P0Store {
 						updatedPosts.add(p);
 					}
 				} else {
-					Enterprise enterprise = enterprises.get(p.getEnterpriseUrl());
-					p.setLbsLon(enterprise.getLbsLon());
-					p.setLbsLat(enterprise.getLbsLat());
-
 					entLbsInsertStatement.setDouble(1, p.getLbsLon());
 					entLbsInsertStatement.setDouble(2, p.getLbsLat());
 					entLbsInsertStatement.addBatch();
@@ -285,8 +281,8 @@ public class Holder extends C3P0Store {
 				entPostInsertStatement.setString(10, p.getSalary());
 				entPostInsertStatement.setInt(11, p.getSalaryType());
 				entPostInsertStatement.setString(12, p.getWelfareCode());
-				entPostInsertStatement.setString(13, enterprise.getAddress());
-				entPostInsertStatement.setString(14, enterprise.getAreaCode());
+				entPostInsertStatement.setString(13, p.getAddress());
+				entPostInsertStatement.setString(14, p.getAreaCode());
 				entPostInsertStatement.setLong(15, p.getLbsId());
 				entPostInsertStatement.setString(16, p.getIntroduction());
 				entPostInsertStatement.setString(17, p.getSrc());
@@ -441,10 +437,6 @@ public class Holder extends C3P0Store {
 				entAbilityRequireInsertStatement = connection.prepareStatement(entAbilityRequireInsertSQL);
 				viewEntPostInsertStatement = connection.prepareStatement(viewEntPostInsertSQL);
 
-				Enterprise enterprise = enterprises.get(post.getEnterpriseUrl());
-				post.setLbsLon(enterprise.getLbsLon());
-				post.setLbsLat(enterprise.getLbsLat());
-
 				entLbsInsertStatement.setDouble(1, post.getLbsLon());
 				entLbsInsertStatement.setDouble(2, post.getLbsLat());
 				entLbsInsertStatement.executeUpdate();
@@ -452,6 +444,8 @@ public class Holder extends C3P0Store {
 				entLbsInsertedKeyResultSet = entLbsInsertStatement.getGeneratedKeys();
 				if (entLbsInsertedKeyResultSet.next()) {
 					post.setLbsId(entLbsInsertedKeyResultSet.getLong(1));
+
+					Enterprise enterprise = enterprises.get(post.getEnterpriseUrl());
 
 					entPostInsertStatement.setDate(1, new java.sql.Date(post.getDate().getTime()));
 					entPostInsertStatement.setDate(2, new java.sql.Date(post.getDate().getTime()));
@@ -465,8 +459,8 @@ public class Holder extends C3P0Store {
 					entPostInsertStatement.setString(10, post.getSalary());
 					entPostInsertStatement.setInt(11, post.getSalaryType());
 					entPostInsertStatement.setString(12, post.getWelfareCode());
-					entPostInsertStatement.setString(13, enterprise.getAddress());
-					entPostInsertStatement.setString(14, enterprise.getAreaCode());
+					entPostInsertStatement.setString(13, post.getAddress());
+					entPostInsertStatement.setString(14, post.getAreaCode());
 					entPostInsertStatement.setLong(15, post.getLbsId());
 					entPostInsertStatement.setString(16, post.getIntroduction());
 					entPostInsertStatement.setString(17, post.getSrc());

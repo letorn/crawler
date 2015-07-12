@@ -296,7 +296,14 @@ public class PostTaskService {
 			if (StringUtils.isBlank(enterprise.getSrc()) || StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || StringUtils.isBlank(enterprise.getNatureCode()) || StringUtils.isBlank(enterprise.getScaleCode()) || StringUtils.isBlank(enterprise.getAddress()) || StringUtils.isBlank(enterprise.getAreaCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
 				enterprise.setStatus(-1);
 
-			if (enterprise.getStatus() != -1 && post.getStatus() != -1)
+			if (enterprise.getStatus() == -1)
+				post.setStatus(-1);
+
+			if (post.getStatus() != -1) {
+				post.setAddress(enterprise.getAddress());
+				post.setAreaCode(enterprise.getAreaCode());
+				post.setLbsLon(enterprise.getLbsLon());
+				post.setLbsLat(enterprise.getLbsLat());
 				if (Holder.existEnterpriseAccount(enterprise.getName()))
 					logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
 				else if (Holder.saveEnterprise(enterprise))
@@ -304,6 +311,7 @@ public class PostTaskService {
 						if (collector.saveEnterprise(enterprise))
 							if (collector.savePost(post))
 								return true;
+			}
 		}
 		return false;
 	}

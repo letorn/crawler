@@ -56,14 +56,15 @@ public class PostTaskController {
 			d.put("region", collector.getRegion());
 			d.put("area", collector.getArea());
 			Integer[] billSizes = collector.billSizes();
+			d.put("rawBillSize", billSizes[0]);
 			d.put("ignoredBillSize", billSizes[1]);
-			d.put("billSize", billSizes[0] + billSizes[1] + billSizes[2]);
+			d.put("processedBillSize", billSizes[2]);
 			Integer[] postSizes = collector.postSizes();
 			d.put("failedPostSize", postSizes[0]);
+			d.put("rawPostSize", postSizes[1]);
 			d.put("ignoredPostSize", postSizes[2]);
 			d.put("insertedPostSize", postSizes[3]);
 			d.put("updatedPostSize", postSizes[4]);
-			d.put("processedPostSize", postSizes[2] + postSizes[3] + postSizes[4]);
 			d.put("explorerStatus", collector.getExplorer().getStatus());
 			d.put("collectorStatus", collector.getStatus());
 			data.add(d);

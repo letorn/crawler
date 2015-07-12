@@ -58,11 +58,11 @@ public class Explorer {
 			status = 1;
 			thread = new Thread(new Runnable() {
 				public void run() {
-					for (Integer pageValue = 1; 1 == status; pageValue++) {
+					for (Integer pageValue = 1; status == 1; pageValue++) {
 						Document document = Client.get(String.format("%s?%s=%s&%s=%s", url, areaKey, areaValue, pageKey, pageValue), data);
 						final AttributeCatcher billAttributeCatcher = new AttributeCatcher(document, billAttributeSelectors);
 						Elements containers = document.select(billContainerSelector);
-						if (0 >= containers.size()) {
+						if (containers.size() <= 0) {
 							finish();
 							break;
 						}
@@ -81,7 +81,7 @@ public class Explorer {
 							});
 
 							Bill bill = toBill(billAttributes);
-							if (null != bill && 1 == status) {
+							if (bill != null && status == 1) {
 								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000) {
 									collector.saveBill(bill);
 								} else {
@@ -127,17 +127,13 @@ public class Explorer {
 
 	private Bill toBill(Map<String, String> map) {
 		String dateString = map.get("date");
-		Date date = null;
-		if (null != dateString) {
-			date = parseDate(dateString);
-		}
-
+		Date date = dateString != null ? parseDate(dateString) : null;
 		String postUrl = map.get("postUrl");
 		String postName = map.get("postName");
 		String enterpriseUrl = map.get("enterpriseUrl");
 		String enterpriseName = map.get("enterpriseName");
 
-		if (null == date || null == postUrl || null == postName || null == enterpriseUrl || null == enterpriseName) {
+		if (date == null || StringUtils.isBlank(postUrl) || StringUtils.isBlank(postName) || StringUtils.isBlank(enterpriseUrl) || StringUtils.isBlank(enterpriseName)) {
 			return null;
 		} else {
 			Bill bill = new Bill();

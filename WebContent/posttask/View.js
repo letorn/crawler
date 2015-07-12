@@ -202,10 +202,10 @@ Ext.define('Platform.posttask.View', {
     this.getStore().load();
   },
   statusColumnRenderer: function(value, metaData, record) {
-    var ignoredBillSize = record.get('ignoredBillSize'), billSize = record.get('billSize');
-    var failedPostSize = record.get('failedPostSize'), ignoredPostSize = record.get('ignoredPostSize'), insertedPostSize = record.get('insertedPostSize'), updatedPostSize = record.get('updatedPostSize'), processedPostSize = record.get('processedPostSize');
+    var rawBillSize = record.get('rawBillSize'), ignoredBillSize = record.get('ignoredBillSize'), processedBillSize = record.get('processedBillSize'), billSize = rawBillSize + ignoredBillSize + processedBillSize;
+    var failedPostSize = record.get('failedPostSize'), rawPostSize = record.get('rawPostSize'), ignoredPostSize = record.get('ignoredPostSize'), insertedPostSize = record.get('insertedPostSize'), updatedPostSize = record.get('updatedPostSize'), processedPostSize = ignoredPostSize + insertedPostSize + updatedPostSize, postSize = failedPostSize + rawPostSize + ignoredPostSize + insertedPostSize + updatedPostSize;
     var collectorStatus = record.get('collectorStatus'), explorerStatus = record.get('explorerStatus');
-    var progressbarId = Ext.id(), progressbarValue = processedPostSize == 0 ? 0 : processedPostSize / (billSize - failedPostSize), tip1, tip2;
+    var progressbarId = Ext.id(), progressbarValue = processedPostSize == 0 ? 0 : postSize / billSize, tip1, tip2;
     if (collectorStatus == 0) {
       tip1 = '已停止';
       tip2 = Ext.String.format('已处理: {0} [新增: <a class="insertedPostSize" status=2 href="javascript:">{1}</a>, 更新: <a class="updatedPostSize" status=3 href="javascript:">{2}</a>, 忽略: <a class="ignoredPostSize" status=1 href="javascript:">{3}</a>], 已收集: <a class="billSize" href="javascript:">{4}</a> [不可处理: <a class="failedPostSize" status=-1 href="javascript:">{5}</a>]', processedPostSize, insertedPostSize, updatedPostSize, ignoredPostSize, billSize, failedPostSize);
@@ -230,7 +230,7 @@ Ext.define('Platform.posttask.View', {
         width: 440,
         value: progressbarValue
       });
-      if (1 == collectorStatus && 1 == explorerStatus) {
+      if (collectorStatus == 1 && explorerStatus == 1) {
         progressbar.wait({
           interval: 1000
         });
@@ -249,7 +249,17 @@ Ext.define('Platform.posttask.View', {
     this.executeTask(ctx + '/posttask/stopCollector.do', record.get('cid'));
   },
   onDeleteBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    this.executeTask(ctx + '/posttask/deleteCollector.do', record.get('cid'));
+    Ext.toast({
+      title: '提示',
+      html: '逗你的，不能删除哈哈哈！',
+      align: 't',
+      slideInDuration: 100,
+      slideBackDuration: 800,
+      hideDuration: 100,
+      autoCloseDelay: 1000,
+    });
+    // this.executeTask(ctx + '/posttask/deleteCollector.do',
+    // record.get('cid'));
   },
   executeTask: function(url, cid) {
     var me = this;
@@ -275,6 +285,6 @@ Ext.define('Platform.posttask.View', {
       me.mapWindow = Platform.widget('posttask-map');
     }
     me.mapWindow.show();
-    me.mapWindow.loadData(record.get('cid'));
+    me.mapWindow.loadData(record.get('cid'), 5, true);
   }
 });

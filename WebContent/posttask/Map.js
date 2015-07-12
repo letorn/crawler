@@ -31,22 +31,18 @@ Ext.define('Platform.posttask.Map', {
     me.map.addControl(scaleControl);
     me.map.addControl(navigationControl);
     me.map.enableScrollWheelZoom();
-    me.map.centerAndZoom(new BMap.Point(111.958836,23.402762), 8);
+    me.map.centerAndZoom(new BMap.Point(113.203125, 33.884664), 5);
     me.map.addEventListener('zoomend', function(e) {
       var target = e.target, zoom = target.getZoom();
       me.loadData(me.cid, zoom);
     });
-    Ext.query('.anchorBL').forEach(function(el) {
-      el.style.display = 'none';
-    });
-    me.mapTip = Ext.widget('window', {
-      title: 'AA',
-      width: 200,
-      height: 200,
-      html: 'dddd'
+    me.map.addEventListener('tilesloaded', function(e) {
+      Ext.query('.anchorBL').forEach(function(el) {
+        el.style.display = 'none';
+      });
     });
   },
-  loadData: function(cid, zoom) {
+  loadData: function(cid, zoom, autoViewport) {
     var me = this;
     if (cid !== undefined) {
       me.cid = cid;
@@ -58,7 +54,7 @@ Ext.define('Platform.posttask.Map', {
       url: ctx + '/posttask/postPoints.do',
       params: {
         cid: me.cid,
-        zoom: zoom - 2 || 8
+        zoom: zoom
       },
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
@@ -81,13 +77,15 @@ Ext.define('Platform.posttask.Map', {
             marker.addEventListener('click', function(e) {
               var marker = this, data = marker.data;
               if (!marker.infoWindow) {
-                marker.infoWindow = new BMap.InfoWindow('共：' + data.postCount + ' 岗位');
+                marker.infoWindow = new BMap.InfoWindow('共：' + data.postCount + ' 岗位<br />想看具体岗位，敬请期待！');
               }
               marker.openInfoWindow(marker.infoWindow);
             });
             me.map.addOverlay(marker);
           }
-          // me.map.setViewport(points);
+          if (false) {
+            me.map.setViewport(points);
+          }
         }
         me.setLoading(false);
       }

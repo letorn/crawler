@@ -15,7 +15,7 @@ Ext.define('Platform.posttask.Bill', {
       fields: ['date', 'postUrl', 'postName', 'enterpriseUrl', 'enterpriseName', 'status'],
       proxy: {
         type: 'ajax',
-        url: 'posttask/pagedBill.do',
+        url: ctx + '/posttask/pagedBill.do',
         extraParams: {},
         reader: {
           type: 'json',

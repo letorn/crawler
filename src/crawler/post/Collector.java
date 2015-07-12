@@ -220,7 +220,7 @@ public class Collector {
 	}
 
 	public Integer[] postSizes() {
-		Integer fail = 0;
+		Integer failed = 0;
 		Integer raw = 0;
 		Integer ignored = 0;
 		Integer inserted = 0;
@@ -228,7 +228,7 @@ public class Collector {
 		for (int i = 0; i < posts.size(); i++) {
 			Post post = posts.get(i);
 			if (post.getStatus() == -1) {
-				fail++;
+				failed++;
 			} else if (post.getStatus() == 0) {
 				raw++;
 			} else if (post.getStatus() == 1) {
@@ -239,7 +239,7 @@ public class Collector {
 				updated++;
 			}
 		}
-		return new Integer[] { fail, raw, ignored, inserted, updated };
+		return new Integer[] { failed, raw, ignored, inserted, updated };
 	}
 
 	public Boolean clearPost() {

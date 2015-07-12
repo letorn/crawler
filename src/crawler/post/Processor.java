@@ -63,7 +63,7 @@ public class Processor {
 		if (thread != null) {
 			return false;
 		} else {
-			if (3 == status) {
+			if (status == 3) {
 				clear();
 			}
 			status = 1;
@@ -72,8 +72,8 @@ public class Processor {
 					Explorer explorer = collector.getExplorer();
 					List<Bill> bills = null;
 					Boolean lastTime = false;
-					while (1 == status) {
-						if (1 == explorer.getStatus()) {
+					while (status == 1) {
+						if (explorer.getStatus() == 1) {
 							try {
 								Thread.sleep(3000);
 							} catch (InterruptedException e) {
@@ -85,7 +85,7 @@ public class Processor {
 							lastTime = true;
 						}
 
-						for (int i = 0; i < bills.size() && 1 == status; i++) {
+						for (int i = 0; i < bills.size() && status == 1; i++) {
 							Bill bill = bills.get(i);
 							bill.setStatus(1);
 							String postUrl = bill.getPostUrl();
@@ -120,7 +120,14 @@ public class Processor {
 							collector.saveEnterprise(enterprise);
 							collector.savePost(post);
 
-							if (enterprise.getStatus() != -1 && post.getStatus() != -1) {
+							if (enterprise.getStatus() == -1)
+								post.setStatus(-1);
+
+							if (post.getStatus() != -1) {
+								post.setAddress(enterprise.getAddress());
+								post.setAreaCode(enterprise.getAreaCode());
+								post.setLbsLon(enterprise.getLbsLon());
+								post.setLbsLat(enterprise.getLbsLat());
 								if (Holder.existEnterpriseAccount(enterprise.getName())) {
 									logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
 								} else {
@@ -138,12 +145,12 @@ public class Processor {
 
 							lastProcessedBillIndex++;
 
-							if (posts.size() > 80) {
+							if (posts.size() >= 80) {
 								commitPosts();
 							}
 						}
 
-						if (true == lastTime) {
+						if (lastTime) {
 							commitPosts();
 							finish();
 						}

@@ -37,6 +37,7 @@ public class Post implements Point {
 	private Map<String, String> experienceAbility;
 	private Map<String, String> educationAbility;
 
+	private String areaCode;
 	private Long lbsId;
 	private Double lbsLon;
 	private Double lbsLat;
@@ -255,6 +256,14 @@ public class Post implements Point {
 
 	public void setEducationAbility(Map<String, String> educationAbility) {
 		this.educationAbility = educationAbility;
+	}
+
+	public String getAreaCode() {
+		return areaCode;
+	}
+
+	public void setAreaCode(String areaCode) {
+		this.areaCode = areaCode;
 	}
 
 	public Long getLbsId() {
