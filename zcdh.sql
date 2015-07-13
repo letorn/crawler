@@ -18,3 +18,6 @@ DELETE FROM zcdh_ent_post;
 DELETE FROM zcdh_ent_post_status;
 DELETE FROM zcdh_ent_promotion;
 DELETE FROM zcdh_view_ent_post;
+
+select * from zcdh_view_ent_post
+
