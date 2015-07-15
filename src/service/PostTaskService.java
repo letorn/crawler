@@ -316,8 +316,26 @@ public class PostTaskService {
 		return false;
 	}
 
-	public List<Marker<Post>> getPostMarkers(String cid, Integer zoom) {
+	public List<Marker<Post>> getPostMarkers(String cid, int zoom) {
 		return collectors.get(cid).getPostCluster().getMarkers(zoom);
+	}
+
+	public List<Post> getMarkerPosts(String cid, int zoom, double[] point, int start, int limit) {
+		List<Post> list = new ArrayList<Post>();
+		Marker<Post> marker = collectors.get(cid).getPostCluster().getMarker(zoom, point);
+		if (marker != null) {
+			List<Post> posts = marker.getPoints();
+			for (int i = start; i < posts.size() && list.size() < limit; i++)
+				list.add(posts.get(i));
+		}
+		return list;
+	}
+
+	public int getMarkerPostSize(String cid, int zoom, double[] point) {
+		Marker<Post> marker = collectors.get(cid).getPostCluster().getMarker(zoom, point);
+		if (marker != null)
+			return marker.getPoints().size();
+		return 0;
 	}
 
 	private static Map<String, Object> toMap(File file) {

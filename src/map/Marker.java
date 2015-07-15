@@ -12,11 +12,11 @@ public class Marker<T extends Point> {
 		this.center = center;
 	}
 
-	public double[] center() {
+	public double[] getCenter() {
 		return center;
 	}
 
-	public List<T> points() {
+	public List<T> getPoints() {
 		return points;
 	}
 
@@ -32,7 +32,7 @@ public class Marker<T extends Point> {
 			return center[0] == other[0] && center[1] == other[1];
 		}
 		if (object instanceof Marker) {
-			double[] other = ((Marker) object).center();
+			double[] other = ((Marker) object).getCenter();
 			return center[0] == other[0] && center[1] == other[1];
 		}
 		return false;

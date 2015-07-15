@@ -55,4 +55,13 @@ public class Cluster<T extends Point> {
 		return new ArrayList<Marker<T>>(markerMap.values());
 	}
 
+	public Marker<T> getMarker(int zoom, double[] center) {
+		if (zoom < 0)
+			zoom = 0;
+		if (zoom > zoomScale.length - 1)
+			zoom = zoomScale.length - 1;
+		Map<String, Marker<T>> markerMap = lookup.get(zoomScale[zoom]);
+		return markerMap.get(String.format("%f-%f", center[0], center[1]));
+	}
+
 }

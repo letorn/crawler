@@ -708,10 +708,12 @@ public class Holder extends C3P0Store {
 		String entEnterpriseUpdateSQL = "update zcdh_ent_enterprise set create_date=? where ent_id=?";
 		String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 		String entEnterpriseInsertSQL = "insert into zcdh_ent_enterprise(create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String entAccountInsertSQL = "insert into zcdh_ent_account(ent_id, account, pwd, status, create_date, create_mode) values(?, ?, ?, ?, ?, ?)";
 		Connection connection = openConnection();
 		PreparedStatement entEnterpriseUpdateStatement = null;
 		PreparedStatement entLbsInsertStatement = null;
 		PreparedStatement entEnterpriseInsertStatement = null;
+		PreparedStatement entAccountInsertStatement = null;
 		ResultSet entLbsInsertedKeyResultSet = null;
 		ResultSet entEnterpriseInsertedKeyResultSet = null;
 		List<Enterprise> updatedEnterprises = new ArrayList<Enterprise>();
@@ -720,6 +722,7 @@ public class Holder extends C3P0Store {
 			entEnterpriseUpdateStatement = connection.prepareStatement(entEnterpriseUpdateSQL);
 			entLbsInsertStatement = connection.prepareStatement(entLbsInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 			entEnterpriseInsertStatement = connection.prepareStatement(entEnterpriseInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+			entAccountInsertStatement = connection.prepareStatement(entAccountInsertSQL);
 			for (Enterprise ent : list) {
 				ent.setStatus(1);
 				String url = ent.getUrl();
@@ -771,7 +774,16 @@ public class Holder extends C3P0Store {
 				ent.setId(entEnterpriseInsertedKeyResultSet.getLong(1));
 				ent.setStatus(2);
 				enterprises.put(ent.getUrl(), ent);
+
+				entAccountInsertStatement.setLong(1, ent.getId());
+				entAccountInsertStatement.setString(2, "zcdh0000000");
+				entAccountInsertStatement.setString(3, "pwd");
+				entAccountInsertStatement.setInt(4, 1);
+				entAccountInsertStatement.setDate(5, new java.sql.Date(ent.getDate().getTime()));
+				entAccountInsertStatement.setInt(6, 2);
+				entAccountInsertStatement.addBatch();
 			}
+			entAccountInsertStatement.executeBatch();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -786,6 +798,8 @@ public class Holder extends C3P0Store {
 					entEnterpriseUpdateStatement.close();
 				if (entEnterpriseInsertStatement != null && !entEnterpriseInsertStatement.isClosed())
 					entEnterpriseInsertStatement.close();
+				if (entAccountInsertStatement != null && !entAccountInsertStatement.isClosed())
+					entAccountInsertStatement.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

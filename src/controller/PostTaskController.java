@@ -302,9 +302,9 @@ public class PostTaskController {
 		return resultMap;
 	}
 
-	@RequestMapping("postPoints.do")
+	@RequestMapping("mapData.do")
 	@ResponseBody
-	public Map<String, Object> postPoints(String cid, Integer zoom) {
+	public Map<String, Object> mapData(String cid, Integer zoom) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		if (!postTaskService.existCollector(cid) || zoom == null) {
 			resultMap.put("success", false);
@@ -312,11 +312,42 @@ public class PostTaskController {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 			for (Marker<Post> marker : postTaskService.getPostMarkers(cid, zoom)) {
 				Map<String, Object> d = new HashMap<String, Object>();
-				d.put("center", marker.center());
-				d.put("postCount", marker.points().size());
+				d.put("center", marker.getCenter());
+				d.put("postCount", marker.getPoints().size());
 				data.add(d);
 			}
 			resultMap.put("data", data);
+			resultMap.put("success", true);
+		}
+		return resultMap;
+	}
+
+	@RequestMapping("mapMarkerData.do")
+	@ResponseBody
+	public Map<String, Object> mapMarkerData(String cid, Integer zoom, double[] center, Integer start, Integer limit) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		if (!postTaskService.existCollector(cid) || zoom == null || center == null || center.length != 2 || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+			resultMap.put("success", false);
+		} else {
+			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+			for (Post post : postTaskService.getMarkerPosts(cid, zoom, center, start, limit)) {
+				Map<String, Object> d = new HashMap<String, Object>();
+				d.put("url", post.getUrl());
+				d.put("date", post.getDate());
+				d.put("name", post.getName());
+				d.put("category", post.getCategory());
+				d.put("numberText", post.getNumberText());
+				d.put("nature", post.getNature());
+				d.put("salaryText", post.getSalaryText());
+				d.put("experience", post.getExperience());
+				d.put("education", post.getEducation());
+				d.put("welfare", post.getWelfare());
+				d.put("address", post.getAddress());
+				d.put("status", post.getStatus());
+				data.add(d);
+			}
+			resultMap.put("data", data);
+			resultMap.put("total", postTaskService.getMarkerPostSize(cid, zoom, center));
 			resultMap.put("success", true);
 		}
 		return resultMap;
