@@ -1,5 +1,7 @@
 package crawler.post;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.log4j.Logger;
+import org.apache.tomcat.util.codec.binary.Base64;
 
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
@@ -38,6 +41,16 @@ public class Holder extends C3P0Store {
 	private static Map<String, Post> posts = new ConcurrentHashMap<String, Post>();
 	private static Map<String, Enterprise> enterprises = new ConcurrentHashMap<String, Enterprise>();
 	private static Set<String> enterpriseAccounts = new ConcurrentSkipListSet<String>();
+
+	private static MessageDigest messageDigest;
+
+	static {
+		try {
+			messageDigest = MessageDigest.getInstance("MD5");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public void init() {
 		logger.info("------ init Holder(Post) ------");
@@ -777,10 +790,10 @@ public class Holder extends C3P0Store {
 
 				entAccountInsertStatement.setLong(1, ent.getId());
 				entAccountInsertStatement.setString(2, "zcdh0000000");
-				entAccountInsertStatement.setString(3, "pwd");
+				entAccountInsertStatement.setString(3, "oSBrriGEzW8KHAL6b9J63w==");// zcdhjob.com
 				entAccountInsertStatement.setInt(4, 1);
 				entAccountInsertStatement.setDate(5, new java.sql.Date(ent.getDate().getTime()));
-				entAccountInsertStatement.setInt(6, 2);
+				entAccountInsertStatement.setInt(6, 2);// 0 企业录入, 1 客服录入, 2 自动采集
 				entAccountInsertStatement.addBatch();
 			}
 			entAccountInsertStatement.executeBatch();
@@ -910,6 +923,15 @@ public class Holder extends C3P0Store {
 					e.printStackTrace();
 				}
 			}
+		}
+	}
+
+	private static String md5Encoder(String str) {
+		try {
+			return Base64.encodeBase64String(messageDigest.digest(str.getBytes("utf-8")));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 
