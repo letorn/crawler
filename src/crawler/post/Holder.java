@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.log4j.Logger;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -40,7 +38,7 @@ public class Holder extends C3P0Store {
 
 	private static Map<String, Post> posts = new ConcurrentHashMap<String, Post>();
 	private static Map<String, Enterprise> enterprises = new ConcurrentHashMap<String, Enterprise>();
-	private static Set<String> enterpriseAccounts = new ConcurrentSkipListSet<String>();
+	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
 
 	private static MessageDigest messageDigest;
 
@@ -130,22 +128,38 @@ public class Holder extends C3P0Store {
 			}
 		});
 
-		selectResultSet("select e.ent_id, e.parea, l.latitude lbs_lat, l.longitude lbs_lon, e.create_date, e.data_url from zcdh_ent_enterprise e left join zcdh_ent_lbs l on e.lbs_id=l.lbs_id where e.data_src is not null and e.create_date is not null and e.lbs_id is not null", new Iterator<ResultSet>() {
+		selectResultSet("select a.account_id, a.account, a.create_mode, e.create_date, e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.ent_web, e.address, e.parea, e.lbs_id, e.introduction, e.data_src, e.data_url, l.latitude, l.longitude from zcdh_ent_account a join zcdh_ent_enterprise e on a.ent_id=e.ent_id join zcdh_ent_lbs l on e.lbs_id=l.lbs_id", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int i) throws Exception {
 				Enterprise enterprise = new Enterprise();
-				enterprise.setId(resultSet.getLong("ent_id"));
-				enterprise.setAreaCode(resultSet.getString("parea"));
-				enterprise.setLbsLat(resultSet.getDouble("lbs_lat"));
-				enterprise.setLbsLon(resultSet.getDouble("lbs_lon"));
+				enterprise.setAccountId(resultSet.getLong("account_id"));
+				enterprise.setAccount(resultSet.getString("account"));
+				enterprise.setCreateMode(resultSet.getInt("create_mode"));
 				enterprise.setDate(resultSet.getDate("create_date"));
-				enterprises.put(resultSet.getString("data_url"), enterprise);
-				return true;
-			}
-		});
+				enterprise.setId(resultSet.getLong("ent_id"));
+				enterprise.setName(resultSet.getString("ent_name"));
+				enterprise.setCategoryCode(resultSet.getString("industry"));
+				if (enterprise.getCategoryCode() != null)
+					enterprise.setCategory(enterpriseCategories.get(enterprise.getCategoryCode()));
+				enterprise.setNatureCode(resultSet.getString("property"));
+				if (enterprise.getNatureCode() != null)
+					enterprise.setNature(enterpriseNatures.get(enterprise.getNatureCode()));
+				enterprise.setScaleCode(resultSet.getString("employ_num"));
+				if (enterprise.getScaleCode() != null)
+					enterprise.setScale(enterpriseScales.get(enterprise.getScaleCode()));
+				enterprise.setWebsite(resultSet.getString("ent_web"));
+				enterprise.setAddress(resultSet.getString("address"));
+				enterprise.setAreaCode(resultSet.getString("parea"));
+				enterprise.setLbsId(resultSet.getLong("lbs_id"));
+				enterprise.setIntroduction(resultSet.getString("introduction"));
+				enterprise.setSrc(resultSet.getString("data_src"));
+				enterprise.setUrl(resultSet.getString("data_url"));
+				enterprise.setLbsLon(resultSet.getDouble("longitude"));
+				enterprise.setLbsLat(resultSet.getDouble("latitude"));
 
-		selectResultSet("select e.ent_name from zcdh_ent_account a join zcdh_ent_enterprise e on a.ent_id=e.ent_id where e.ent_name is not null", new Iterator<ResultSet>() {
-			public boolean next(ResultSet resultSet, int i) throws Exception {
-				enterpriseAccounts.add(resultSet.getString("ent_name"));
+				if (enterprise.getUrl() != null)
+					enterprises.put(enterprise.getUrl(), enterprise);
+				if (enterprise.getName() != null)
+					enterpriseNameMap.put(enterprise.getName(), enterprise);
 				return true;
 			}
 		});
@@ -215,8 +229,12 @@ public class Holder extends C3P0Store {
 		return enterpriseScales.get(paramName);
 	}
 
-	public static Boolean existEnterpriseAccount(String enterpriseName) {
-		return enterpriseAccounts.contains(enterpriseName);
+	public static Boolean existEnterprise(String enterpriseName) {
+		return enterpriseNameMap.containsKey(enterpriseName);
+	}
+
+	public static Enterprise getEnterprise(String enterpriseName) {
+		return enterpriseNameMap.get(enterpriseName);
 	}
 
 	public static void savePost(List<Post> list, Integer updateInterval) {
@@ -729,25 +747,43 @@ public class Holder extends C3P0Store {
 		PreparedStatement entAccountInsertStatement = null;
 		ResultSet entLbsInsertedKeyResultSet = null;
 		ResultSet entEnterpriseInsertedKeyResultSet = null;
+		ResultSet entAccountInsertedKeyResultSet = null;
+		List<Enterprise> updatedEnterprises = new ArrayList<Enterprise>();
 		List<Enterprise> updatedEnterprises = new ArrayList<Enterprise>();
 		List<Enterprise> insertedEnterprises = new ArrayList<Enterprise>();
 		try {
 			entEnterpriseUpdateStatement = connection.prepareStatement(entEnterpriseUpdateSQL);
 			entLbsInsertStatement = connection.prepareStatement(entLbsInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 			entEnterpriseInsertStatement = connection.prepareStatement(entEnterpriseInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
-			entAccountInsertStatement = connection.prepareStatement(entAccountInsertSQL);
+			entAccountInsertStatement = connection.prepareStatement(entAccountInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 			for (Enterprise ent : list) {
 				ent.setStatus(1);
-				String url = ent.getUrl();
-				if (enterprises.containsKey(url)) {
-					Enterprise enterprise = enterprises.get(url);
+				Enterprise enterprise = enterpriseNameMap.get(ent.getName());
+				if (enterprise != null) {
+					
+					
+					
+					ent.setAccountId(enterprise.getAccountId());
+					ent.setAccount(enterprise.getAccount());
+					ent.setCreateMode(enterprise.getCreateMode());
+					ent.setDate(enterprise.getDate());
 					ent.setId(enterprise.getId());
-					if (ent.getDate() != null && enterprise.getDate() != null && ent.getDate().getTime() - enterprise.getDate().getTime() >= updateInterval * 24 * 60 * 60 * 1000) {
-						entEnterpriseUpdateStatement.setDate(1, new java.sql.Date(ent.getDate().getTime()));
-						entEnterpriseUpdateStatement.setLong(2, ent.getId());
-						entEnterpriseUpdateStatement.addBatch();
-						updatedEnterprises.add(ent);
-					}
+					ent.setName(enterprise.getName());
+					ent.setCategoryCode(enterprise.getCategoryCode());
+					ent.setCategory(enterprise.getCategory());
+					ent.setNatureCode(enterprise.getNatureCode());
+					ent.setNature(enterprise.getNature());
+					ent.setScaleCode(enterprise.getScaleCode());
+					ent.setScale(enterprise.getScale());
+					ent.setWebsite(enterprise.getWebsite());
+					ent.setAddress(enterprise.getAddress());
+					ent.setAreaCode(enterprise.getAreaCode());
+					ent.setLbsId(enterprise.getLbsId());
+					ent.setIntroduction(enterprise.getIntroduction());
+					ent.setLbsLon(enterprise.getLbsLon());
+					ent.setLbsLat(enterprise.getLbsLat());
+					
+					updatedEnterprises.add(ent);
 				} else {
 					entLbsInsertStatement.setDouble(1, ent.getLbsLon());
 					entLbsInsertStatement.setDouble(2, ent.getLbsLat());
@@ -797,6 +833,11 @@ public class Holder extends C3P0Store {
 				entAccountInsertStatement.addBatch();
 			}
 			entAccountInsertStatement.executeBatch();
+			entAccountInsertedKeyResultSet = entAccountInsertStatement.getGeneratedKeys();
+			for (int i = 0; entAccountInsertedKeyResultSet.next(); i++) {
+				Enterprise ent = insertedEnterprises.get(i);
+				ent.setAccountId(entAccountInsertedKeyResultSet.getLong(1));
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -805,6 +846,8 @@ public class Holder extends C3P0Store {
 					entLbsInsertedKeyResultSet.close();
 				if (entEnterpriseInsertedKeyResultSet != null && !entEnterpriseInsertedKeyResultSet.isClosed())
 					entEnterpriseInsertedKeyResultSet.close();
+				if (entAccountInsertedKeyResultSet != null && !entAccountInsertedKeyResultSet.isClosed())
+					entAccountInsertedKeyResultSet.close();
 				if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 					entLbsInsertStatement.close();
 				if (entEnterpriseUpdateStatement != null && !entEnterpriseUpdateStatement.isClosed())
@@ -824,14 +867,18 @@ public class Holder extends C3P0Store {
 		if (enterprise.getId() == null) {
 			String entLbsInsertSQL = "insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)";
 			String entEnterpriseInsertSQL = "insert into zcdh_ent_enterprise(create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, data_src, data_url) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String entAccountInsertSQL = "insert into zcdh_ent_account(ent_id, account, pwd, status, create_date, create_mode) values(?, ?, ?, ?, ?, ?)";
 			Connection connection = openConnection();
 			PreparedStatement entLbsInsertStatement = null;
 			PreparedStatement entEnterpriseInsertStatement = null;
+			PreparedStatement entAccountInsertStatement = null;
 			ResultSet entLbsInsertedKeyResultSet = null;
 			ResultSet entEnterpriseInsertedKeyResultSet = null;
+			ResultSet entAccountInsertedKeyResultSet = null;
 			try {
 				entLbsInsertStatement = connection.prepareStatement(entLbsInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 				entEnterpriseInsertStatement = connection.prepareStatement(entEnterpriseInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+				entAccountInsertStatement = connection.prepareStatement(entAccountInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
 
 				entLbsInsertStatement.setDouble(1, enterprise.getLbsLon());
 				entLbsInsertStatement.setDouble(2, enterprise.getLbsLat());
@@ -860,7 +907,21 @@ public class Holder extends C3P0Store {
 						enterprise.setId(entEnterpriseInsertedKeyResultSet.getLong(1));
 						enterprise.setStatus(2);
 						enterprises.put(enterprise.getUrl(), enterprise);
-						return true;
+
+						entAccountInsertStatement.setLong(1, enterprise.getId());
+						entAccountInsertStatement.setString(2, "zcdh0000000");
+						entAccountInsertStatement.setString(3, "oSBrriGEzW8KHAL6b9J63w==");// zcdhjob.com
+						entAccountInsertStatement.setInt(4, 1);
+						entAccountInsertStatement.setDate(5, new java.sql.Date(enterprise.getDate().getTime()));
+						entAccountInsertStatement.setInt(6, 2);
+
+						entAccountInsertStatement.executeUpdate();
+
+						entAccountInsertedKeyResultSet = entAccountInsertStatement.getGeneratedKeys();
+						if (entAccountInsertedKeyResultSet.next()) {
+							enterprise.setAccountId(entAccountInsertedKeyResultSet.getLong(1));
+							return true;
+						}
 					}
 				}
 				return false;
@@ -873,10 +934,14 @@ public class Holder extends C3P0Store {
 						entLbsInsertedKeyResultSet.close();
 					if (entEnterpriseInsertedKeyResultSet != null && !entEnterpriseInsertedKeyResultSet.isClosed())
 						entEnterpriseInsertedKeyResultSet.close();
+					if (entAccountInsertedKeyResultSet != null && !entAccountInsertedKeyResultSet.isClosed())
+						entAccountInsertedKeyResultSet.close();
 					if (entLbsInsertStatement != null && !entLbsInsertStatement.isClosed())
 						entLbsInsertStatement.close();
 					if (entEnterpriseInsertStatement != null && !entEnterpriseInsertStatement.isClosed())
 						entEnterpriseInsertStatement.close();
+					if (entAccountInsertStatement != null && !entAccountInsertStatement.isClosed())
+						entAccountInsertStatement.close();
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}

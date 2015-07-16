@@ -31,7 +31,7 @@ SELECT id, publish_date, update_date, ent_id, post_aliases, post_name, post_code
 SELECT ent_id FROM zcdh_ent_enterprise;
 SELECT ent_id, create_date, ent_name, industry, property, employ_num, ent_web, address, parea, lbs_id, introduction, data_src, data_url FROM zcdh_ent_enterprise WHERE ent_id=?;
 
-SELECT a.account_id, a.account, e.create_date, e.ent_name, e.industry, e.property, e.employ_num, e.ent_web, e.address, e.parea, e.lbs_id, e.introduction, e.data_src, e.data_url, l.latitude, l.longitude
+SELECT a.account_id, a.account, a.create_mode, e.create_date, e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.ent_web, e.address, e.parea, e.lbs_id, e.introduction, e.data_src, e.data_url, l.latitude, l.longitude
 FROM zcdh_ent_account a
 JOIN zcdh_ent_enterprise e ON a.ent_id=e.ent_id
 JOIN zcdh_ent_lbs l ON e.lbs_id=l.lbs_id

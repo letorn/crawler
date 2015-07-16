@@ -20,6 +20,10 @@ public class Enterprise {
 	private String introduction;
 	private Integer status = 0;// 0 未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
 
+	private Long accountId;
+	private String account;
+	private Integer createMode = 2;// 0 企业录入, 1 客服录入, 2 自动采集
+
 	private String areaCode;
 	private Long lbsId;
 	private Double lbsLon;
@@ -143,6 +147,30 @@ public class Enterprise {
 
 	public void setStatus(Integer status) {
 		this.status = status;
+	}
+
+	public Long getAccountId() {
+		return accountId;
+	}
+
+	public void setAccountId(Long accountId) {
+		this.accountId = accountId;
+	}
+
+	public String getAccount() {
+		return account;
+	}
+
+	public void setAccount(String account) {
+		this.account = account;
+	}
+
+	public Integer getCreateMode() {
+		return createMode;
+	}
+
+	public void setCreateMode(Integer createMode) {
+		this.createMode = createMode;
 	}
 
 	public String getAreaCode() {
