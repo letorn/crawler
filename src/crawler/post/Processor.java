@@ -14,10 +14,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.NodeVisitor;
 
+import util.Ver;
 import crawler.AttributeCatcher;
 import crawler.Client;
+import crawler.post.model.Ability;
+import crawler.post.model.AbilityParam;
 import crawler.post.model.Bill;
 import crawler.post.model.Enterprise;
+import crawler.post.model.Lbs;
 import crawler.post.model.Post;
 
 public class Processor {
@@ -109,10 +113,11 @@ public class Processor {
 								}
 							});
 
-							postAttributes.put("url", postUrl);
-							postAttributes.put("enterpriseUrl", enterpriseUrl);
 							enterpriseAttributes.put("url", enterpriseUrl);
 							enterpriseAttributes.put("date", postAttributes.get("date"));
+							postAttributes.put("url", postUrl);
+							postAttributes.put("enterpriseUrl", enterpriseUrl);
+							postAttributes.put("enterpriseName", enterpriseAttributes.get("name"));
 
 							Enterprise enterprise = toEnterprise(enterpriseAttributes);
 							Post post = toPost(postAttributes);
@@ -124,22 +129,32 @@ public class Processor {
 								post.setStatus(-1);
 
 							if (post.getStatus() != -1) {
-								post.setAddress(enterprise.getAddress());
-								post.setAreaCode(enterprise.getAreaCode());
-								post.setLbsLon(enterprise.getLbsLon());
-								post.setLbsLat(enterprise.getLbsLat());
-								if (Holder.existEnterpriseAccount(enterprise.getName())) {
-									logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
-								} else {
-									if (!enterpriseUrlIndexes.containsKey(enterprise.getUrl())) {
-										enterprises.add(enterprise);
-										enterpriseUrlIndexes.put(enterprise.getUrl(), enterprises.size() - 1);
-									}
 
-									if (enterpriseUrlIndexes.containsKey(post.getEnterpriseUrl())) {
-										posts.add(post);
-										bill.setStatus(2);
-									}
+								if (Ver.isBlank(post.getAreaCode()) && Ver.isNotBlank(enterprise.getAreaCode())) {
+									post.setAreaCode(enterprise.getAreaCode());
+									post.setDirty(true);
+								}
+
+								if (Ver.isBlank(post.getAddress()) && Ver.isNotBlank(enterprise.getAddress())) {
+									post.setAddress(enterprise.getAddress());
+									post.setDirty(true);
+								}
+
+								if (post.getLbs() == null && enterprise.getLbs() != null) {
+									Lbs lbs = new Lbs();
+									lbs.setLon(enterprise.getLbs().getLon());
+									lbs.setLat(enterprise.getLbs().getLat());
+									post.setLbs(lbs);
+								}
+
+								if (!enterpriseUrlIndexes.containsKey(enterprise.getDataUrl())) {
+									enterprises.add(enterprise);
+									enterpriseUrlIndexes.put(enterprise.getDataUrl(), enterprises.size() - 1);
+								}
+
+								if (enterpriseUrlIndexes.containsKey(post.getEnterpriseUrl())) {
+									posts.add(post);
+									bill.setStatus(2);
 								}
 							}
 
@@ -195,9 +210,9 @@ public class Processor {
 	}
 
 	private Post toPost(Map<String, String> map) {
-		String url = map.get("url");
 		String dateString = map.get("date");
 		Date date = StringUtils.isNotBlank(dateString) ? date = parseDate(dateString) : null;
+		String url = map.get("url");
 		String name = map.get("name");
 		String category = map.get("category");
 		String number = map.get("number");
@@ -209,6 +224,7 @@ public class Processor {
 		String address = map.get("address");
 		String introduction = map.get("introduction");
 		String enterpriseUrl = map.get("enterpriseUrl");
+		String enterpriseName = map.get("enterpriseName");
 
 		Map<String, String> categoryMapper = postAttributeMappers.get("category");
 		Map<String, String> numberMapper = postAttributeMappers.get("number");
@@ -218,15 +234,6 @@ public class Processor {
 		Map<String, String> educationMapper = postAttributeMappers.get("education");
 
 		Post post = new Post();
-
-		if (StringUtils.isNotBlank(collector.getNid()))
-			post.setSrc(collector.getNid());
-
-		if (StringUtils.isNotBlank(url))
-			post.setUrl(url);
-
-		if (date != null)
-			post.setDate(date);
 
 		if (StringUtils.isNotBlank(name))
 			post.setName(name);
@@ -289,21 +296,31 @@ public class Processor {
 
 		String experienceCode = StringUtils.isBlank(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
 		if (StringUtils.isNotBlank(experienceCode)) {
-			Map<String, String> experienceAbility = Holder.getPostExperience(experienceCode);
-			if (experienceAbility != null) {
-				post.setExperienceCode(experienceCode);
-				post.setExperience(experienceAbility.get("paramName"));
-				post.setExperienceAbility(experienceAbility);
+			AbilityParam abilityParam = Holder.getPostExperience(experienceCode);
+			if (abilityParam != null) {
+				post.setExperience(abilityParam.getName());
+				post.setExperienceCode(abilityParam.getCode());
+
+				Ability ability = new Ability();
+				ability.setPostCode(post.getCategoryCode());
+				ability.setName(abilityParam.getName());
+				ability.setCode(abilityParam.getCode());
+				post.setExperienceAbility(ability);
 			}
 		}
 
 		String educationCode = StringUtils.isBlank(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
 		if (StringUtils.isNotBlank(educationCode)) {
-			Map<String, String> educationAbility = Holder.getPostEducation(educationCode);
-			if (educationAbility != null) {
-				post.setEducationCode(educationCode);
-				post.setEducation(educationAbility.get("paramName"));
-				post.setEducationAbility(educationAbility);
+			AbilityParam abilityParam = Holder.getPostEducation(educationCode);
+			if (abilityParam != null) {
+				post.setEducation(abilityParam.getName());
+				post.setEducationCode(abilityParam.getCode());
+
+				Ability ability = new Ability();
+				ability.setPostCode(post.getCategoryCode());
+				ability.setName(abilityParam.getName());
+				ability.setCode(abilityParam.getCode());
+				post.setEducationAbility(ability);
 			}
 		}
 
@@ -324,47 +341,58 @@ public class Processor {
 			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
 		}
 
-		if (StringUtils.isNotBlank(address))
-			post.setAddress(address);
+		// if (StringUtils.isNotBlank(address))
+		// post.setAddress(address);
 
 		if (StringUtils.isNotBlank(introduction))
 			post.setIntroduction(introduction);
 
+		if (StringUtils.isNotBlank(collector.getNid()))
+			post.setDataSrc(collector.getNid());
+
+		if (StringUtils.isNotBlank(url))
+			post.setDataUrl(url);
+
+		if (date != null) {
+			post.setUpdateDate(date);
+			post.setPublishDate(date);
+		} else {
+			Date now = new Date();
+			post.setUpdateDate(now);
+			post.setPublishDate(now);
+		}
+
 		if (StringUtils.isNotBlank(enterpriseUrl))
 			post.setEnterpriseUrl(enterpriseUrl);
 
-		if (StringUtils.isBlank(post.getSrc()) || StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getNatureCode()) || StringUtils.isBlank(post.getExperienceCode()) || StringUtils.isBlank(post.getEducationCode()) || StringUtils.isBlank(post.getEnterpriseUrl()))
+		if (StringUtils.isNotBlank(enterpriseName))
+			post.setEnterpriseName(enterpriseName);
+
+		Holder.mergePost(post);
+
+		if (Ver.isBlank(post.getName()) || Ver.isBlank(post.getCategoryCode()) || Ver.isBlank(post.getNatureCode()) || Ver.isBlank(post.getExperienceCode()) || Ver.isBlank(post.getEducationCode()) || Ver.isBlank(post.getDataSrc()) || Ver.isBlank(post.getDataUrl()) || post.getUpdateDate() == null || post.getPublishDate() == null || Ver.isBlank(post.getEnterpriseUrl()) || Ver.isBlank(post.getEnterpriseName()))
 			post.setStatus(-1);
 
 		return post;
 	}
 
 	private Enterprise toEnterprise(Map<String, String> map) {
-		String url = map.get("url");
 		String dateString = map.get("date");
-		Date date = StringUtils.isNotBlank(dateString) ? date = parseDate(dateString) : null;
+		Date date = Ver.isNotBlank(dateString) ? date = parseDate(dateString) : null;
+		String url = map.get("url");
 		String name = map.get("name");
 		String category = map.get("category");
 		String nature = map.get("nature");
 		String scale = map.get("scale");
+		String introduction = map.get("introduction");
 		String website = map.get("website");
 		String address = map.get("address");
-		String introduction = map.get("introduction");
 
 		Map<String, String> categoryMapper = enterpriseAttributeMappers.get("category");
 		Map<String, String> natureMapper = enterpriseAttributeMappers.get("nature");
 		Map<String, String> scaleMapper = enterpriseAttributeMappers.get("scale");
 
 		Enterprise enterprise = new Enterprise();
-
-		if (StringUtils.isNotBlank(collector.getNid()))
-			enterprise.setSrc(collector.getNid());
-
-		if (StringUtils.isNotBlank(url))
-			enterprise.setUrl(url);
-
-		if (date != null)
-			enterprise.setDate(date);
 
 		if (StringUtils.isNotBlank(name))
 			enterprise.setName(name);
@@ -401,6 +429,9 @@ public class Processor {
 			}
 		}
 
+		if (StringUtils.isNotBlank(introduction))
+			enterprise.setIntroduction(introduction);
+
 		if (StringUtils.isNotBlank(website))
 			enterprise.setWebsite(website);
 
@@ -412,16 +443,28 @@ public class Processor {
 				enterprise.setAreaCode(areaCode);
 				Double[] point = Client.getPoint(address);
 				if (point != null) {
-					enterprise.setLbsLon(point[0]);
-					enterprise.setLbsLat(point[1]);
+					Lbs lbs = new Lbs();
+					lbs.setLon(point[0]);
+					lbs.setLat(point[1]);
+					enterprise.setLbs(lbs);
 				}
 			}
 		}
 
-		if (StringUtils.isNotBlank(introduction))
-			enterprise.setIntroduction(introduction);
+		if (StringUtils.isNotBlank(collector.getNid()))
+			enterprise.setDataSrc(collector.getNid());
 
-		if (StringUtils.isBlank(enterprise.getSrc()) || StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || StringUtils.isBlank(enterprise.getNatureCode()) || StringUtils.isBlank(enterprise.getScaleCode()) || StringUtils.isBlank(enterprise.getAddress()) || StringUtils.isBlank(enterprise.getAreaCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
+		if (StringUtils.isNotBlank(url))
+			enterprise.setDataUrl(url);
+
+		if (date != null)
+			enterprise.setCreateDate(date);
+		else
+			enterprise.setCreateDate(new Date());
+
+		Holder.mergeEnterprise(enterprise);
+
+		if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbs() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 			enterprise.setStatus(-1);
 
 		return enterprise;

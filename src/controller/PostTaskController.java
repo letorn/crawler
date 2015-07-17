@@ -128,8 +128,8 @@ public class PostTaskController {
 			Collector collector = postTaskService.getCollector(cid);
 			for (Post post : collector.findPost(postStatus, start, limit)) {
 				Map<String, Object> d = new HashMap<String, Object>();
-				d.put("url", post.getUrl());
-				d.put("date", post.getDate());
+				d.put("url", post.getDataUrl());
+				d.put("date", post.getUpdateDate());
 				d.put("name", post.getName());
 				d.put("category", post.getCategory());
 				d.put("numberText", post.getNumberText());
@@ -160,7 +160,7 @@ public class PostTaskController {
 			Collector collector = postTaskService.getCollector(cid);
 			for (Enterprise enterprise : collector.findEnterprise(start, limit)) {
 				Map<String, Object> d = new HashMap<String, Object>();
-				d.put("url", enterprise.getUrl());
+				d.put("url", enterprise.getDataUrl());
 				d.put("name", enterprise.getName());
 				d.put("category", enterprise.getCategory());
 				d.put("nature", enterprise.getNature());
@@ -201,8 +201,8 @@ public class PostTaskController {
 			Collector collector = postTaskService.getCollector(cid);
 			Post post = collector.getPost(url);
 			Map<String, Object> postData = new HashMap<String, Object>();
-			postData.put("url", post.getUrl());
-			postData.put("date", post.getDate());
+			postData.put("url", post.getDataUrl());
+			postData.put("date", post.getUpdateDate());
 			postData.put("name", post.getName());
 			postData.put("categoryCode", post.getCategoryCode());
 			postData.put("numberText", post.getNumberText());
@@ -215,7 +215,7 @@ public class PostTaskController {
 
 			Enterprise enterprise = collector.getEnterprise(post.getEnterpriseUrl());
 			Map<String, Object> enterpriseData = new HashMap<String, Object>();
-			enterpriseData.put("url", enterprise.getUrl());
+			enterpriseData.put("url", enterprise.getDataUrl());
 			enterpriseData.put("name", enterprise.getName());
 			enterpriseData.put("categoryCode", enterprise.getCategoryCode());
 			enterpriseData.put("natureCode", enterprise.getNatureCode());
@@ -242,7 +242,7 @@ public class PostTaskController {
 				String cid = requestBody.getString("cid");
 				Post post = (Post) JSONObject.toBean(requestBody.getJSONObject("post"), Post.class);
 				Enterprise enterprise = (Enterprise) JSONObject.toBean(requestBody.getJSONObject("enterprise"), Enterprise.class);
-				if (!postTaskService.existCollector(cid) || post == null || StringUtils.isBlank(post.getUrl()) || enterprise == null || StringUtils.isBlank(enterprise.getUrl())) {
+				if (!postTaskService.existCollector(cid) || post == null || StringUtils.isBlank(post.getDataUrl()) || enterprise == null || StringUtils.isBlank(enterprise.getDataUrl())) {
 					resultMap.put("success", false);
 				} else {
 					resultMap.put("success", postTaskService.savePost(cid, post, enterprise));
@@ -332,8 +332,8 @@ public class PostTaskController {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 			for (Post post : postTaskService.getMarkerPosts(cid, zoom, center, start, limit)) {
 				Map<String, Object> d = new HashMap<String, Object>();
-				d.put("url", post.getUrl());
-				d.put("date", post.getDate());
+				d.put("url", post.getDataUrl());
+				d.put("date", post.getUpdateDate());
 				d.put("name", post.getName());
 				d.put("category", post.getCategory());
 				d.put("numberText", post.getNumberText());

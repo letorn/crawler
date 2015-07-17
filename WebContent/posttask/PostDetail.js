@@ -23,13 +23,13 @@ Ext.define('Platform.posttask.PostDetail', {
       items: [{
         xtype: 'textfield',
         fieldLabel: '链接',
-        name: 'url',
+        name: 'dataUrl',
         readOnly: true
       }, {
         xtype: 'datefield',
         fieldLabel: '发布日期',
         format: 'Y-m-d',
-        name: 'date',
+        name: 'updateDate',
         readOnly: true
       }, {
         xtype: 'textfield',
@@ -111,7 +111,7 @@ Ext.define('Platform.posttask.PostDetail', {
       items: [{
         xtype: 'textfield',
         fieldLabel: '链接',
-        name: 'url',
+        name: 'dataUrl',
         readOnly: true
       }, {
         xtype: 'textfield',
@@ -208,7 +208,7 @@ Ext.define('Platform.posttask.PostDetail', {
       })
     }
   },
-  loadData: function(cid, url) {
+  loadData: function(cid, dataUrl) {
     var me = this;
     me.cid = cid;
     me.loadCodes();
@@ -219,12 +219,12 @@ Ext.define('Platform.posttask.PostDetail', {
       url: ctx + '/posttask/postDetail.do',
       params: {
         cid: cid,
-        url: url
+        url: dataUrl
       },
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
-          response.post.date = new Date(response.post.date);
+          response.post.updateDate = new Date(response.post.updateDate);
           me.postView.getForm().setValues(response.post);
           me.enterpriseView.getForm().setValues(response.enterprise);
         }

@@ -32,7 +32,7 @@ Ext.define('Platform.posttask.Post', {
     }];
 
     me.gridStore = Store.create({
-      fields: ['url', 'date', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
+      fields: ['dataUrl', 'updateDate', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
       proxy: {
         type: 'ajax',
         url: ctx + '/posttask/pagedPost.do',
@@ -52,13 +52,13 @@ Ext.define('Platform.posttask.Post', {
         width: 32
       }, {
         text: '链接',
-        dataIndex: 'url',
+        dataIndex: 'dataUrl',
         renderer: Ext.bind(me.columnFormatter, me),
         width: 160
       }, {
         xtype: 'datecolumn',
         text: '发布日期',
-        dataIndex: 'date',
+        dataIndex: 'updateDate',
         format: 'Y-m-d',
         width: 100
       }, {
@@ -149,7 +149,7 @@ Ext.define('Platform.posttask.Post', {
       me.detailWindow = Platform.widget('posttask-post-detail');
       me.detailWindow.postGridStore = me.gridStore;
     }
-    me.detailWindow.loadData(me.cid, record.get('url'));
+    me.detailWindow.loadData(me.cid, record.get('dataUrl'));
     me.detailWindow.show();
   }
 });

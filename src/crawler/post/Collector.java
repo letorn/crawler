@@ -162,13 +162,13 @@ public class Collector {
 	}
 
 	public Boolean savePost(Post post) {
-		String url = post.getUrl();
-		Integer urlIndex = postUrlIndexes.get(url);
+		String postUrl = post.getDataUrl();
+		Integer urlIndex = postUrlIndexes.get(postUrl);
 		if (urlIndex != null) {
 			posts.set(urlIndex, post);
 		} else {
 			posts.add(post);
-			postUrlIndexes.put(url, posts.size() - 1);
+			postUrlIndexes.put(postUrl, posts.size() - 1);
 
 			String enterpriseUrl = post.getEnterpriseUrl();
 			// add enterprise -> posts index
@@ -177,12 +177,12 @@ public class Collector {
 				enterpriseHeap = new HashSet<String>();
 				enterpriseRelevances.put(enterpriseUrl, enterpriseHeap);
 			}
-			if (!enterpriseHeap.contains(url))
-				enterpriseHeap.add(url);
+			if (!enterpriseHeap.contains(postUrl))
+				enterpriseHeap.add(postUrl);
 
 			// add post -> enterprise index
-			if (!postRelevances.containsKey(url))
-				postRelevances.put(url, enterpriseUrl);
+			if (!postRelevances.containsKey(postUrl))
+				postRelevances.put(postUrl, enterpriseUrl);
 		}
 		return true;
 	}
@@ -255,13 +255,13 @@ public class Collector {
 	}
 
 	public Boolean saveEnterprise(Enterprise enterprise) {
-		String url = enterprise.getUrl();
-		Integer urlIndex = enterpriseUrlIndexes.get(url);
+		String entUrl = enterprise.getDataUrl();
+		Integer urlIndex = enterpriseUrlIndexes.get(entUrl);
 		if (urlIndex != null) {
 			enterprises.set(urlIndex, enterprise);
 		} else {
 			enterprises.add(enterprise);
-			enterpriseUrlIndexes.put(url, enterprises.size() - 1);
+			enterpriseUrlIndexes.put(entUrl, enterprises.size() - 1);
 		}
 		return true;
 	}

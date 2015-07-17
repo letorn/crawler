@@ -22,11 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import util.Ver;
 import util.WebContext;
 import crawler.Client;
 import crawler.post.Collector;
 import crawler.post.Holder;
+import crawler.post.model.AbilityParam;
 import crawler.post.model.Enterprise;
+import crawler.post.model.Lbs;
 import crawler.post.model.Post;
 
 @Service
@@ -80,12 +83,12 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, Map<String, String>> postExperienceMap = Holder.getPostExperiences();
+		Map<String, AbilityParam> postExperienceMap = Holder.getPostExperiences();
 		for (String code : postExperienceMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
-			Map<String, String> postExperience = postExperienceMap.get(code);
-			map.put("code", postExperience.get("paramCode"));
-			map.put("name", postExperience.get("paramName"));
+			AbilityParam postExperience = postExperienceMap.get(code);
+			map.put("code", postExperience.getCode());
+			map.put("name", postExperience.getName());
 			postExperiences.add(map);
 		}
 		Collections.sort(postExperiences, new Comparator<Map<String, String>>() {
@@ -94,12 +97,12 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, Map<String, String>> postEducationMap = Holder.getPostEducations();
+		Map<String, AbilityParam> postEducationMap = Holder.getPostEducations();
 		for (String code : postEducationMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
-			Map<String, String> postEducation = postEducationMap.get(code);
-			map.put("code", postEducation.get("paramCode"));
-			map.put("name", postEducation.get("paramName"));
+			AbilityParam postEducation = postEducationMap.get(code);
+			map.put("code", postEducation.getCode());
+			map.put("name", postEducation.getName());
 			postEducations.add(map);
 		}
 		Collections.sort(postEducations, new Comparator<Map<String, String>>() {
@@ -248,65 +251,106 @@ public class PostTaskService {
 
 	public Boolean savePost(String cid, Post updatedPost, Enterprise updatedEnterprise) {
 		Collector collector = collectors.get(cid);
-		Post post = collector.getPost(updatedPost.getUrl());
-		Enterprise enterprise = collector.getEnterprise(updatedEnterprise.getUrl());
+		Post post = collector.getPost(updatedPost.getDataUrl());
+		Enterprise enterprise = collector.getEnterprise(updatedEnterprise.getDataUrl());
 		if (post != null && enterprise != null) {
-			post.setStatus(0);
-
-			if (StringUtils.isNotBlank(updatedPost.getName()))
-				post.setName(updatedPost.getName());
-
-			if (StringUtils.isNotBlank(updatedPost.getCategoryCode())) {
-				Map<String, String> categoryMap = Holder.getPostCategory(updatedPost.getCategoryCode());
-				if (categoryMap != null) {
-					post.setCategoryCode(updatedPost.getCategoryCode());
-					post.setCategory(categoryMap.get("name"));
-				}
-			}
-
-			if (StringUtils.isBlank(post.getSrc()) || StringUtils.isBlank(post.getUrl()) || post.getDate() == null || StringUtils.isBlank(post.getName()) || StringUtils.isBlank(post.getCategoryCode()) || StringUtils.isBlank(post.getNatureCode()) || StringUtils.isBlank(post.getExperienceCode()) || StringUtils.isBlank(post.getEducationCode()) || StringUtils.isBlank(post.getEnterpriseUrl()))
-				post.setStatus(-1);
 
 			enterprise.setStatus(0);
 
-			if (StringUtils.isNotBlank(updatedEnterprise.getName()))
+			if (StringUtils.isNotBlank(updatedEnterprise.getName()) && !updatedEnterprise.getName().equals(enterprise.getName())) {
 				enterprise.setName(updatedEnterprise.getName());
+				enterprise.setDirty(true);
+			}
 
-			if (StringUtils.isNotBlank(updatedEnterprise.getCategoryCode())) {
+			if (Ver.isNotBlank(updatedEnterprise.getCategoryCode()) && !updatedEnterprise.getCategoryCode().equals(enterprise.getCategoryCode())) {
 				String categoryName = Holder.getEnterpriseCategory(updatedEnterprise.getCategoryCode());
 				if (categoryName != null) {
-					enterprise.setCategoryCode(updatedEnterprise.getCategoryCode());
 					enterprise.setCategory(categoryName);
+					enterprise.setCategoryCode(updatedEnterprise.getCategoryCode());
+					enterprise.setDirty(true);
 				}
 			}
 
-			if (StringUtils.isNotBlank(updatedEnterprise.getAddress())) {
+			if (Ver.isNotBlank(updatedEnterprise.getAddress()) && !updatedEnterprise.getAddress().equals(enterprise.getAddress())) {
 				enterprise.setAddress(updatedEnterprise.getAddress());
+				enterprise.setDirty(true);
 				String areaCode = Holder.getAreaCode(updatedEnterprise.getAddress());
-				if (areaCode != null) {
+				if (Ver.isNotBlank(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
 					enterprise.setAreaCode(areaCode);
+					enterprise.setDirty(true);
 					Double[] point = Client.getPoint(updatedEnterprise.getAddress());
 					if (point != null) {
-						enterprise.setLbsLon(point[0]);
-						enterprise.setLbsLat(point[1]);
+						Lbs lbs = enterprise.getLbs();
+						if (lbs != null) {
+							if (!lbs.getLon().equals(point[0]) || !lbs.getLat().equals(point[1])) {
+								lbs.setLon(point[0]);
+								lbs.setLat(point[1]);
+								lbs.setDirty(true);
+							}
+						} else {
+							lbs = new Lbs();
+							lbs.setLon(point[0]);
+							lbs.setLat(point[1]);
+							enterprise.setLbs(lbs);
+						}
 					}
 				}
 			}
 
-			if (StringUtils.isBlank(enterprise.getSrc()) || StringUtils.isBlank(enterprise.getUrl()) || enterprise.getDate() == null || StringUtils.isBlank(enterprise.getName()) || StringUtils.isBlank(enterprise.getCategoryCode()) || StringUtils.isBlank(enterprise.getNatureCode()) || StringUtils.isBlank(enterprise.getScaleCode()) || StringUtils.isBlank(enterprise.getAddress()) || StringUtils.isBlank(enterprise.getAreaCode()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null)
+			if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbs() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 				enterprise.setStatus(-1);
+
+			post.setStatus(0);
+
+			if (StringUtils.isNotBlank(updatedPost.getName()) && !updatedPost.getName().equals(post.getName())) {
+				post.setName(updatedPost.getName());
+				post.setDirty(true);
+			}
+
+			if (StringUtils.isNotBlank(updatedPost.getCategoryCode()) && !updatedPost.getCategoryCode().equals(post.getCategoryCode())) {
+				Map<String, String> categoryMap = Holder.getPostCategory(updatedPost.getCategoryCode());
+				if (categoryMap != null) {
+					post.setCategory(categoryMap.get("name"));
+					post.setCategoryCode(updatedPost.getCategoryCode());
+					post.setDirty(true);
+				}
+			}
+
+			if (Ver.isBlank(post.getName()) || Ver.isBlank(post.getCategoryCode()) || Ver.isBlank(post.getNatureCode()) || Ver.isBlank(post.getExperienceCode()) || Ver.isBlank(post.getEducationCode()) || Ver.isBlank(post.getDataSrc()) || Ver.isBlank(post.getDataUrl()) || post.getUpdateDate() == null || Ver.isBlank(post.getEnterpriseUrl()) || Ver.isBlank(post.getEnterpriseName()))
+				post.setStatus(-1);
 
 			if (enterprise.getStatus() == -1)
 				post.setStatus(-1);
 
 			if (post.getStatus() != -1) {
-				post.setAddress(enterprise.getAddress());
-				post.setAreaCode(enterprise.getAreaCode());
-				post.setLbsLon(enterprise.getLbsLon());
-				post.setLbsLat(enterprise.getLbsLat());
-				if (Holder.existEnterpriseAccount(enterprise.getName()))
-					logger.info(String.format("the enterprise has account, %s [date=%s, name=%s,]", enterprise.getUrl(), enterprise.getDate(), enterprise.getName()));
-				else if (Holder.saveEnterprise(enterprise))
+
+				if (Ver.isNotBlank(enterprise.getAreaCode()) && !enterprise.getAreaCode().equals(post.getAreaCode())) {
+					post.setAreaCode(enterprise.getAreaCode());
+					post.setDirty(true);
+				}
+
+				if (Ver.isNotBlank(enterprise.getAddress()) && !enterprise.getAddress().equals(post.getAddress())) {
+					post.setAddress(enterprise.getAddress());
+					post.setDirty(true);
+				}
+
+				if (enterprise.getLbs() != null) {
+					Lbs lbs = post.getLbs();
+					if (lbs != null) {
+						if (!lbs.getLon().equals(enterprise.getLbs().getLon()) || !lbs.getLat().equals(enterprise.getLbs().getLat())) {
+							lbs.setLon(enterprise.getLbs().getLon());
+							lbs.setLat(enterprise.getLbs().getLat());
+							lbs.setDirty(true);
+						}
+					} else {
+						lbs = new Lbs();
+						lbs.setLon(enterprise.getLbs().getLon());
+						lbs.setLat(enterprise.getLbs().getLat());
+						post.setLbs(lbs);
+					}
+				}
+
+				if (Holder.saveEnterprise(enterprise))
 					if (Holder.savePost(post))
 						if (collector.saveEnterprise(enterprise))
 							if (collector.savePost(post))

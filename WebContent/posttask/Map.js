@@ -112,7 +112,7 @@ Ext.define('Platform.posttask.MapMarker', {
     var me = this;
 
     me.gridStore = Store.create({
-      fields: ['url', 'date', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
+      fields: ['dataUrl', 'updateDate', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
       proxy: {
         type: 'ajax',
         url: ctx + '/posttask/mapMarkerData.do',
@@ -132,13 +132,13 @@ Ext.define('Platform.posttask.MapMarker', {
         width: 32
       }, {
         text: '链接',
-        dataIndex: 'url',
+        dataIndex: 'dataUrl',
         renderer: Ext.bind(me.columnFormatter, me),
         width: 160
       }, {
         xtype: 'datecolumn',
         text: '发布日期',
-        dataIndex: 'date',
+        dataIndex: 'updateDate',
         format: 'Y-m-d',
         width: 100
       }, {
@@ -222,7 +222,7 @@ Ext.define('Platform.posttask.MapMarker', {
       me.detailWindow = Platform.widget('posttask-map-marker-detail');
       me.detailWindow.postGridStore = me.gridStore;
     }
-    me.detailWindow.loadData(me.cid, record.get('url'));
+    me.detailWindow.loadData(me.cid, record.get('dataUrl'));
     me.detailWindow.show();
   }
 });
@@ -251,13 +251,13 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       items: [{
         xtype: 'textfield',
         fieldLabel: '链接',
-        name: 'url',
+        name: 'dataUrl',
         readOnly: true
       }, {
         xtype: 'datefield',
         fieldLabel: '发布日期',
         format: 'Y-m-d',
-        name: 'date',
+        name: 'updateDate',
         readOnly: true
       }, {
         xtype: 'textfield',
@@ -339,7 +339,7 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       items: [{
         xtype: 'textfield',
         fieldLabel: '链接',
-        name: 'url',
+        name: 'dataUrl',
         readOnly: true
       }, {
         xtype: 'textfield',
@@ -436,7 +436,7 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       })
     }
   },
-  loadData: function(cid, url) {
+  loadData: function(cid, dataUrl) {
     var me = this;
     me.cid = cid;
     me.loadCodes();
@@ -447,12 +447,12 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       url: ctx + '/posttask/postDetail.do',
       params: {
         cid: cid,
-        url: url
+        url: dataUrl
       },
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
-          response.post.date = new Date(response.post.date);
+          response.post.updateDate = new Date(response.post.updateDate);
           me.postView.getForm().setValues(response.post);
           me.enterpriseView.getForm().setValues(response.enterprise);
         }

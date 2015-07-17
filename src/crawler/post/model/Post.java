@@ -1,16 +1,12 @@
 package crawler.post.model;
 
 import java.util.Date;
-import java.util.Map;
 
 import map.Point;
 
 public class Post implements Point {
 
 	private Long id;
-	private String src;
-	private String url;
-	private Date date;
 	private String name;
 	private String category;
 	private String categoryCode;
@@ -24,23 +20,27 @@ public class Post implements Point {
 	private Integer salaryType = 1;
 	private String experience;
 	private String experienceCode;
+	private Ability experienceAbility;
 	private String education;
 	private String educationCode;
+	private Ability educationAbility;
 	private String welfare;
 	private String welfareCode;
-	private String address;
 	private String introduction;
-	private String enterpriseUrl;
-	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新,
-								// 大于1表示已经处理
-
-	private Map<String, String> experienceAbility;
-	private Map<String, String> educationAbility;
-
 	private String areaCode;
-	private Long lbsId;
-	private Double lbsLon;
-	private Double lbsLat;
+	private String address;
+	private Lbs lbs;
+	private String dataSrc;
+	private String dataUrl;
+	private Date updateDate;
+	private Date publishDate;
+
+	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新
+
+	private Boolean dirty = false;
+
+	private String enterpriseUrl;
+	private String enterpriseName;
 
 	public Long getId() {
 		return id;
@@ -48,30 +48,6 @@ public class Post implements Point {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getSrc() {
-		return src;
-	}
-
-	public void setSrc(String src) {
-		this.src = src;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public Date getDate() {
-		return date;
-	}
-
-	public void setDate(Date date) {
-		this.date = date;
 	}
 
 	public String getName() {
@@ -178,6 +154,14 @@ public class Post implements Point {
 		this.experienceCode = experienceCode;
 	}
 
+	public Ability getExperienceAbility() {
+		return experienceAbility;
+	}
+
+	public void setExperienceAbility(Ability experienceAbility) {
+		this.experienceAbility = experienceAbility;
+	}
+
 	public String getEducation() {
 		return education;
 	}
@@ -192,6 +176,14 @@ public class Post implements Point {
 
 	public void setEducationCode(String educationCode) {
 		this.educationCode = educationCode;
+	}
+
+	public Ability getEducationAbility() {
+		return educationAbility;
+	}
+
+	public void setEducationAbility(Ability educationAbility) {
+		this.educationAbility = educationAbility;
 	}
 
 	public String getWelfare() {
@@ -210,52 +202,12 @@ public class Post implements Point {
 		this.welfareCode = welfareCode;
 	}
 
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
 	public String getIntroduction() {
 		return introduction;
 	}
 
 	public void setIntroduction(String introduction) {
 		this.introduction = introduction;
-	}
-
-	public String getEnterpriseUrl() {
-		return enterpriseUrl;
-	}
-
-	public void setEnterpriseUrl(String enterpriseUrl) {
-		this.enterpriseUrl = enterpriseUrl;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
-
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
-
-	public Map<String, String> getExperienceAbility() {
-		return experienceAbility;
-	}
-
-	public void setExperienceAbility(Map<String, String> experienceAbility) {
-		this.experienceAbility = experienceAbility;
-	}
-
-	public Map<String, String> getEducationAbility() {
-		return educationAbility;
-	}
-
-	public void setEducationAbility(Map<String, String> educationAbility) {
-		this.educationAbility = educationAbility;
 	}
 
 	public String getAreaCode() {
@@ -266,32 +218,90 @@ public class Post implements Point {
 		this.areaCode = areaCode;
 	}
 
-	public Long getLbsId() {
-		return lbsId;
+	public String getAddress() {
+		return address;
 	}
 
-	public void setLbsId(Long lbsId) {
-		this.lbsId = lbsId;
+	public void setAddress(String address) {
+		this.address = address;
 	}
 
-	public Double getLbsLon() {
-		return lbsLon;
+	public Lbs getLbs() {
+		return lbs;
 	}
 
-	public void setLbsLon(Double lbsLon) {
-		this.lbsLon = lbsLon;
+	public void setLbs(Lbs lbs) {
+		this.lbs = lbs;
 	}
 
-	public Double getLbsLat() {
-		return lbsLat;
+	public String getDataSrc() {
+		return dataSrc;
 	}
 
-	public void setLbsLat(Double lbsLat) {
-		this.lbsLat = lbsLat;
+	public void setDataSrc(String dataSrc) {
+		this.dataSrc = dataSrc;
+	}
+
+	public String getDataUrl() {
+		return dataUrl;
+	}
+
+	public void setDataUrl(String dataUrl) {
+		this.dataUrl = dataUrl;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+
+	public Date getPublishDate() {
+		return publishDate;
+	}
+
+	public void setPublishDate(Date publishDate) {
+		this.publishDate = publishDate;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	public Boolean getDirty() {
+		return dirty;
+	}
+
+	public void setDirty(Boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public String getEnterpriseUrl() {
+		return enterpriseUrl;
+	}
+
+	public void setEnterpriseUrl(String enterpriseUrl) {
+		this.enterpriseUrl = enterpriseUrl;
+	}
+
+	public String getEnterpriseName() {
+		return enterpriseName;
+	}
+
+	public void setEnterpriseName(String enterpriseName) {
+		this.enterpriseName = enterpriseName;
 	}
 
 	public double[] getPoint() {
-		return new double[] { lbsLon, lbsLat };
+		if (lbs != null)
+			return new double[] { lbs.getLon(), lbs.getLat() };
+		return null;
 	}
 
 }

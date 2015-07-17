@@ -1,13 +1,13 @@
 package crawler.post.model;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Enterprise {
 
 	private Long id;
-	private String src;
-	private String url;
-	private Date date;
+	private Account account;
 	private String name;
 	private String category;
 	private String categoryCode;
@@ -15,19 +15,20 @@ public class Enterprise {
 	private String natureCode;
 	private String scale;
 	private String scaleCode;
-	private String website;
-	private String address;
 	private String introduction;
+	private String website;
+	private String areaCode;
+	private String address;
+	private Lbs lbs;
+	private String dataSrc;
+	private String dataUrl;
+	private Date createDate;
+
 	private Integer status = 0;// 0 未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
 
-	private Long accountId;
-	private String account;
-	private Integer createMode = 2;// 0 企业录入, 1 客服录入, 2 自动采集
+	private Boolean dirty = false;
 
-	private String areaCode;
-	private Long lbsId;
-	private Double lbsLon;
-	private Double lbsLat;
+	private Map<String, Post> posts = new HashMap<String, Post>();
 
 	public Long getId() {
 		return id;
@@ -37,28 +38,12 @@ public class Enterprise {
 		this.id = id;
 	}
 
-	public String getSrc() {
-		return src;
+	public Account getAccount() {
+		return account;
 	}
 
-	public void setSrc(String src) {
-		this.src = src;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public Date getDate() {
-		return date;
-	}
-
-	public void setDate(Date date) {
-		this.date = date;
+	public void setAccount(Account account) {
+		this.account = account;
 	}
 
 	public String getName() {
@@ -117,22 +102,6 @@ public class Enterprise {
 		this.scaleCode = scaleCode;
 	}
 
-	public String getWebsite() {
-		return website;
-	}
-
-	public void setWebsite(String website) {
-		this.website = website;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
 	public String getIntroduction() {
 		return introduction;
 	}
@@ -141,36 +110,12 @@ public class Enterprise {
 		this.introduction = introduction;
 	}
 
-	public Integer getStatus() {
-		return status;
+	public String getWebsite() {
+		return website;
 	}
 
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
-
-	public Long getAccountId() {
-		return accountId;
-	}
-
-	public void setAccountId(Long accountId) {
-		this.accountId = accountId;
-	}
-
-	public String getAccount() {
-		return account;
-	}
-
-	public void setAccount(String account) {
-		this.account = account;
-	}
-
-	public Integer getCreateMode() {
-		return createMode;
-	}
-
-	public void setCreateMode(Integer createMode) {
-		this.createMode = createMode;
+	public void setWebsite(String website) {
+		this.website = website;
 	}
 
 	public String getAreaCode() {
@@ -181,28 +126,68 @@ public class Enterprise {
 		this.areaCode = areaCode;
 	}
 
-	public Long getLbsId() {
-		return lbsId;
+	public String getAddress() {
+		return address;
 	}
 
-	public void setLbsId(Long lbsId) {
-		this.lbsId = lbsId;
+	public void setAddress(String address) {
+		this.address = address;
 	}
 
-	public Double getLbsLon() {
-		return lbsLon;
+	public Lbs getLbs() {
+		return lbs;
 	}
 
-	public void setLbsLon(Double lbsLon) {
-		this.lbsLon = lbsLon;
+	public void setLbs(Lbs lbs) {
+		this.lbs = lbs;
 	}
 
-	public Double getLbsLat() {
-		return lbsLat;
+	public String getDataSrc() {
+		return dataSrc;
 	}
 
-	public void setLbsLat(Double lbsLat) {
-		this.lbsLat = lbsLat;
+	public void setDataSrc(String dataSrc) {
+		this.dataSrc = dataSrc;
+	}
+
+	public String getDataUrl() {
+		return dataUrl;
+	}
+
+	public void setDataUrl(String dataUrl) {
+		this.dataUrl = dataUrl;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	public Boolean getDirty() {
+		return dirty;
+	}
+
+	public void setDirty(Boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public Map<String, Post> getPosts() {
+		return posts;
+	}
+
+	public void setPosts(Map<String, Post> posts) {
+		this.posts = posts;
 	}
 
 }

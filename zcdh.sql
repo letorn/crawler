@@ -33,7 +33,13 @@ SELECT ent_id, create_date, ent_name, industry, property, employ_num, ent_web, a
 
 SELECT a.account_id, a.account, a.create_mode, e.create_date, e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.ent_web, e.address, e.parea, e.lbs_id, e.introduction, e.data_src, e.data_url, l.latitude, l.longitude
 FROM zcdh_ent_account a
-JOIN zcdh_ent_enterprise e ON a.ent_id=e.ent_id
-JOIN zcdh_ent_lbs l ON e.lbs_id=l.lbs_id
-WHERE e.ent_name IS NOT NULL
-AND e.data_src IS NOT NULL;
+LEFT JOIN zcdh_ent_enterprise e ON a.ent_id=e.ent_id
+LEFT JOIN zcdh_ent_lbs l ON e.lbs_id=l.lbs_id
+
+SELECT p.param_name, p.param_code, p.param_value, p.param_category_code, t.technical_code, t.techonlogy_gategory_code, t.match_type, g.percent FROM zcdh_param p LEFT JOIN zcdh_technology t ON p.param_category_code=t.param_category_code LEFT JOIN zcdh_technology_gategory g ON t.techonlogy_gategory_code=g.technology_gategory_code WHERE (p.is_delete=1 OR p.is_delete IS NULL) AND (t.is_delete=1 OR t.is_delete IS NULL) AND (g.is_delete=1 OR g.is_delete IS NULL) AND p.param_category_code IN('005')
+
+
+SELECT id, publish_date, update_date, ent_id, post_aliases, post_name, post_code, pjob_category, headcounts, is_several, psalary, salary_type, tag_selected, post_address, parea, lbs_id, post_remark, data_src, data_url
+FROM zcdh_ent_post p
+JOIN zcdh_ent_lbs l ON p.lbs_id=l.lbs_id
+
