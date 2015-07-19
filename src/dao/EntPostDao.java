@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import model.EntPost;
@@ -40,6 +41,10 @@ public class EntPostDao extends Store<EntPost> {
 			for (EntPost entPost : list)
 				Stack.entPostIdMap.put(entPost.getId(), entPost);
 		return false;
+	}
+
+	public List<EntPost> findAll() {
+		return new ArrayList<EntPost>(Stack.entPostIdMap.values());
 	}
 
 }

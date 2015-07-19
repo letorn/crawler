@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import model.EntEnterprise;
@@ -48,6 +49,10 @@ public class EntEnterpriseDao extends Store<EntEnterprise> {
 				Stack.entEnterpriseNameMap.put(entEnterprise.getEntName(), entEnterprise);
 			}
 		return false;
+	}
+
+	public List<EntEnterprise> findAll() {
+		return new ArrayList<EntEnterprise>(Stack.entEnterpriseIdMap.values());
 	}
 
 }

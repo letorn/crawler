@@ -82,7 +82,7 @@ public class Explorer {
 
 							Bill bill = toBill(billAttributes);
 							if (bill != null && status == 1) {
-								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000) {
+								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000 * 2) {
 									collector.saveBill(bill);
 								} else {
 									finish();

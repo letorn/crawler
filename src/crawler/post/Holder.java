@@ -27,6 +27,7 @@ import model.ViewEntPost;
 import org.apache.log4j.Logger;
 
 import util.Ver;
+import util.WebContext;
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
 import dao.AreaDao;
@@ -89,6 +90,22 @@ public class Holder extends C3P0Store {
 	private static EntPromotionDao entPromotionDao;
 
 	public void init() {
+		areaDao = WebContext.getBean(AreaDao.class);
+		categoryPostDao = WebContext.getBean(CategoryPostDao.class);
+		entAbilityRequireDao = WebContext.getBean(EntAbilityRequireDao.class);
+		entAccountDao = WebContext.getBean(EntAccountDao.class);
+		entEnterpriseDao = WebContext.getBean(EntEnterpriseDao.class);
+		entLbsDao = WebContext.getBean(EntLbsDao.class);
+		entPostDao = WebContext.getBean(EntPostDao.class);
+		entPostStatusDao = WebContext.getBean(EntPostStatusDao.class);
+		industryDao = WebContext.getBean(IndustryDao.class);
+		paramDao = WebContext.getBean(ParamDao.class);
+		postDao = WebContext.getBean(PostDao.class);
+		tagDao = WebContext.getBean(TagDao.class);
+		technologyDao = WebContext.getBean(TechnologyDao.class);
+		technologyGategoryDao = WebContext.getBean(TechnologyGategoryDao.class);
+		viewEntPostDao = WebContext.getBean(ViewEntPostDao.class);
+		entPromotionDao = WebContext.getBean(EntPromotionDao.class);
 
 		for (Tag tag : tagDao.findAll()) {
 			tags.put(tag.getTagCode(), tag.getTagName());
@@ -98,8 +115,6 @@ public class Holder extends C3P0Store {
 		for (Area area : areaDao.find(AreaType.CITY))
 			if (!area.getAreaName().contains("行政"))
 				areaNameMap.put(area.getAreaName().replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), area.getAreaCode());
-
-		lastAccountNum = entAccountDao.getLastAutoAccountNum();
 
 		for (model.Post post : postDao.findAll()) {
 			CategoryPost categoryPost = categoryPostDao.get(post.getPostCategoryCode());
@@ -129,6 +144,102 @@ public class Holder extends C3P0Store {
 
 		for (Industry industry : industryDao.findAll())
 			enterpriseCategories.put(industry.getIndustryCode(), industry.getIndustryName());
+
+		lastAccountNum = entAccountDao.getLastAutoAccountNum();
+
+		for (EntEnterprise entEnterprise : entEnterpriseDao.findAll()) {
+			Enterprise enterprise = new Enterprise();
+			enterprise.setId(entEnterprise.getEntId());
+			enterprise.setName(entEnterprise.getEntName());
+			enterprise.setCategoryCode(entEnterprise.getIndustry());
+			if (enterprise.getCategoryCode() != null)
+				enterprise.setCategory(enterpriseCategories.get(enterprise.getCategoryCode()));
+			enterprise.setNatureCode(entEnterprise.getProperty());
+			if (enterprise.getNatureCode() != null)
+				enterprise.setNature(enterpriseNatures.get(enterprise.getNatureCode()));
+			enterprise.setScaleCode(entEnterprise.getEmployNum());
+			if (enterprise.getScaleCode() != null)
+				enterprise.setScale(enterpriseScales.get(enterprise.getScaleCode()));
+			enterprise.setIntroduction(entEnterprise.getIntroduction());
+			enterprise.setWebsite(entEnterprise.getEntWeb());
+			enterprise.setAreaCode(entEnterprise.getParea());
+			enterprise.setAddress(entEnterprise.getAddress());
+			if (entEnterprise.getLbsId() != null) {
+				EntLbs entLbs = entLbsDao.get(entEnterprise.getLbsId());
+				if (entLbs != null) {
+					enterprise.setLbsId(entLbs.getLbsId());
+					enterprise.setLbsLon(entLbs.getLongitude());
+					enterprise.setLbsLat(entLbs.getLatitude());
+				}
+			}
+			enterprise.setDataSrc(entEnterprise.getDataSrc());
+			enterprise.setDataUrl(entEnterprise.getDataUrl());
+			enterprise.setCreateDate(entEnterprise.getCreateDate());
+
+			enterpriseNameMap.put(enterprise.getName(), enterprise);
+		}
+
+		for (EntPost entPost : entPostDao.findAll()) {
+			if (entPost.getEntId() != null) {
+				EntEnterprise entEnterprise = entEnterpriseDao.get(entPost.getEntId());
+				if (entEnterprise != null) {
+					Post post = new Post();
+					post.setId(entPost.getId());
+					post.setName(entPost.getPostAliases());
+					post.setCategory(entPost.getPostName());
+					post.setCategoryCode(entPost.getPostCode());
+					post.setNumber(entPost.getHeadcounts());
+					post.setIsSeveral(entPost.getIsSeveral());
+					post.setNumberText(post.getIsSeveral() == 1 ? "若干" : (post.getNumber() == null ? null : String.valueOf(post.getNumber())));
+					post.setNatureCode(entPost.getPjobCategory());
+					if (post.getNatureCode() != null)
+						post.setNature(postNatures.get(post.getNatureCode()));
+					post.setSalary(entPost.getPsalary());
+					if (post.getSalary() != null)
+						post.setSalaryText("0".equals(post.getSalary()) ? "面议" : post.getSalary());
+					post.setSalaryType(entPost.getSalaryType());
+					EntAbilityRequire experienceEntAbilityRequire = entAbilityRequireDao.getExperience(post.getId());
+					if (experienceEntAbilityRequire != null) {
+						post.setExperienceCode(experienceEntAbilityRequire.getParamCode());
+						if (post.getExperienceCode() != null)
+							post.setExperience(postExperiences.get(post.getExperienceCode()));
+					}
+					EntAbilityRequire educationEntAbilityRequire = entAbilityRequireDao.getEducation(post.getId());
+					if (educationEntAbilityRequire != null) {
+						post.setEducationCode(educationEntAbilityRequire.getParamCode());
+						if (post.getEducationCode() != null)
+							post.setEducation(postEducations.get(post.getEducationCode()));
+					}
+					post.setWelfareCode(entPost.getTagSelected());
+					if (post.getWelfareCode() != null)
+						post.setWelfare(post.getWelfareCode().replaceAll("\\d|system|self|&", "").replaceAll("\\$\\$", " "));
+					post.setIntroduction(entPost.getPostRemark());
+					post.setAreaCode(entPost.getParea());
+					post.setAddress(entPost.getPostAddress());
+					if (entPost.getLbsId() != null) {
+						EntLbs entLbs = entLbsDao.get(entPost.getLbsId());
+						if (entLbs != null) {
+							post.setLbsId(entLbs.getLbsId());
+							post.setLbsLon(entLbs.getLongitude());
+							post.setLbsLat(entLbs.getLatitude());
+						}
+					}
+					post.setDataSrc(entPost.getDataSrc());
+					post.setDataUrl(entPost.getDataUrl());
+					post.setUpdateDate(entPost.getUpdateDate());
+					post.setPublishDate(entPost.getPublishDate());
+					post.setEnterpriseUrl(entEnterprise.getDataUrl());
+					post.setEnterpriseName(entEnterprise.getEntName());
+
+					Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
+					if (postNameMap == null) {
+						postNameMap = new HashMap<String, Post>();
+						postEntNameMap.put(post.getEnterpriseName(), postNameMap);
+					}
+					postNameMap.put(post.getName(), post);
+				}
+			}
+		}
 
 	}
 
@@ -417,6 +528,7 @@ public class Holder extends C3P0Store {
 				viewEntPost.setMinSalary(minSalary);
 				viewEntPost.setMaxSalary(maxSalary);
 				viewEntPost.setSalaryType(post.getSalaryType());
+				viewEntPost.setEntId(enterprise.getId());
 				viewEntPost.setEntName(enterprise.getName());
 				viewEntPost.setIndustry(enterprise.getCategoryCode());
 				viewEntPost.setProperty(enterprise.getNatureCode());
@@ -455,11 +567,11 @@ public class Holder extends C3P0Store {
 		for (EntAbilityRequire entAbilityRequire : entAbilityRequireInsertMap.keySet())
 			entAbilityRequire.setPostId(entAbilityRequireInsertMap.get(entAbilityRequire).getId());
 		for (EntPostStatus entPostStatus : entPostStatusInsertMap.keySet())
-			entPostStatus.setPostId(entAbilityRequireInsertMap.get(entPostStatus).getId());
+			entPostStatus.setPostId(entPostStatusInsertMap.get(entPostStatus).getId());
 		for (ViewEntPost viewEntPost : viewEntPostInsertMap.keySet())
-			viewEntPost.setPostId(entAbilityRequireInsertMap.get(viewEntPost).getId());
+			viewEntPost.setPostId(viewEntPostInsertMap.get(viewEntPost).getId());
 		for (EntPromotion entPromotion : entPromotionInsertMap.keySet())
-			entPromotion.setEntPostId(entAbilityRequireInsertMap.get(entPromotion).getId());
+			entPromotion.setEntPostId(entPromotionInsertMap.get(entPromotion).getId());
 
 		entAbilityRequireDao.update(entAbilityRequireUpdateList);
 		entAbilityRequireDao.add(new ArrayList<EntAbilityRequire>(entAbilityRequireInsertMap.keySet()));
@@ -883,122 +995,126 @@ public class Holder extends C3P0Store {
 	}
 
 	public static Enterprise mergeEnterprise(Enterprise ent) {
-		Enterprise enterprise = enterpriseNameMap.get(ent.getName());
-		if (enterprise != null) {
+		if (ent.getName() != null) {
+			Enterprise enterprise = enterpriseNameMap.get(ent.getName());
+			if (enterprise != null) {
 
-			ent.setId(enterprise.getId());
+				ent.setId(enterprise.getId());
 
-			if (Ver.isNotBlank(enterprise.getCategory()))
-				ent.setCategory(enterprise.getCategory());
+				if (Ver.isNotBlank(enterprise.getCategory()))
+					ent.setCategory(enterprise.getCategory());
 
-			if (Ver.isNotBlank(enterprise.getCategoryCode()))
-				ent.setCategoryCode(enterprise.getCategoryCode());
+				if (Ver.isNotBlank(enterprise.getCategoryCode()))
+					ent.setCategoryCode(enterprise.getCategoryCode());
 
-			if (Ver.isNotBlank(enterprise.getNature()))
-				ent.setNature(enterprise.getNature());
+				if (Ver.isNotBlank(enterprise.getNature()))
+					ent.setNature(enterprise.getNature());
 
-			if (Ver.isNotBlank(enterprise.getNatureCode()))
-				ent.setNatureCode(enterprise.getNatureCode());
+				if (Ver.isNotBlank(enterprise.getNatureCode()))
+					ent.setNatureCode(enterprise.getNatureCode());
 
-			if (Ver.isNotBlank(enterprise.getScale()))
-				ent.setScale(enterprise.getScale());
+				if (Ver.isNotBlank(enterprise.getScale()))
+					ent.setScale(enterprise.getScale());
 
-			if (Ver.isNotBlank(enterprise.getScaleCode()))
-				ent.setScaleCode(enterprise.getScaleCode());
+				if (Ver.isNotBlank(enterprise.getScaleCode()))
+					ent.setScaleCode(enterprise.getScaleCode());
 
-			if (Ver.isNotBlank(enterprise.getIntroduction()))
-				ent.setIntroduction(enterprise.getIntroduction());
+				if (Ver.isNotBlank(enterprise.getIntroduction()))
+					ent.setIntroduction(enterprise.getIntroduction());
 
-			if (Ver.isNotBlank(enterprise.getWebsite()))
-				ent.setWebsite(enterprise.getWebsite());
+				if (Ver.isNotBlank(enterprise.getWebsite()))
+					ent.setWebsite(enterprise.getWebsite());
 
-			if (Ver.isNotBlank(enterprise.getAreaCode()))
-				ent.setAreaCode(enterprise.getAreaCode());
+				if (Ver.isNotBlank(enterprise.getAreaCode()))
+					ent.setAreaCode(enterprise.getAreaCode());
 
-			if (Ver.isNotBlank(enterprise.getAddress()))
-				ent.setAddress(enterprise.getAddress());
+				if (Ver.isNotBlank(enterprise.getAddress()))
+					ent.setAddress(enterprise.getAddress());
 
-			if (enterprise.getLbsId() != null)
-				ent.setLbsId(enterprise.getLbsId());
+				if (enterprise.getLbsId() != null)
+					ent.setLbsId(enterprise.getLbsId());
 
-			if (enterprise.getCreateDate() != null)
-				ent.setCreateDate(enterprise.getCreateDate());
+				if (enterprise.getCreateDate() != null)
+					ent.setCreateDate(enterprise.getCreateDate());
+			}
 		}
-		return enterprise;
+		return ent;
 	}
 
 	public static Post mergePost(Post p) {
-		Map<String, Post> postNameMap = postEntNameMap.get(p.getEnterpriseName());
-		if (postNameMap != null) {
-			Post post = postNameMap.get(p.getName());
-			if (post != null) {
-				p.setId(post.getId());
+		if (p.getEnterpriseName() != null) {
+			Map<String, Post> postNameMap = postEntNameMap.get(p.getEnterpriseName());
+			if (postNameMap != null && p.getName() != null) {
+				Post post = postNameMap.get(p.getName());
+				if (post != null) {
+					p.setId(post.getId());
 
-				if (Ver.isNotBlank(post.getCategory()))
-					p.setCategory(post.getCategory());
+					if (Ver.isNotBlank(post.getCategory()))
+						p.setCategory(post.getCategory());
 
-				if (Ver.isNotBlank(post.getCategoryCode()))
-					p.setCategoryCode(post.getCategoryCode());
+					if (Ver.isNotBlank(post.getCategoryCode()))
+						p.setCategoryCode(post.getCategoryCode());
 
-				if (post.getNumber() != null)
-					p.setNumber(post.getNumber());
+					if (post.getNumber() != null)
+						p.setNumber(post.getNumber());
 
-				if (Ver.isNotBlank(post.getNumberText()))
-					p.setNumberText(post.getNumberText());
+					if (Ver.isNotBlank(post.getNumberText()))
+						p.setNumberText(post.getNumberText());
 
-				if (post.getIsSeveral() != null)
-					p.setIsSeveral(post.getIsSeveral());
+					if (post.getIsSeveral() != null)
+						p.setIsSeveral(post.getIsSeveral());
 
-				if (Ver.isNotBlank(post.getNature()))
-					p.setNature(post.getNature());
+					if (Ver.isNotBlank(post.getNature()))
+						p.setNature(post.getNature());
 
-				if (Ver.isNotBlank(post.getNatureCode()))
-					p.setNatureCode(post.getNatureCode());
+					if (Ver.isNotBlank(post.getNatureCode()))
+						p.setNatureCode(post.getNatureCode());
 
-				if (Ver.isNotBlank(post.getSalary()))
-					p.setSalary(post.getSalary());
+					if (Ver.isNotBlank(post.getSalary()))
+						p.setSalary(post.getSalary());
 
-				if (Ver.isNotBlank(post.getSalaryText()))
-					p.setSalaryText(post.getSalaryText());
+					if (Ver.isNotBlank(post.getSalaryText()))
+						p.setSalaryText(post.getSalaryText());
 
-				if (post.getSalaryType() != null)
-					p.setSalaryType(post.getSalaryType());
+					if (post.getSalaryType() != null)
+						p.setSalaryType(post.getSalaryType());
 
-				if (Ver.isNotBlank(post.getExperience()))
-					p.setExperience(post.getExperience());
+					if (Ver.isNotBlank(post.getExperience()))
+						p.setExperience(post.getExperience());
 
-				if (Ver.isNotBlank(post.getExperienceCode()))
-					p.setExperienceCode(post.getExperienceCode());
+					if (Ver.isNotBlank(post.getExperienceCode()))
+						p.setExperienceCode(post.getExperienceCode());
 
-				if (Ver.isNotBlank(post.getEducation()))
-					p.setEducation(post.getEducation());
+					if (Ver.isNotBlank(post.getEducation()))
+						p.setEducation(post.getEducation());
 
-				if (Ver.isNotBlank(post.getEducationCode()))
-					p.setEducationCode(post.getEducationCode());
+					if (Ver.isNotBlank(post.getEducationCode()))
+						p.setEducationCode(post.getEducationCode());
 
-				if (Ver.isBlank(post.getWelfare()))
-					p.setWelfare(post.getWelfare());
+					if (Ver.isBlank(post.getWelfare()))
+						p.setWelfare(post.getWelfare());
 
-				if (Ver.isNotBlank(post.getWelfareCode()))
-					p.setWelfareCode(post.getWelfareCode());
+					if (Ver.isNotBlank(post.getWelfareCode()))
+						p.setWelfareCode(post.getWelfareCode());
 
-				if (Ver.isNotBlank(post.getIntroduction()))
-					p.setIntroduction(post.getIntroduction());
+					if (Ver.isNotBlank(post.getIntroduction()))
+						p.setIntroduction(post.getIntroduction());
 
-				if (Ver.isNotBlank(post.getAreaCode()))
-					p.setAreaCode(post.getAreaCode());
+					if (Ver.isNotBlank(post.getAreaCode()))
+						p.setAreaCode(post.getAreaCode());
 
-				if (Ver.isNotBlank(post.getAddress()))
-					p.setAddress(post.getAddress());
+					if (Ver.isNotBlank(post.getAddress()))
+						p.setAddress(post.getAddress());
 
-				if (post.getLbsId() != null)
-					p.setLbsId(post.getLbsId());
+					if (post.getLbsId() != null)
+						p.setLbsId(post.getLbsId());
 
-				if (post.getUpdateDate() != null)
-					p.setUpdateDate(post.getUpdateDate());
+					if (post.getUpdateDate() != null)
+						p.setUpdateDate(post.getUpdateDate());
 
-				if (post.getPublishDate() != null)
-					p.setPublishDate(post.getPublishDate());
+					if (post.getPublishDate() != null)
+						p.setPublishDate(post.getPublishDate());
+				}
 			}
 		}
 		return p;
