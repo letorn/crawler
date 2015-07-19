@@ -85,8 +85,8 @@
   <context:component-scan base-package="init" />
   <context:component-scan base-package="crawler" />
   <context:component-scan base-package="dao" />
+  <bean class="crawler.post.Holder" init-method="init" />
   <context:component-scan base-package="service" />
   <context:component-scan base-package="controller" />
-  <bean class="crawler.post.Holder" init-method="init" />
 
 </beans>
