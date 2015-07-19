@@ -131,4 +131,10 @@ public class Area implements Serializable {
 		this.name = name;
 	}
 
+	public static class AreaType {
+		public static final int PROVINCE = 1;
+		public static final int CITY = 2;
+		public static final int REGION = 3;
+	}
+
 }

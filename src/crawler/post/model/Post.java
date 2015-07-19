@@ -20,24 +20,23 @@ public class Post implements Point {
 	private Integer salaryType = 1;
 	private String experience;
 	private String experienceCode;
-	private Ability experienceAbility;
 	private String education;
 	private String educationCode;
-	private Ability educationAbility;
 	private String welfare;
 	private String welfareCode;
 	private String introduction;
 	private String areaCode;
 	private String address;
-	private Lbs lbs;
 	private String dataSrc;
 	private String dataUrl;
 	private Date updateDate;
 	private Date publishDate;
 
-	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新
+	private Long lbsId;
+	private Double lbsLon;
+	private Double lbsLat;
 
-	private Boolean dirty = false;
+	private Integer status = 0;// -1 数据不完整, 0 数据完整，但未处理, 1忽略, 2 新增, 3 更新
 
 	private String enterpriseUrl;
 	private String enterpriseName;
@@ -154,14 +153,6 @@ public class Post implements Point {
 		this.experienceCode = experienceCode;
 	}
 
-	public Ability getExperienceAbility() {
-		return experienceAbility;
-	}
-
-	public void setExperienceAbility(Ability experienceAbility) {
-		this.experienceAbility = experienceAbility;
-	}
-
 	public String getEducation() {
 		return education;
 	}
@@ -176,14 +167,6 @@ public class Post implements Point {
 
 	public void setEducationCode(String educationCode) {
 		this.educationCode = educationCode;
-	}
-
-	public Ability getEducationAbility() {
-		return educationAbility;
-	}
-
-	public void setEducationAbility(Ability educationAbility) {
-		this.educationAbility = educationAbility;
 	}
 
 	public String getWelfare() {
@@ -226,14 +209,6 @@ public class Post implements Point {
 		this.address = address;
 	}
 
-	public Lbs getLbs() {
-		return lbs;
-	}
-
-	public void setLbs(Lbs lbs) {
-		this.lbs = lbs;
-	}
-
 	public String getDataSrc() {
 		return dataSrc;
 	}
@@ -266,20 +241,36 @@ public class Post implements Point {
 		this.publishDate = publishDate;
 	}
 
+	public Long getLbsId() {
+		return lbsId;
+	}
+
+	public void setLbsId(Long lbsId) {
+		this.lbsId = lbsId;
+	}
+
+	public Double getLbsLon() {
+		return lbsLon;
+	}
+
+	public void setLbsLon(Double lbsLon) {
+		this.lbsLon = lbsLon;
+	}
+
+	public Double getLbsLat() {
+		return lbsLat;
+	}
+
+	public void setLbsLat(Double lbsLat) {
+		this.lbsLat = lbsLat;
+	}
+
 	public Integer getStatus() {
 		return status;
 	}
 
 	public void setStatus(Integer status) {
 		this.status = status;
-	}
-
-	public Boolean getDirty() {
-		return dirty;
-	}
-
-	public void setDirty(Boolean dirty) {
-		this.dirty = dirty;
 	}
 
 	public String getEnterpriseUrl() {
@@ -299,9 +290,7 @@ public class Post implements Point {
 	}
 
 	public double[] getPoint() {
-		if (lbs != null)
-			return new double[] { lbs.getLon(), lbs.getLat() };
-		return null;
+		return new double[] { lbsLon, lbsLat };
 	}
 
 }

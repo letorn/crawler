@@ -27,9 +27,7 @@ import util.WebContext;
 import crawler.Client;
 import crawler.post.Collector;
 import crawler.post.Holder;
-import crawler.post.model.AbilityParam;
 import crawler.post.model.Enterprise;
-import crawler.post.model.Lbs;
 import crawler.post.model.Post;
 
 @Service
@@ -83,12 +81,12 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, AbilityParam> postExperienceMap = Holder.getPostExperiences();
-		for (String code : postExperienceMap.keySet()) {
+		Map<String, String> postExperienceCodeMap = Holder.getPostExperiences();
+		for (String code : postExperienceCodeMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
-			AbilityParam postExperience = postExperienceMap.get(code);
-			map.put("code", postExperience.getCode());
-			map.put("name", postExperience.getName());
+			String name = postExperienceCodeMap.get(code);
+			map.put("name", name);
+			map.put("code", code);
 			postExperiences.add(map);
 		}
 		Collections.sort(postExperiences, new Comparator<Map<String, String>>() {
@@ -97,12 +95,12 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, AbilityParam> postEducationMap = Holder.getPostEducations();
-		for (String code : postEducationMap.keySet()) {
+		Map<String, String> postEducationCodeMap = Holder.getPostEducations();
+		for (String code : postEducationCodeMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
-			AbilityParam postEducation = postEducationMap.get(code);
-			map.put("code", postEducation.getCode());
-			map.put("name", postEducation.getName());
+			String name = postEducationCodeMap.get(code);
+			map.put("name", name);
+			map.put("code", code);
 			postEducations.add(map);
 		}
 		Collections.sort(postEducations, new Comparator<Map<String, String>>() {
@@ -259,7 +257,6 @@ public class PostTaskService {
 
 			if (StringUtils.isNotBlank(updatedEnterprise.getName()) && !updatedEnterprise.getName().equals(enterprise.getName())) {
 				enterprise.setName(updatedEnterprise.getName());
-				enterprise.setDirty(true);
 			}
 
 			if (Ver.isNotBlank(updatedEnterprise.getCategoryCode()) && !updatedEnterprise.getCategoryCode().equals(enterprise.getCategoryCode())) {
@@ -267,44 +264,30 @@ public class PostTaskService {
 				if (categoryName != null) {
 					enterprise.setCategory(categoryName);
 					enterprise.setCategoryCode(updatedEnterprise.getCategoryCode());
-					enterprise.setDirty(true);
 				}
 			}
 
 			if (Ver.isNotBlank(updatedEnterprise.getAddress()) && !updatedEnterprise.getAddress().equals(enterprise.getAddress())) {
 				enterprise.setAddress(updatedEnterprise.getAddress());
-				enterprise.setDirty(true);
 				String areaCode = Holder.getAreaCode(updatedEnterprise.getAddress());
 				if (Ver.isNotBlank(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
 					enterprise.setAreaCode(areaCode);
-					enterprise.setDirty(true);
 					Double[] point = Client.getPoint(updatedEnterprise.getAddress());
 					if (point != null) {
-						Lbs lbs = enterprise.getLbs();
-						if (lbs != null) {
-							if (!lbs.getLon().equals(point[0]) || !lbs.getLat().equals(point[1])) {
-								lbs.setLon(point[0]);
-								lbs.setLat(point[1]);
-								lbs.setDirty(true);
-							}
-						} else {
-							lbs = new Lbs();
-							lbs.setLon(point[0]);
-							lbs.setLat(point[1]);
-							enterprise.setLbs(lbs);
-						}
+						enterprise.setLbsId(enterprise.getLbsId());
+						enterprise.setLbsLon(point[0]);
+						enterprise.setLbsLat(point[1]);
 					}
 				}
 			}
 
-			if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbs() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
+			if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 				enterprise.setStatus(-1);
 
 			post.setStatus(0);
 
 			if (StringUtils.isNotBlank(updatedPost.getName()) && !updatedPost.getName().equals(post.getName())) {
 				post.setName(updatedPost.getName());
-				post.setDirty(true);
 			}
 
 			if (StringUtils.isNotBlank(updatedPost.getCategoryCode()) && !updatedPost.getCategoryCode().equals(post.getCategoryCode())) {
@@ -312,7 +295,6 @@ public class PostTaskService {
 				if (categoryMap != null) {
 					post.setCategory(categoryMap.get("name"));
 					post.setCategoryCode(updatedPost.getCategoryCode());
-					post.setDirty(true);
 				}
 			}
 
@@ -323,32 +305,10 @@ public class PostTaskService {
 				post.setStatus(-1);
 
 			if (post.getStatus() != -1) {
-
-				if (Ver.isNotBlank(enterprise.getAreaCode()) && !enterprise.getAreaCode().equals(post.getAreaCode())) {
-					post.setAreaCode(enterprise.getAreaCode());
-					post.setDirty(true);
-				}
-
-				if (Ver.isNotBlank(enterprise.getAddress()) && !enterprise.getAddress().equals(post.getAddress())) {
-					post.setAddress(enterprise.getAddress());
-					post.setDirty(true);
-				}
-
-				if (enterprise.getLbs() != null) {
-					Lbs lbs = post.getLbs();
-					if (lbs != null) {
-						if (!lbs.getLon().equals(enterprise.getLbs().getLon()) || !lbs.getLat().equals(enterprise.getLbs().getLat())) {
-							lbs.setLon(enterprise.getLbs().getLon());
-							lbs.setLat(enterprise.getLbs().getLat());
-							lbs.setDirty(true);
-						}
-					} else {
-						lbs = new Lbs();
-						lbs.setLon(enterprise.getLbs().getLon());
-						lbs.setLat(enterprise.getLbs().getLat());
-						post.setLbs(lbs);
-					}
-				}
+				post.setAreaCode(enterprise.getAreaCode());
+				post.setAddress(enterprise.getAddress());
+				post.setLbsLon(enterprise.getLbsLon());
+				post.setLbsLat(enterprise.getLbsLat());
 
 				if (Holder.saveEnterprise(enterprise))
 					if (Holder.savePost(post))

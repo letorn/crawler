@@ -1,13 +1,10 @@
 package crawler.post.model;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Enterprise {
 
 	private Long id;
-	private Account account;
 	private String name;
 	private String category;
 	private String categoryCode;
@@ -19,16 +16,15 @@ public class Enterprise {
 	private String website;
 	private String areaCode;
 	private String address;
-	private Lbs lbs;
 	private String dataSrc;
 	private String dataUrl;
 	private Date createDate;
 
+	private Long lbsId;
+	private Double lbsLon;
+	private Double lbsLat;
+
 	private Integer status = 0;// 0 未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
-
-	private Boolean dirty = false;
-
-	private Map<String, Post> posts = new HashMap<String, Post>();
 
 	public Long getId() {
 		return id;
@@ -36,14 +32,6 @@ public class Enterprise {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public Account getAccount() {
-		return account;
-	}
-
-	public void setAccount(Account account) {
-		this.account = account;
 	}
 
 	public String getName() {
@@ -134,14 +122,6 @@ public class Enterprise {
 		this.address = address;
 	}
 
-	public Lbs getLbs() {
-		return lbs;
-	}
-
-	public void setLbs(Lbs lbs) {
-		this.lbs = lbs;
-	}
-
 	public String getDataSrc() {
 		return dataSrc;
 	}
@@ -166,28 +146,36 @@ public class Enterprise {
 		this.createDate = createDate;
 	}
 
+	public Long getLbsId() {
+		return lbsId;
+	}
+
+	public void setLbsId(Long lbsId) {
+		this.lbsId = lbsId;
+	}
+
+	public Double getLbsLon() {
+		return lbsLon;
+	}
+
+	public void setLbsLon(Double lbsLon) {
+		this.lbsLon = lbsLon;
+	}
+
+	public Double getLbsLat() {
+		return lbsLat;
+	}
+
+	public void setLbsLat(Double lbsLat) {
+		this.lbsLat = lbsLat;
+	}
+
 	public Integer getStatus() {
 		return status;
 	}
 
 	public void setStatus(Integer status) {
 		this.status = status;
-	}
-
-	public Boolean getDirty() {
-		return dirty;
-	}
-
-	public void setDirty(Boolean dirty) {
-		this.dirty = dirty;
-	}
-
-	public Map<String, Post> getPosts() {
-		return posts;
-	}
-
-	public void setPosts(Map<String, Post> posts) {
-		this.posts = posts;
 	}
 
 }

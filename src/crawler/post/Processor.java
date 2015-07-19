@@ -17,11 +17,8 @@ import org.jsoup.select.NodeVisitor;
 import util.Ver;
 import crawler.AttributeCatcher;
 import crawler.Client;
-import crawler.post.model.Ability;
-import crawler.post.model.AbilityParam;
 import crawler.post.model.Bill;
 import crawler.post.model.Enterprise;
-import crawler.post.model.Lbs;
 import crawler.post.model.Post;
 
 public class Processor {
@@ -129,23 +126,10 @@ public class Processor {
 								post.setStatus(-1);
 
 							if (post.getStatus() != -1) {
-
-								if (Ver.isBlank(post.getAreaCode()) && Ver.isNotBlank(enterprise.getAreaCode())) {
-									post.setAreaCode(enterprise.getAreaCode());
-									post.setDirty(true);
-								}
-
-								if (Ver.isBlank(post.getAddress()) && Ver.isNotBlank(enterprise.getAddress())) {
-									post.setAddress(enterprise.getAddress());
-									post.setDirty(true);
-								}
-
-								if (post.getLbs() == null && enterprise.getLbs() != null) {
-									Lbs lbs = new Lbs();
-									lbs.setLon(enterprise.getLbs().getLon());
-									lbs.setLat(enterprise.getLbs().getLat());
-									post.setLbs(lbs);
-								}
+								post.setAreaCode(enterprise.getAreaCode());
+								post.setAddress(enterprise.getAddress());
+								post.setLbsLon(enterprise.getLbsLon());
+								post.setLbsLat(enterprise.getLbsLat());
 
 								if (!enterpriseUrlIndexes.containsKey(enterprise.getDataUrl())) {
 									enterprises.add(enterprise);
@@ -296,31 +280,19 @@ public class Processor {
 
 		String experienceCode = StringUtils.isBlank(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
 		if (StringUtils.isNotBlank(experienceCode)) {
-			AbilityParam abilityParam = Holder.getPostExperience(experienceCode);
-			if (abilityParam != null) {
-				post.setExperience(abilityParam.getName());
-				post.setExperienceCode(abilityParam.getCode());
-
-				Ability ability = new Ability();
-				ability.setPostCode(post.getCategoryCode());
-				ability.setName(abilityParam.getName());
-				ability.setCode(abilityParam.getCode());
-				post.setExperienceAbility(ability);
+			String experienceName = Holder.getPostExperience(experienceCode);
+			if (experienceName != null) {
+				post.setExperience(experienceName);
+				post.setExperienceCode(experienceCode);
 			}
 		}
 
 		String educationCode = StringUtils.isBlank(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
 		if (StringUtils.isNotBlank(educationCode)) {
-			AbilityParam abilityParam = Holder.getPostEducation(educationCode);
-			if (abilityParam != null) {
-				post.setEducation(abilityParam.getName());
-				post.setEducationCode(abilityParam.getCode());
-
-				Ability ability = new Ability();
-				ability.setPostCode(post.getCategoryCode());
-				ability.setName(abilityParam.getName());
-				ability.setCode(abilityParam.getCode());
-				post.setEducationAbility(ability);
+			String educationName = Holder.getPostEducation(educationCode);
+			if (educationName != null) {
+				post.setEducation(educationName);
+				post.setEducationCode(educationCode);
 			}
 		}
 
@@ -341,8 +313,8 @@ public class Processor {
 			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
 		}
 
-		// if (StringUtils.isNotBlank(address))
-		// post.setAddress(address);
+		if (StringUtils.isNotBlank(address))
+			post.setAddress(address);
 
 		if (StringUtils.isNotBlank(introduction))
 			post.setIntroduction(introduction);
@@ -443,10 +415,8 @@ public class Processor {
 				enterprise.setAreaCode(areaCode);
 				Double[] point = Client.getPoint(address);
 				if (point != null) {
-					Lbs lbs = new Lbs();
-					lbs.setLon(point[0]);
-					lbs.setLat(point[1]);
-					enterprise.setLbs(lbs);
+					enterprise.setLbsLon(point[0]);
+					enterprise.setLbsLat(point[1]);
 				}
 			}
 		}
@@ -464,7 +434,7 @@ public class Processor {
 
 		Holder.mergeEnterprise(enterprise);
 
-		if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbs() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
+		if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 			enterprise.setStatus(-1);
 
 		return enterprise;
