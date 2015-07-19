@@ -281,8 +281,8 @@ public class Stack {
 			public boolean next(TechnologyGategory technologyGategory, int index) throws Exception {
 				if (technologyGategory.getId() != null)
 					technologyGategoryIdMap.put(technologyGategory.getId(), technologyGategory);
-				if (Ver.isNotBlank(technologyGategory.getCode()))
-					technologyGategoryCodeMap.put(technologyGategory.getCode(), technologyGategory);
+				if (Ver.isNotBlank(technologyGategory.getTechnologyGategoryCode()))
+					technologyGategoryCodeMap.put(technologyGategory.getTechnologyGategoryCode(), technologyGategory);
 				return true;
 			}
 		});
