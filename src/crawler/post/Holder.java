@@ -458,7 +458,7 @@ public class Holder extends C3P0Store {
 
 				Param experienceParam = paramDao.get(post.getExperienceCode());
 				if (experienceParam != null) {
-					Technology experienceTechnology = technologyDao.get(experienceParam.getParamCode());
+					Technology experienceTechnology = technologyDao.get("-0000000000003");
 					if (experienceTechnology != null) {
 						TechnologyGategory experienceTechnologyGategory = technologyGategoryDao.get(experienceTechnology.getTechnologyGategoryCode());
 						if (experienceTechnologyGategory != null) {
@@ -480,7 +480,7 @@ public class Holder extends C3P0Store {
 
 				Param educationParam = paramDao.get(post.getEducationCode());
 				if (educationParam != null) {
-					Technology educationTechnology = technologyDao.get(educationParam.getParamCode());
+					Technology educationTechnology = technologyDao.get("-0000000000004");
 					if (educationTechnology != null) {
 						TechnologyGategory educationTechnologyGategory = technologyGategoryDao.get(educationTechnology.getTechnologyGategoryCode());
 						if (educationTechnologyGategory != null) {
@@ -721,7 +721,7 @@ public class Holder extends C3P0Store {
 
 			Param experienceParam = paramDao.get(post.getExperienceCode());
 			if (experienceParam != null) {
-				Technology experienceTechnology = technologyDao.get(experienceParam.getParamCode());
+				Technology experienceTechnology = technologyDao.get("-0000000000003");
 				if (experienceTechnology != null) {
 					TechnologyGategory experienceTechnologyGategory = technologyGategoryDao.get(experienceTechnology.getTechnologyGategoryCode());
 					if (experienceTechnologyGategory != null) {
@@ -743,7 +743,7 @@ public class Holder extends C3P0Store {
 
 			Param educationParam = paramDao.get(post.getEducationCode());
 			if (educationParam != null) {
-				Technology educationTechnology = technologyDao.get(educationParam.getParamCode());
+				Technology educationTechnology = technologyDao.get("-0000000000004");
 				if (educationTechnology != null) {
 					TechnologyGategory educationTechnologyGategory = technologyGategoryDao.get(educationTechnology.getTechnologyGategoryCode());
 					if (educationTechnologyGategory != null) {
@@ -791,6 +791,10 @@ public class Holder extends C3P0Store {
 			viewEntPost.setMinSalary(minSalary);
 			viewEntPost.setMaxSalary(maxSalary);
 			viewEntPost.setSalaryType(post.getSalaryType());
+			viewEntPost.setAreaCode(post.getAreaCode());
+			viewEntPost.setLon(post.getLbsLon());
+			viewEntPost.setLat(post.getLbsLat());
+			viewEntPost.setEntId(enterprise.getId());
 			viewEntPost.setEntName(enterprise.getName());
 			viewEntPost.setIndustry(enterprise.getCategoryCode());
 			viewEntPost.setProperty(enterprise.getNatureCode());
