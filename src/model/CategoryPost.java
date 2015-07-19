@@ -6,8 +6,8 @@ import dao.data.Column;
 import dao.data.Id;
 import dao.data.Table;
 
-@Table("zcdh_post")
-public class Post implements Serializable {
+@Table("zcdh_category_post")
+public class CategoryPost implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -16,20 +16,17 @@ public class Post implements Serializable {
 	@Column("post_category_code")
 	private String postCategoryCode;
 
-	@Column("post_code")
-	private String postCode;
+	@Column("post_category_name")
+	private String postCategoryName;
 
-	@Column("post_description")
-	private String postDescription;
-
-	@Column("post_name")
-	private String postName;
+	@Column("parent_code")
+	private String parentCode;
 
 	@Column
 	private String remark;
 
-	@Column("technology_param_id")
-	private Long technologyParamId;
+	@Column
+	private String orders;
 
 	@Column("is_delete")
 	private Integer isDelete = 1;
@@ -50,28 +47,20 @@ public class Post implements Serializable {
 		this.postCategoryCode = postCategoryCode;
 	}
 
-	public String getPostCode() {
-		return postCode;
+	public String getPostCategoryName() {
+		return postCategoryName;
 	}
 
-	public void setPostCode(String postCode) {
-		this.postCode = postCode;
+	public void setPostCategoryName(String postCategoryName) {
+		this.postCategoryName = postCategoryName;
 	}
 
-	public String getPostDescription() {
-		return postDescription;
+	public String getParentCode() {
+		return parentCode;
 	}
 
-	public void setPostDescription(String postDescription) {
-		this.postDescription = postDescription;
-	}
-
-	public String getPostName() {
-		return postName;
-	}
-
-	public void setPostName(String postName) {
-		this.postName = postName;
+	public void setParentCode(String parentCode) {
+		this.parentCode = parentCode;
 	}
 
 	public String getRemark() {
@@ -82,12 +71,12 @@ public class Post implements Serializable {
 		this.remark = remark;
 	}
 
-	public Long getTechnologyParamId() {
-		return technologyParamId;
+	public String getOrders() {
+		return orders;
 	}
 
-	public void setTechnologyParamId(Long technologyParamId) {
-		this.technologyParamId = technologyParamId;
+	public void setOrders(String orders) {
+		this.orders = orders;
 	}
 
 	public Integer getIsDelete() {

@@ -7,11 +7,11 @@ import dao.data.Id;
 import dao.data.Table;
 
 @Table("zcdh_ent_lbs")
-public class EntLb implements Serializable {
+public class EntLbs implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id("lbs_id")
-	private String lbsId;
+	private Long lbsId;
 
 	@Column("latitude")
 	private Double latitude;
@@ -22,11 +22,11 @@ public class EntLb implements Serializable {
 	@Column("remark")
 	private String remark;
 
-	public String getLbsId() {
+	public Long getLbsId() {
 		return this.lbsId;
 	}
 
-	public void setLbsId(String lbsId) {
+	public void setLbsId(Long lbsId) {
 		this.lbsId = lbsId;
 	}
 

@@ -13,11 +13,11 @@ public class TechnologyGategory implements Serializable {
 	@Id
 	private Integer id;
 
-	@Column
-	private String code;
+	@Column("technology_gategory_code")
+	private String technologyGategoryCode;
 
-	@Column
-	private String name;
+	@Column("technology_gategory_name")
+	private String technologyGategoryName;
 
 	@Column("parent_code")
 	private Integer parentCode;
@@ -25,76 +25,28 @@ public class TechnologyGategory implements Serializable {
 	@Column
 	private Integer percent;
 
-	@Column("technology_gategory_code")
-	private String technologyGategoryCode;
-
-	@Column("technology_gategory_name")
-	private String technologyGategoryName;
-
 	@Column
 	private String remark;
 
 	@Column("is_delete")
 	private Integer isDelete = 1;
 
+	@Column
+	private String code;
+
+	@Column
+	private String name;
+
 	public Integer getId() {
-		return this.id;
+		return id;
 	}
 
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
-	public String getCode() {
-		return this.code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public Integer getIsDelete() {
-		return this.isDelete;
-	}
-
-	public void setIsDelete(Integer isDelete) {
-		this.isDelete = isDelete;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Integer getParentCode() {
-		return this.parentCode;
-	}
-
-	public void setParentCode(Integer parentCode) {
-		this.parentCode = parentCode;
-	}
-
-	public Integer getPercent() {
-		return this.percent;
-	}
-
-	public void setPercent(Integer percent) {
-		this.percent = percent;
-	}
-
-	public String getRemark() {
-		return this.remark;
-	}
-
-	public void setRemark(String remark) {
-		this.remark = remark;
-	}
-
 	public String getTechnologyGategoryCode() {
-		return this.technologyGategoryCode;
+		return technologyGategoryCode;
 	}
 
 	public void setTechnologyGategoryCode(String technologyGategoryCode) {
@@ -102,11 +54,59 @@ public class TechnologyGategory implements Serializable {
 	}
 
 	public String getTechnologyGategoryName() {
-		return this.technologyGategoryName;
+		return technologyGategoryName;
 	}
 
 	public void setTechnologyGategoryName(String technologyGategoryName) {
 		this.technologyGategoryName = technologyGategoryName;
+	}
+
+	public Integer getParentCode() {
+		return parentCode;
+	}
+
+	public void setParentCode(Integer parentCode) {
+		this.parentCode = parentCode;
+	}
+
+	public Integer getPercent() {
+		return percent;
+	}
+
+	public void setPercent(Integer percent) {
+		this.percent = percent;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Integer getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(Integer isDelete) {
+		this.isDelete = isDelete;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

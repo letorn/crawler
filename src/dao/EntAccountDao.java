@@ -1,12 +1,12 @@
 package dao;
 
-import model.Post;
+import model.EntAccount;
 
 import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
 @Repository
-public class PostDao extends Store<Post> {
+public class EntAccountDao extends Store<EntAccount> {
 
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("entPostDao")
+@Repository
 public class EntPostDao extends Store<EntPost> {
 
 }

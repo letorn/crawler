@@ -13,78 +13,78 @@ public class Technology implements Serializable {
 	@Id("technology_id")
 	private Integer technologyId;
 
-	@Column("match_type")
-	private Integer matchType;
-
-	@Column("param_category_code")
-	private String paramCategoryCode;
-
 	@Column("technical_code")
 	private String technicalCode;
+
+	@Column("match_type")
+	private Integer matchType;
 
 	@Column("technical_name")
 	private String technicalName;
 
+	@Column("param_category_code")
+	private String paramCategoryCode;
+
 	@Column("techonlogy_gategory_code")
-	private String techonlogyGategoryCode;
+	private String technologyGategoryCode;
 
 	@Column("is_delete")
 	private Integer isDelete = 1;
 
 	public Integer getTechnologyId() {
-		return this.technologyId;
+		return technologyId;
 	}
 
 	public void setTechnologyId(Integer technologyId) {
 		this.technologyId = technologyId;
 	}
 
-	public Integer getIsDelete() {
-		return this.isDelete;
-	}
-
-	public void setIsDelete(Integer isDelete) {
-		this.isDelete = isDelete;
-	}
-
-	public Integer getMatchType() {
-		return this.matchType;
-	}
-
-	public void setMatchType(Integer matchType) {
-		this.matchType = matchType;
-	}
-
-	public String getParamCategoryCode() {
-		return this.paramCategoryCode;
-	}
-
-	public void setParamCategoryCode(String paramCategoryCode) {
-		this.paramCategoryCode = paramCategoryCode;
-	}
-
 	public String getTechnicalCode() {
-		return this.technicalCode;
+		return technicalCode;
 	}
 
 	public void setTechnicalCode(String technicalCode) {
 		this.technicalCode = technicalCode;
 	}
 
+	public Integer getMatchType() {
+		return matchType;
+	}
+
+	public void setMatchType(Integer matchType) {
+		this.matchType = matchType;
+	}
+
 	public String getTechnicalName() {
-		return this.technicalName;
+		return technicalName;
 	}
 
 	public void setTechnicalName(String technicalName) {
 		this.technicalName = technicalName;
 	}
 
-	public String getTechonlogyGategoryCode() {
-		return this.techonlogyGategoryCode;
+	public String getParamCategoryCode() {
+		return paramCategoryCode;
 	}
 
-	public void setTechonlogyGategoryCode(String techonlogyGategoryCode) {
-		this.techonlogyGategoryCode = techonlogyGategoryCode;
+	public void setParamCategoryCode(String paramCategoryCode) {
+		this.paramCategoryCode = paramCategoryCode;
+	}
+
+	public String getTechnologyGategoryCode() {
+		return technologyGategoryCode;
+	}
+
+	public void setTechnologyGategoryCode(String technologyGategoryCode) {
+		this.technologyGategoryCode = technologyGategoryCode;
+	}
+
+	public Integer getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(Integer isDelete) {
+		this.isDelete = isDelete;
 	}
 
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("tagDao")
+@Repository
 public class TagDao extends Store<Tag> {
 
 }

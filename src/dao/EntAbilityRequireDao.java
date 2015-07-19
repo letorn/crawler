@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("entAbilityRequireDao")
+@Repository
 public class EntAbilityRequireDao extends Store<EntAbilityRequire> {
 
 }

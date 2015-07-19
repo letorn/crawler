@@ -6,6 +6,7 @@ DROP DATABASE IF EXISTS zcdh_uni_test;
 CREATE DATABASE IF NOT EXISTS zcdh_uni_test DEFAULT CHARACTER SET utf8;
 
 # 修改表结构
+ALTER TABLE zcdh_ent_account ADD COLUMN create_mode TINYINT;
 ALTER TABLE zcdh_ent_post MODIFY COLUMN post_remark TEXT;
 ALTER TABLE zcdh_ent_post ADD COLUMN data_src VARCHAR(50);
 ALTER TABLE zcdh_ent_post ADD COLUMN data_url VARCHAR(500);

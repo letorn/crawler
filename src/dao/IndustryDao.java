@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("industryDao")
+@Repository
 public class IndustryDao extends Store<Industry> {
 
 }

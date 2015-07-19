@@ -370,7 +370,7 @@ public class Holder extends C3P0Store {
 		List<Post> insertedPostStatuses = new ArrayList<Post>();
 		List<Ability> insertedAbilities = new ArrayList<Ability>();
 		List<Post> insertedPostViews = new ArrayList<Post>();
-		List<Post> insertedpromotions = new ArrayList<Post>();
+		List<Post> insertedPromotions = new ArrayList<Post>();
 		try {
 			postMiniUpdateStatement = connection.prepareStatement(postMiniUpdateSQL);
 			lbsUpdateStatement = connection.prepareStatement(lbsUpdateSQL);

@@ -14,11 +14,14 @@ public class Tag implements Serializable {
 	@Id("tag_id")
 	private Integer tagId;
 
-	@Column("tag_code")
-	private String tagCode;
+	@Column("create_time")
+	private Date createTime;
 
-	@Column("tag_name")
-	private String tagName;
+	@Column("is_delete")
+	private Integer isDelete = 1;
+
+	@Column
+	private String orders;
 
 	@Column("property_code")
 	private String propertyCode;
@@ -29,17 +32,14 @@ public class Tag implements Serializable {
 	@Column
 	private Integer status;
 
-	@Column
-	private String orders;
+	@Column("tag_code")
+	private String tagCode;
 
-	@Column("create_time")
-	private Date createTime;
-
-	@Column("is_delete")
-	private Integer isDelete = 1;
+	@Column("tag_name")
+	private String tagName;
 
 	public Integer getTagId() {
-		return this.tagId;
+		return tagId;
 	}
 
 	public void setTagId(Integer tagId) {
@@ -47,7 +47,7 @@ public class Tag implements Serializable {
 	}
 
 	public Date getCreateTime() {
-		return this.createTime;
+		return createTime;
 	}
 
 	public void setCreateTime(Date createTime) {
@@ -55,7 +55,7 @@ public class Tag implements Serializable {
 	}
 
 	public Integer getIsDelete() {
-		return this.isDelete;
+		return isDelete;
 	}
 
 	public void setIsDelete(Integer isDelete) {
@@ -63,7 +63,7 @@ public class Tag implements Serializable {
 	}
 
 	public String getOrders() {
-		return this.orders;
+		return orders;
 	}
 
 	public void setOrders(String orders) {
@@ -71,7 +71,7 @@ public class Tag implements Serializable {
 	}
 
 	public String getPropertyCode() {
-		return this.propertyCode;
+		return propertyCode;
 	}
 
 	public void setPropertyCode(String propertyCode) {
@@ -79,7 +79,7 @@ public class Tag implements Serializable {
 	}
 
 	public String getPropertyType() {
-		return this.propertyType;
+		return propertyType;
 	}
 
 	public void setPropertyType(String propertyType) {
@@ -87,7 +87,7 @@ public class Tag implements Serializable {
 	}
 
 	public Integer getStatus() {
-		return this.status;
+		return status;
 	}
 
 	public void setStatus(Integer status) {
@@ -95,7 +95,7 @@ public class Tag implements Serializable {
 	}
 
 	public String getTagCode() {
-		return this.tagCode;
+		return tagCode;
 	}
 
 	public void setTagCode(String tagCode) {
@@ -103,7 +103,7 @@ public class Tag implements Serializable {
 	}
 
 	public String getTagName() {
-		return this.tagName;
+		return tagName;
 	}
 
 	public void setTagName(String tagName) {

@@ -16,26 +16,17 @@ public class Area implements Serializable {
 	@Column("area_code")
 	private String areaCode;
 
+	@Column
+	private String fullname;
+
 	@Column("area_name")
 	private String areaName;
 
 	@Column("name_sort")
 	private String nameSort;
 
-	@Column("area_number")
-	private String areaNumber;
-
 	@Column("parent_code")
 	private String parentCode;
-
-	@Column
-	private String fullname;
-
-	@Column
-	private String code;
-
-	@Column
-	private String name;
 
 	@Column
 	private String remark;
@@ -43,8 +34,17 @@ public class Area implements Serializable {
 	@Column("is_delete")
 	private Integer isDelete = 1;
 
+	@Column("area_number")
+	private String areaNumber;
+
+	@Column
+	private String code;
+
+	@Column
+	private String name;
+
 	public Integer getId() {
-		return this.id;
+		return id;
 	}
 
 	public void setId(Integer id) {
@@ -52,63 +52,31 @@ public class Area implements Serializable {
 	}
 
 	public String getAreaCode() {
-		return this.areaCode;
+		return areaCode;
 	}
 
 	public void setAreaCode(String areaCode) {
 		this.areaCode = areaCode;
 	}
 
-	public String getAreaName() {
-		return this.areaName;
-	}
-
-	public void setAreaName(String areaName) {
-		this.areaName = areaName;
-	}
-
-	public String getAreaNumber() {
-		return this.areaNumber;
-	}
-
-	public void setAreaNumber(String areaNumber) {
-		this.areaNumber = areaNumber;
-	}
-
-	public String getCode() {
-		return this.code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
 	public String getFullname() {
-		return this.fullname;
+		return fullname;
 	}
 
 	public void setFullname(String fullname) {
 		this.fullname = fullname;
 	}
 
-	public Integer getIsDelete() {
-		return this.isDelete;
+	public String getAreaName() {
+		return areaName;
 	}
 
-	public void setIsDelete(Integer isDelete) {
-		this.isDelete = isDelete;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
+	public void setAreaName(String areaName) {
+		this.areaName = areaName;
 	}
 
 	public String getNameSort() {
-		return this.nameSort;
+		return nameSort;
 	}
 
 	public void setNameSort(String nameSort) {
@@ -116,7 +84,7 @@ public class Area implements Serializable {
 	}
 
 	public String getParentCode() {
-		return this.parentCode;
+		return parentCode;
 	}
 
 	public void setParentCode(String parentCode) {
@@ -124,11 +92,43 @@ public class Area implements Serializable {
 	}
 
 	public String getRemark() {
-		return this.remark;
+		return remark;
 	}
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+
+	public Integer getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(Integer isDelete) {
+		this.isDelete = isDelete;
+	}
+
+	public String getAreaNumber() {
+		return areaNumber;
+	}
+
+	public void setAreaNumber(String areaNumber) {
+		this.areaNumber = areaNumber;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

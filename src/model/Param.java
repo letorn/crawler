@@ -13,6 +13,9 @@ public class Param implements Serializable {
 	@Id
 	private Integer id;
 
+	@Column("param_category_code")
+	private String paramCategoryCode;
+
 	@Column("param_code")
 	private String paramCode;
 
@@ -21,9 +24,6 @@ public class Param implements Serializable {
 
 	@Column("param_value")
 	private Integer paramValue;
-
-	@Column("param_category_code")
-	private String paramCategoryCode;
 
 	@Column
 	private String remark;
@@ -37,6 +37,14 @@ public class Param implements Serializable {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public String getParamCategoryCode() {
+		return paramCategoryCode;
+	}
+
+	public void setParamCategoryCode(String paramCategoryCode) {
+		this.paramCategoryCode = paramCategoryCode;
 	}
 
 	public String getParamCode() {
@@ -61,14 +69,6 @@ public class Param implements Serializable {
 
 	public void setParamValue(Integer paramValue) {
 		this.paramValue = paramValue;
-	}
-
-	public String getParamCategoryCode() {
-		return paramCategoryCode;
-	}
-
-	public void setParamCategoryCode(String paramCategoryCode) {
-		this.paramCategoryCode = paramCategoryCode;
 	}
 
 	public String getRemark() {

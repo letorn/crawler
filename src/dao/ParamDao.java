@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("paramDao")
+@Repository
 public class ParamDao extends Store<Param> {
 
 }

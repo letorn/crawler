@@ -20,20 +20,11 @@ public class EntPost implements Serializable {
 	@Column("ent_id")
 	private Long entId;
 
-	@Column("admin_account")
-	private String adminAccount;
-
-	@Column("end_time")
-	private Date endTime;
-
 	@Column("expire_date")
 	private Date expireDate;
 
 	@Column
 	private Integer headcounts;
-
-	@Column("is_several")
-	private Integer isSeveral;
 
 	@Column("lbs_id")
 	private Long lbsId;
@@ -44,14 +35,8 @@ public class EntPost implements Serializable {
 	@Column("pjob_category")
 	private String pjobCategory;
 
-	@Column
-	private String pmajor;
-
 	@Column("post_address")
 	private String postAddress;
-
-	@Column("post_aliases")
-	private String postAliases;
 
 	@Column("post_category_code")
 	private String postCategoryCode;
@@ -74,8 +59,26 @@ public class EntPost implements Serializable {
 	@Column
 	private String remark;
 
-	@Column("salary_type")
-	private Integer salaryType;
+	@Column
+	private String welfare;
+
+	@Column("post_aliases")
+	private String postAliases;
+
+	@Column("welfare_selected")
+	private String welfareSelected;
+
+	@Column
+	private String pmajor;
+
+	@Column("admin_account")
+	private String adminAccount;
+
+	@Column("is_several")
+	private Integer isSeveral;
+
+	@Column("end_time")
+	private Date endTime;
 
 	@Column("start_time")
 	private Date startTime;
@@ -83,52 +86,39 @@ public class EntPost implements Serializable {
 	@Column("tag_selected")
 	private String tagSelected;
 
-	@Column("update_date")
-	private Date updateDate;
+	@Column("salary_type")
+	private Integer salaryType;
 
 	@Column("week_day")
 	private String weekDay;
 
-	@Column
-	private String welfare;
+	@Column("update_date")
+	private Date updateDate;
 
-	@Column("welfare_selected")
-	private String welfareSelected;
+	@Column("data_src")
+	private String dataSrc;
+
+	@Column("data_url")
+	private String dataUrl;
 
 	public Long getId() {
-		return this.id;
+		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public String getAdminAccount() {
-		return this.adminAccount;
-	}
-
-	public void setAdminAccount(String adminAccount) {
-		this.adminAccount = adminAccount;
-	}
-
 	public Long getDepartId() {
-		return this.departId;
+		return departId;
 	}
 
 	public void setDepartId(Long departId) {
 		this.departId = departId;
 	}
 
-	public Date getEndTime() {
-		return this.endTime;
-	}
-
-	public void setEndTime(Date endTime) {
-		this.endTime = endTime;
-	}
-
 	public Long getEntId() {
-		return this.entId;
+		return entId;
 	}
 
 	public void setEntId(Long entId) {
@@ -136,7 +126,7 @@ public class EntPost implements Serializable {
 	}
 
 	public Date getExpireDate() {
-		return this.expireDate;
+		return expireDate;
 	}
 
 	public void setExpireDate(Date expireDate) {
@@ -144,23 +134,15 @@ public class EntPost implements Serializable {
 	}
 
 	public Integer getHeadcounts() {
-		return this.headcounts;
+		return headcounts;
 	}
 
 	public void setHeadcounts(Integer headcounts) {
 		this.headcounts = headcounts;
 	}
 
-	public Integer getIsSeveral() {
-		return this.isSeveral;
-	}
-
-	public void setIsSeveral(Integer isSeveral) {
-		this.isSeveral = isSeveral;
-	}
-
 	public Long getLbsId() {
-		return this.lbsId;
+		return lbsId;
 	}
 
 	public void setLbsId(Long lbsId) {
@@ -168,7 +150,7 @@ public class EntPost implements Serializable {
 	}
 
 	public String getParea() {
-		return this.parea;
+		return parea;
 	}
 
 	public void setParea(String parea) {
@@ -176,39 +158,23 @@ public class EntPost implements Serializable {
 	}
 
 	public String getPjobCategory() {
-		return this.pjobCategory;
+		return pjobCategory;
 	}
 
 	public void setPjobCategory(String pjobCategory) {
 		this.pjobCategory = pjobCategory;
 	}
 
-	public String getPmajor() {
-		return this.pmajor;
-	}
-
-	public void setPmajor(String pmajor) {
-		this.pmajor = pmajor;
-	}
-
 	public String getPostAddress() {
-		return this.postAddress;
+		return postAddress;
 	}
 
 	public void setPostAddress(String postAddress) {
 		this.postAddress = postAddress;
 	}
 
-	public String getPostAliases() {
-		return this.postAliases;
-	}
-
-	public void setPostAliases(String postAliases) {
-		this.postAliases = postAliases;
-	}
-
 	public String getPostCategoryCode() {
-		return this.postCategoryCode;
+		return postCategoryCode;
 	}
 
 	public void setPostCategoryCode(String postCategoryCode) {
@@ -216,7 +182,7 @@ public class EntPost implements Serializable {
 	}
 
 	public String getPostCode() {
-		return this.postCode;
+		return postCode;
 	}
 
 	public void setPostCode(String postCode) {
@@ -224,7 +190,7 @@ public class EntPost implements Serializable {
 	}
 
 	public String getPostName() {
-		return this.postName;
+		return postName;
 	}
 
 	public void setPostName(String postName) {
@@ -232,7 +198,7 @@ public class EntPost implements Serializable {
 	}
 
 	public String getPostRemark() {
-		return this.postRemark;
+		return postRemark;
 	}
 
 	public void setPostRemark(String postRemark) {
@@ -240,7 +206,7 @@ public class EntPost implements Serializable {
 	}
 
 	public String getPsalary() {
-		return this.psalary;
+		return psalary;
 	}
 
 	public void setPsalary(String psalary) {
@@ -248,7 +214,7 @@ public class EntPost implements Serializable {
 	}
 
 	public Date getPublishDate() {
-		return this.publishDate;
+		return publishDate;
 	}
 
 	public void setPublishDate(Date publishDate) {
@@ -256,23 +222,71 @@ public class EntPost implements Serializable {
 	}
 
 	public String getRemark() {
-		return this.remark;
+		return remark;
 	}
 
 	public void setRemark(String remark) {
 		this.remark = remark;
 	}
 
-	public Integer getSalaryType() {
-		return this.salaryType;
+	public String getWelfare() {
+		return welfare;
 	}
 
-	public void setSalaryType(Integer salaryType) {
-		this.salaryType = salaryType;
+	public void setWelfare(String welfare) {
+		this.welfare = welfare;
+	}
+
+	public String getPostAliases() {
+		return postAliases;
+	}
+
+	public void setPostAliases(String postAliases) {
+		this.postAliases = postAliases;
+	}
+
+	public String getWelfareSelected() {
+		return welfareSelected;
+	}
+
+	public void setWelfareSelected(String welfareSelected) {
+		this.welfareSelected = welfareSelected;
+	}
+
+	public String getPmajor() {
+		return pmajor;
+	}
+
+	public void setPmajor(String pmajor) {
+		this.pmajor = pmajor;
+	}
+
+	public String getAdminAccount() {
+		return adminAccount;
+	}
+
+	public void setAdminAccount(String adminAccount) {
+		this.adminAccount = adminAccount;
+	}
+
+	public Integer getIsSeveral() {
+		return isSeveral;
+	}
+
+	public void setIsSeveral(Integer isSeveral) {
+		this.isSeveral = isSeveral;
+	}
+
+	public Date getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Date endTime) {
+		this.endTime = endTime;
 	}
 
 	public Date getStartTime() {
-		return this.startTime;
+		return startTime;
 	}
 
 	public void setStartTime(Date startTime) {
@@ -280,43 +294,51 @@ public class EntPost implements Serializable {
 	}
 
 	public String getTagSelected() {
-		return this.tagSelected;
+		return tagSelected;
 	}
 
 	public void setTagSelected(String tagSelected) {
 		this.tagSelected = tagSelected;
 	}
 
-	public Date getUpdateDate() {
-		return this.updateDate;
+	public Integer getSalaryType() {
+		return salaryType;
 	}
 
-	public void setUpdateDate(Date updateDate) {
-		this.updateDate = updateDate;
+	public void setSalaryType(Integer salaryType) {
+		this.salaryType = salaryType;
 	}
 
 	public String getWeekDay() {
-		return this.weekDay;
+		return weekDay;
 	}
 
 	public void setWeekDay(String weekDay) {
 		this.weekDay = weekDay;
 	}
 
-	public String getWelfare() {
-		return this.welfare;
+	public Date getUpdateDate() {
+		return updateDate;
 	}
 
-	public void setWelfare(String welfare) {
-		this.welfare = welfare;
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
 	}
 
-	public String getWelfareSelected() {
-		return this.welfareSelected;
+	public String getDataSrc() {
+		return dataSrc;
 	}
 
-	public void setWelfareSelected(String welfareSelected) {
-		this.welfareSelected = welfareSelected;
+	public void setDataSrc(String dataSrc) {
+		this.dataSrc = dataSrc;
+	}
+
+	public String getDataUrl() {
+		return dataUrl;
+	}
+
+	public void setDataUrl(String dataUrl) {
+		this.dataUrl = dataUrl;
 	}
 
 }

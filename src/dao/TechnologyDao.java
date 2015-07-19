@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import dao.data.Store;
 
-@Repository("technologyDao")
+@Repository
 public class TechnologyDao extends Store<Technology> {
 
 }

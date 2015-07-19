@@ -13,9 +13,6 @@ public class EntAbilityRequire implements Serializable {
 	@Id("ent_ability_id")
 	private Long entAbilityId;
 
-	@Column("post_id")
-	private Long postId;
-
 	@Column("ent_id")
 	private Long entId;
 
@@ -30,6 +27,9 @@ public class EntAbilityRequire implements Serializable {
 
 	@Column("post_code")
 	private String postCode;
+
+	@Column("post_id")
+	private Long postId;
 
 	@Column("technology_cate_code")
 	private String technologyCateCode;
@@ -47,7 +47,7 @@ public class EntAbilityRequire implements Serializable {
 	private Double weightPoint;
 
 	public Long getEntAbilityId() {
-		return this.entAbilityId;
+		return entAbilityId;
 	}
 
 	public void setEntAbilityId(Long entAbilityId) {
@@ -55,7 +55,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Long getEntId() {
-		return this.entId;
+		return entId;
 	}
 
 	public void setEntId(Long entId) {
@@ -63,7 +63,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Integer getGrade() {
-		return this.grade;
+		return grade;
 	}
 
 	public void setGrade(Integer grade) {
@@ -71,7 +71,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Integer getMatchType() {
-		return this.matchType;
+		return matchType;
 	}
 
 	public void setMatchType(Integer matchType) {
@@ -79,7 +79,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public String getParamCode() {
-		return this.paramCode;
+		return paramCode;
 	}
 
 	public void setParamCode(String paramCode) {
@@ -87,7 +87,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public String getPostCode() {
-		return this.postCode;
+		return postCode;
 	}
 
 	public void setPostCode(String postCode) {
@@ -95,7 +95,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Long getPostId() {
-		return this.postId;
+		return postId;
 	}
 
 	public void setPostId(Long postId) {
@@ -103,7 +103,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public String getTechnologyCateCode() {
-		return this.technologyCateCode;
+		return technologyCateCode;
 	}
 
 	public void setTechnologyCateCode(String technologyCateCode) {
@@ -111,7 +111,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public String getTechnologyCode() {
-		return this.technologyCode;
+		return technologyCode;
 	}
 
 	public void setTechnologyCode(String technologyCode) {
@@ -119,7 +119,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Double getTotalPoint() {
-		return this.totalPoint;
+		return totalPoint;
 	}
 
 	public void setTotalPoint(Double totalPoint) {
@@ -127,7 +127,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Integer getWeight() {
-		return this.weight;
+		return weight;
 	}
 
 	public void setWeight(Integer weight) {
@@ -135,7 +135,7 @@ public class EntAbilityRequire implements Serializable {
 	}
 
 	public Double getWeightPoint() {
-		return this.weightPoint;
+		return weightPoint;
 	}
 
 	public void setWeightPoint(Double weightPoint) {
