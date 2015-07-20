@@ -1,11 +1,7 @@
-Ext.define('Platform.posttask.Map', {
-  extend: 'Ext.window.Window',
-  xtype: 'platform-posttask-map',
+Ext.define('Platform.post.Map', {
+  extend: 'Ext.panel.Panel',
+  xtype: 'platform-post-map',
   title: '地图',
-  closeAction: 'hide',
-  maximizable: true,
-  width: 1000,
-  height: 500,
   layout: 'fit',
   initComponent: function() {
     var me = this;
@@ -17,9 +13,11 @@ Ext.define('Platform.posttask.Map', {
     me.callParent();
   },
   onAfterRender: function() {
-    if (!this.map) {
-      this.initMap();
+    var me = this;
+    if (!me.map) {
+      me.initMap();
     }
+    me.loadData(8, true);
   },
   initMap: function() {
     var me = this;
@@ -35,7 +33,7 @@ Ext.define('Platform.posttask.Map', {
     me.map.centerAndZoom(new BMap.Point(113.203125, 33.884664), 5);
     me.map.addEventListener('zoomend', function(e) {
       var target = e.target, zoom = target.getZoom();
-      me.loadData(me.cid, zoom);
+      me.loadData(zoom);
     });
     me.map.addEventListener('tilesloaded', function(e) {
       Ext.query('.anchorBL').forEach(function(el) {
@@ -62,9 +60,9 @@ Ext.define('Platform.posttask.Map', {
       marker.addEventListener('click', function(e) {
         var marker = this, data = marker.data;
         if (!me.map.detailWindow) {
-          me.map.detailWindow = Platform.widget('posttask-map-marker');
+          me.map.detailWindow = Platform.widget('post-map-marker');
         }
-        me.map.detailWindow.loadData(me.cid, me.zoom, data.center);
+        me.map.detailWindow.loadData(me.zoom, data.center);
         me.map.detailWindow.showAt(e.clientX, e.clientY);
       });
       me.map.addOverlay(marker);
@@ -73,11 +71,8 @@ Ext.define('Platform.posttask.Map', {
       me.map.setViewport(points);
     }
   },
-  loadData: function(cid, zoom, autoViewport) {
+  loadData: function(zoom, autoViewport) {
     var me = this;
-    if (cid !== undefined) {
-      me.cid = cid;
-    }
     if (zoom !== undefined) {
       me.zoom = zoom;
     }
@@ -87,7 +82,6 @@ Ext.define('Platform.posttask.Map', {
       method: 'post',
       url: ctx + '/posttask/mapData.do',
       params: {
-        cid: me.cid,
         zoom: me.zoom
       },
       callback: function(options, success, response) {
@@ -100,9 +94,9 @@ Ext.define('Platform.posttask.Map', {
     });
   }
 });
-Ext.define('Platform.posttask.MapMarker', {
+Ext.define('Platform.post.MapMarker', {
   extend: 'Ext.window.Window',
-  xtype: 'platform-posttask-map-marker',
+  xtype: 'platform-post-map-marker',
   title: '岗位',
   closeAction: 'hide',
   resizable: false,
@@ -197,13 +191,9 @@ Ext.define('Platform.posttask.MapMarker', {
 
     me.callParent();
   },
-  loadData: function(cid, zoom, center) {
+  loadData: function(zoom, center) {
     var me = this;
-    if (cid !== undefined) {
-      me.cid = cid;
-    }
     me.gridStore.proxy.extraParams = {
-      cid: me.cid,
       zoom: zoom,
       center: center
     };
@@ -220,16 +210,16 @@ Ext.define('Platform.posttask.MapMarker', {
   onGridItemDblClick: function(gridview, record, item, index) {
     var me = this;
     if (!me.detailWindow) {
-      me.detailWindow = Platform.widget('posttask-map-marker-detail');
+      me.detailWindow = Platform.widget('post-map-marker-detail');
       me.detailWindow.postGridStore = me.gridStore;
     }
-    me.detailWindow.loadData(me.cid, record.get('dataUrl'));
+    me.detailWindow.loadData(record.get('dataUrl'));
     me.detailWindow.show();
   }
 });
-Ext.define('Platform.posttask.MapMarkerDetail', {
+Ext.define('Platform.post.MapMarkerDetail', {
   extend: 'Ext.window.Window',
-  xtype: 'platform-posttask-map-marker-detail',
+  xtype: 'platform-post-map-marker-detail',
   title: '详情',
   closeAction: 'hide',
   resizable: false,
@@ -437,9 +427,8 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       })
     }
   },
-  loadData: function(cid, dataUrl) {
+  loadData: function(dataUrl) {
     var me = this;
-    me.cid = cid;
     me.loadCodes();
     me.postView.reset();
     me.enterpriseView.reset();
@@ -447,7 +436,6 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
       async: false,
       url: ctx + '/posttask/postDetail.do',
       params: {
-        cid: cid,
         url: dataUrl
       },
       callback: function(options, success, response) {
@@ -464,7 +452,6 @@ Ext.define('Platform.posttask.MapMarkerDetail', {
     var me = this, postView = me.postView, enterpriseView = me.enterpriseView;
     me.setLoading(true);
     var map = {
-      cid: me.cid,
       post: postView.getValues(),
       enterprise: enterpriseView.getValues()
     };

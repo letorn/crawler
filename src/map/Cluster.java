@@ -25,7 +25,7 @@ public class Cluster<T extends Point> {
 		}
 	}
 
-	public boolean add(T point) {
+	public boolean save(T point) {
 		for (int zoom : lookup.keySet()) {
 			Map<String, Marker<T>> markerMap = lookup.get(zoom);
 			double[] center = GeoHash.press(point.getPoint(), gradeMapper.get(zoom));
@@ -35,14 +35,14 @@ public class Cluster<T extends Point> {
 				marker = new Marker<T>(center);
 				markerMap.put(hashCode, marker);
 			}
-			marker.add(point);
+			marker.save(point);
 		}
 		return true;
 	}
 
-	public boolean addAll(List<T> points) {
+	public boolean saveAll(List<T> points) {
 		for (T point : points)
-			add(point);
+			save(point);
 		return true;
 	}
 

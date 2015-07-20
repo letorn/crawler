@@ -71,23 +71,23 @@ public class Collector {
 		postCluster = new Cluster<Post>();
 	}
 
-	public Boolean start() {
+	public boolean start() {
 		logger.info("start collector[id=" + id + ", norm=" + nid + ", region=" + region + ", area=" + area + ", date=" + dateFormat.format(date) + "]");
 		return explorer.start() && processor.start();
 	}
 
-	public Boolean pause() {
+	public boolean pause() {
 		logger.info("pause collector[id=" + id + ", norm=" + nid + ", region=" + region + ", area=" + area + ", date=" + dateFormat.format(date) + "]");
 		return explorer.pause() && processor.pause();
 	}
 
-	public Boolean stop() {
+	public boolean stop() {
 		logger.info("stop collector[id=" + id + ", norm=" + nid + ", region=" + region + ", area=" + area + ", date=" + dateFormat.format(date) + "]");
 		date = new Date();
 		return explorer.stop() && processor.stop();
 	}
 
-	public Boolean clear() {
+	public boolean clear() {
 		logger.info("clear collector[id=" + id + ", norm=" + nid + ", region=" + region + ", area=" + area + ", date=" + dateFormat.format(date) + "]");
 		explorer.stop();
 		processor.stop();
@@ -97,7 +97,7 @@ public class Collector {
 		return false;
 	}
 
-	public Boolean saveBill(Bill bill) {
+	public boolean saveBill(Bill bill) {
 		String url = bill.getPostUrl();
 		if (!billUrlIndexes.containsKey(url)) {
 			if (bills.add(bill)) {
@@ -153,7 +153,7 @@ public class Collector {
 		return new Integer[] { raw, ignored, processed };
 	}
 
-	public Boolean clearBill() {
+	public boolean clearBill() {
 		if (billUrlIndexes != null)
 			billUrlIndexes.clear();
 		if (bills != null)
@@ -161,7 +161,7 @@ public class Collector {
 		return true;
 	}
 
-	public Boolean savePost(Post post) {
+	public boolean savePost(Post post) {
 		String postUrl = post.getDataUrl();
 		Integer urlIndex = postUrlIndexes.get(postUrl);
 		if (urlIndex != null) {
@@ -187,7 +187,7 @@ public class Collector {
 		return true;
 	}
 
-	public Boolean existPost(String url) {
+	public boolean existPost(String url) {
 		return postUrlIndexes.containsKey(url);
 	}
 
@@ -242,7 +242,7 @@ public class Collector {
 		return new Integer[] { failed, raw, ignored, inserted, updated };
 	}
 
-	public Boolean clearPost() {
+	public boolean clearPost() {
 		if (postUrlIndexes != null)
 			postUrlIndexes.clear();
 		if (posts != null)
@@ -254,7 +254,7 @@ public class Collector {
 		return true;
 	}
 
-	public Boolean saveEnterprise(Enterprise enterprise) {
+	public boolean saveEnterprise(Enterprise enterprise) {
 		String entUrl = enterprise.getDataUrl();
 		Integer urlIndex = enterpriseUrlIndexes.get(entUrl);
 		if (urlIndex != null) {
@@ -291,7 +291,7 @@ public class Collector {
 		return enterprises.size();
 	}
 
-	public Boolean clearEnterprise() {
+	public boolean clearEnterprise() {
 		if (enterpriseUrlIndexes != null)
 			enterpriseUrlIndexes.clear();
 		if (enterprises != null)

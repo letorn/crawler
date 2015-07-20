@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import map.Cluster;
 import model.Area;
 import model.Area.AreaType;
 import model.CategoryPost;
@@ -46,30 +47,32 @@ import dao.TagDao;
 import dao.TechnologyDao;
 import dao.TechnologyGategoryDao;
 import dao.ViewEntPostDao;
-import dao.data.C3P0Store;
 
-public class Holder extends C3P0Store {
+public class Holder {
 
 	private static Logger logger = Logger.getLogger(Holder.class);
 
 	private static Map<String, String> areaNameMap = new ConcurrentHashMap<String, String>();
 
-	private static Map<String, String> tags = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> tagCodeMap = new ConcurrentHashMap<String, String>();
 	private static Map<String, String> tagNameMap = new ConcurrentHashMap<String, String>();
 
-	private static Map<String, Map<String, String>> postCategories = new ConcurrentHashMap<String, Map<String, String>>();
-	private static Map<String, String> postNatures = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> postExperiences = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> postEducations = new ConcurrentHashMap<String, String>();
+	private static Map<String, Map<String, String>> postCategoryCodeMap = new ConcurrentHashMap<String, Map<String, String>>();
+	private static Map<String, String> postNatureCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> postExperienceCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> postEducationCodeMap = new ConcurrentHashMap<String, String>();
 
-	private static Map<String, String> enterpriseCategories = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> enterpriseNatures = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> enterpriseScales = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> enterpriseCategoryCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> enterpriseNatureCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> enterpriseScaleCodeMap = new ConcurrentHashMap<String, String>();
 
 	private static DecimalFormat accountNumFormat = new DecimalFormat("0000000");
 	private static int lastAccountNum = -1;
 
+	private static Cluster<Post> postCluster = new Cluster<Post>();
+	private static Map<String, Post> postUrlMap = new ConcurrentHashMap<String, Post>();
 	private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
+	private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
 	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
 
 	private static AreaDao areaDao;
@@ -108,7 +111,7 @@ public class Holder extends C3P0Store {
 		entPromotionDao = WebContext.getBean(EntPromotionDao.class);
 
 		for (Tag tag : tagDao.findAll()) {
-			tags.put(tag.getTagCode(), tag.getTagName());
+			tagCodeMap.put(tag.getTagCode(), tag.getTagName());
 			tagNameMap.put(tag.getTagName(), tag.getTagCode());
 		}
 
@@ -123,27 +126,27 @@ public class Holder extends C3P0Store {
 				postCategorie.put("code", post.getPostCode());
 				postCategorie.put("name", post.getPostName());
 				postCategorie.put("group", categoryPost.getPostCategoryName());
-				postCategories.put(post.getPostCode(), postCategorie);
+				postCategoryCodeMap.put(post.getPostCode(), postCategorie);
 			}
 		}
 
 		for (Param param : paramDao.findAll()) {
 			String categoryCode = param.getParamCategoryCode();
 			if ("007".equals(categoryCode)) {
-				postNatures.put(param.getParamCode(), param.getParamName());
+				postNatureCodeMap.put(param.getParamCode(), param.getParamName());
 			} else if ("005".equals(categoryCode)) {
-				postExperiences.put(param.getParamCode(), param.getParamName());
+				postExperienceCodeMap.put(param.getParamCode(), param.getParamName());
 			} else if ("004".equals(categoryCode)) {
-				postEducations.put(param.getParamCode(), param.getParamName());
+				postEducationCodeMap.put(param.getParamCode(), param.getParamName());
 			} else if ("010".equals(categoryCode)) {
-				enterpriseNatures.put(param.getParamCode(), param.getParamName());
+				enterpriseNatureCodeMap.put(param.getParamCode(), param.getParamName());
 			} else if ("011".equals(categoryCode)) {
-				enterpriseScales.put(param.getParamCode(), param.getParamName());
+				enterpriseScaleCodeMap.put(param.getParamCode(), param.getParamName());
 			}
 		}
 
 		for (Industry industry : industryDao.findAll())
-			enterpriseCategories.put(industry.getIndustryCode(), industry.getIndustryName());
+			enterpriseCategoryCodeMap.put(industry.getIndustryCode(), industry.getIndustryName());
 
 		lastAccountNum = entAccountDao.getLastAutoAccountNum();
 
@@ -153,13 +156,13 @@ public class Holder extends C3P0Store {
 			enterprise.setName(entEnterprise.getEntName());
 			enterprise.setCategoryCode(entEnterprise.getIndustry());
 			if (enterprise.getCategoryCode() != null)
-				enterprise.setCategory(enterpriseCategories.get(enterprise.getCategoryCode()));
+				enterprise.setCategory(enterpriseCategoryCodeMap.get(enterprise.getCategoryCode()));
 			enterprise.setNatureCode(entEnterprise.getProperty());
 			if (enterprise.getNatureCode() != null)
-				enterprise.setNature(enterpriseNatures.get(enterprise.getNatureCode()));
+				enterprise.setNature(enterpriseNatureCodeMap.get(enterprise.getNatureCode()));
 			enterprise.setScaleCode(entEnterprise.getEmployNum());
 			if (enterprise.getScaleCode() != null)
-				enterprise.setScale(enterpriseScales.get(enterprise.getScaleCode()));
+				enterprise.setScale(enterpriseScaleCodeMap.get(enterprise.getScaleCode()));
 			enterprise.setIntroduction(entEnterprise.getIntroduction());
 			enterprise.setWebsite(entEnterprise.getEntWeb());
 			enterprise.setAreaCode(entEnterprise.getParea());
@@ -176,7 +179,7 @@ public class Holder extends C3P0Store {
 			enterprise.setDataUrl(entEnterprise.getDataUrl());
 			enterprise.setCreateDate(entEnterprise.getCreateDate());
 
-			enterpriseNameMap.put(enterprise.getName(), enterprise);
+			holdEnterprise(enterprise);
 		}
 
 		for (EntPost entPost : entPostDao.findAll()) {
@@ -193,7 +196,7 @@ public class Holder extends C3P0Store {
 					post.setNumberText(post.getIsSeveral() == 1 ? "若干" : (post.getNumber() == null ? null : String.valueOf(post.getNumber())));
 					post.setNatureCode(entPost.getPjobCategory());
 					if (post.getNatureCode() != null)
-						post.setNature(postNatures.get(post.getNatureCode()));
+						post.setNature(postNatureCodeMap.get(post.getNatureCode()));
 					post.setSalary(entPost.getPsalary());
 					if (post.getSalary() != null)
 						post.setSalaryText("0".equals(post.getSalary()) ? "面议" : post.getSalary());
@@ -202,13 +205,13 @@ public class Holder extends C3P0Store {
 					if (experienceEntAbilityRequire != null) {
 						post.setExperienceCode(experienceEntAbilityRequire.getParamCode());
 						if (post.getExperienceCode() != null)
-							post.setExperience(postExperiences.get(post.getExperienceCode()));
+							post.setExperience(postExperienceCodeMap.get(post.getExperienceCode()));
 					}
 					EntAbilityRequire educationEntAbilityRequire = entAbilityRequireDao.getEducation(post.getId());
 					if (educationEntAbilityRequire != null) {
 						post.setEducationCode(educationEntAbilityRequire.getParamCode());
 						if (post.getEducationCode() != null)
-							post.setEducation(postEducations.get(post.getEducationCode()));
+							post.setEducation(postEducationCodeMap.get(post.getEducationCode()));
 					}
 					post.setWelfareCode(entPost.getTagSelected());
 					if (post.getWelfareCode() != null)
@@ -231,12 +234,7 @@ public class Holder extends C3P0Store {
 					post.setEnterpriseUrl(entEnterprise.getDataUrl());
 					post.setEnterpriseName(entEnterprise.getEntName());
 
-					Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
-					if (postNameMap == null) {
-						postNameMap = new HashMap<String, Post>();
-						postEntNameMap.put(post.getEnterpriseName(), postNameMap);
-					}
-					postNameMap.put(post.getName(), post);
+					holdPost(post);
 				}
 			}
 		}
@@ -254,70 +252,75 @@ public class Holder extends C3P0Store {
 		return null;
 	}
 
-	public static Map<String, Map<String, String>> getPostCategories() {
-		return postCategories;
+	public static Map<String, Map<String, String>> getPostCategoryCodeMap() {
+		return postCategoryCodeMap;
 	}
 
-	public static Map<String, String> getPostCategory(String category) {
-		return postCategories.get(category);
+	public static Map<String, String> getPostCategoryCode(String category) {
+		return postCategoryCodeMap.get(category);
 	}
 
-	public static String getPostNature(String paramName) {
-		return postNatures.get(paramName);
+	public static String getPostNatureCode(String paramName) {
+		return postNatureCodeMap.get(paramName);
 	}
 
-	public static Map<String, String> getPostExperiences() {
-		return postExperiences;
+	public static Map<String, String> getPostExperienceCodeMap() {
+		return postExperienceCodeMap;
 	}
 
-	public static String getPostExperience(String paramName) {
-		return postExperiences.get(paramName);
+	public static String getPostExperienceCode(String paramName) {
+		return postExperienceCodeMap.get(paramName);
 	}
 
-	public static Map<String, String> getPostEducations() {
-		return postEducations;
+	public static Map<String, String> getPostEducationCodeMap() {
+		return postEducationCodeMap;
 	}
 
-	public static String getPostEducation(String paramName) {
-		return postEducations.get(paramName);
+	public static String getPostEducationCode(String paramName) {
+		return postEducationCodeMap.get(paramName);
 	}
 
-	public static Map<String, String> getEnterpriseCategories() {
-		return enterpriseCategories;
+	public static Map<String, String> getEnterpriseCategoryCodeMap() {
+		return enterpriseCategoryCodeMap;
 	}
 
-	public static String getEnterpriseCategory(String category) {
-		return enterpriseCategories.get(category);
+	public static String getEnterpriseCategoryCode(String category) {
+		return enterpriseCategoryCodeMap.get(category);
 	}
 
-	public static Map<String, String> getEnterpriseNatures() {
-		return enterpriseNatures;
+	public static Map<String, String> getEnterpriseNatureCodeMap() {
+		return enterpriseNatureCodeMap;
 	}
 
-	public static String getEnterpriseNature(String paramName) {
-		return enterpriseNatures.get(paramName);
+	public static String getEnterpriseNatureCode(String paramName) {
+		return enterpriseNatureCodeMap.get(paramName);
 	}
 
-	public static Map<String, String> getEnterpriseScales() {
-		return enterpriseScales;
+	public static Map<String, String> getEnterpriseScaleCodeMap() {
+		return enterpriseScaleCodeMap;
 	}
 
-	public static String getEnterpriseScale(String paramName) {
-		return enterpriseScales.get(paramName);
+	public static String getEnterpriseScaleCode(String paramName) {
+		return enterpriseScaleCodeMap.get(paramName);
 	}
 
-	public static Boolean existEnterprise(String enterpriseName) {
+	public static boolean existEnterprise(String enterpriseName) {
 		return enterpriseNameMap.containsKey(enterpriseName);
 	}
 
-	public static Enterprise getEnterprise(String enterpriseName) {
-		return enterpriseNameMap.get(enterpriseName);
+	public static Post getPost(String url) {
+		return postUrlMap.get(url);
 	}
 
-	public static boolean savePost(List<Post> list, Integer updateInterval) {
-		if (updateInterval == null)
-			updateInterval = 3;
+	public static Enterprise getEnterprise(String url) {
+		return enterpriseUrlMap.get(url);
+	}
 
+	public static Cluster<Post> getPostCluster() {
+		return postCluster;
+	}
+
+	public static boolean savePost(List<Post> list) {
 		Map<EntLbs, Post> entLbsInsertMap = new HashMap<EntLbs, Post>();
 		Map<EntPost, Post> entPostInsertMap = new HashMap<EntPost, Post>();
 		Map<EntAbilityRequire, Post> entAbilityRequireInsertMap = new HashMap<EntAbilityRequire, Post>();
@@ -454,6 +457,7 @@ public class Holder extends C3P0Store {
 				entPost.setDataUrl(post.getDataUrl());
 				entPost.setUpdateDate(post.getUpdateDate());
 				entPost.setPublishDate(post.getPublishDate());
+				entPost.setEntId(enterprise.getId());
 				entPostInsertMap.put(entPost, post);
 
 				Param experienceParam = paramDao.get(post.getExperienceCode());
@@ -583,6 +587,8 @@ public class Holder extends C3P0Store {
 		viewEntPostDao.add(new ArrayList<ViewEntPost>(viewEntPostInsertMap.keySet()));
 
 		entPromotionDao.add(new ArrayList<EntPromotion>(entPromotionInsertMap.keySet()));
+
+		holdAllPost(list);
 
 		return true;
 	}
@@ -716,6 +722,7 @@ public class Holder extends C3P0Store {
 			entPost.setDataUrl(post.getDataUrl());
 			entPost.setUpdateDate(post.getUpdateDate());
 			entPost.setPublishDate(post.getPublishDate());
+			entPost.setEntId(enterprise.getId());
 			entPostDao.add(entPost);
 			post.setId(entPost.getId());
 
@@ -821,13 +828,12 @@ public class Holder extends C3P0Store {
 		}
 		postNameMap.put(post.getName(), post);
 
+		holdPost(post);
+
 		return true;
 	}
 
-	public static boolean saveEnterprise(List<Enterprise> list, Integer updateInterval) {
-		if (updateInterval == null)
-			updateInterval = 3;
-
+	public static boolean saveEnterprise(List<Enterprise> list) {
 		Map<EntLbs, Enterprise> entLbsInsertMap = new HashMap<EntLbs, Enterprise>();
 		Map<EntEnterprise, Enterprise> entEnterpriseInsertMap = new HashMap<EntEnterprise, Enterprise>();
 		Map<EntAccount, Enterprise> entAccountInsertMap = new HashMap<EntAccount, Enterprise>();
@@ -901,8 +907,6 @@ public class Holder extends C3P0Store {
 
 				enterprise.setStatus(2);
 			}
-
-			enterpriseNameMap.put(enterprise.getName(), enterprise);
 		}
 
 		entLbsDao.update(entLbsUpdateList);
@@ -920,6 +924,8 @@ public class Holder extends C3P0Store {
 			entAccount.setEntId(entAccountInsertMap.get(entAccount).getId());
 
 		entAccountDao.add(new ArrayList<EntAccount>(entAccountInsertMap.keySet()));
+
+		holdAllEnterprise(list);
 
 		return true;
 	}
@@ -993,7 +999,7 @@ public class Holder extends C3P0Store {
 			enterprise.setStatus(2);
 		}
 
-		enterpriseNameMap.put(enterprise.getName(), enterprise);
+		holdEnterprise(enterprise);
 
 		return true;
 	}
@@ -1005,34 +1011,34 @@ public class Holder extends C3P0Store {
 
 				ent.setId(enterprise.getId());
 
-				if (Ver.isNotBlank(enterprise.getCategory()))
+				if (Ver.nb(enterprise.getCategory()))
 					ent.setCategory(enterprise.getCategory());
 
-				if (Ver.isNotBlank(enterprise.getCategoryCode()))
+				if (Ver.nb(enterprise.getCategoryCode()))
 					ent.setCategoryCode(enterprise.getCategoryCode());
 
-				if (Ver.isNotBlank(enterprise.getNature()))
+				if (Ver.nb(enterprise.getNature()))
 					ent.setNature(enterprise.getNature());
 
-				if (Ver.isNotBlank(enterprise.getNatureCode()))
+				if (Ver.nb(enterprise.getNatureCode()))
 					ent.setNatureCode(enterprise.getNatureCode());
 
-				if (Ver.isNotBlank(enterprise.getScale()))
+				if (Ver.nb(enterprise.getScale()))
 					ent.setScale(enterprise.getScale());
 
-				if (Ver.isNotBlank(enterprise.getScaleCode()))
+				if (Ver.nb(enterprise.getScaleCode()))
 					ent.setScaleCode(enterprise.getScaleCode());
 
-				if (Ver.isNotBlank(enterprise.getIntroduction()))
+				if (Ver.nb(enterprise.getIntroduction()))
 					ent.setIntroduction(enterprise.getIntroduction());
 
-				if (Ver.isNotBlank(enterprise.getWebsite()))
+				if (Ver.nb(enterprise.getWebsite()))
 					ent.setWebsite(enterprise.getWebsite());
 
-				if (Ver.isNotBlank(enterprise.getAreaCode()))
+				if (Ver.nb(enterprise.getAreaCode()))
 					ent.setAreaCode(enterprise.getAreaCode());
 
-				if (Ver.isNotBlank(enterprise.getAddress()))
+				if (Ver.nb(enterprise.getAddress()))
 					ent.setAddress(enterprise.getAddress());
 
 				if (enterprise.getLbsId() != null)
@@ -1053,61 +1059,61 @@ public class Holder extends C3P0Store {
 				if (post != null) {
 					p.setId(post.getId());
 
-					if (Ver.isNotBlank(post.getCategory()))
+					if (Ver.nb(post.getCategory()))
 						p.setCategory(post.getCategory());
 
-					if (Ver.isNotBlank(post.getCategoryCode()))
+					if (Ver.nb(post.getCategoryCode()))
 						p.setCategoryCode(post.getCategoryCode());
 
 					if (post.getNumber() != null)
 						p.setNumber(post.getNumber());
 
-					if (Ver.isNotBlank(post.getNumberText()))
+					if (Ver.nb(post.getNumberText()))
 						p.setNumberText(post.getNumberText());
 
 					if (post.getIsSeveral() != null)
 						p.setIsSeveral(post.getIsSeveral());
 
-					if (Ver.isNotBlank(post.getNature()))
+					if (Ver.nb(post.getNature()))
 						p.setNature(post.getNature());
 
-					if (Ver.isNotBlank(post.getNatureCode()))
+					if (Ver.nb(post.getNatureCode()))
 						p.setNatureCode(post.getNatureCode());
 
-					if (Ver.isNotBlank(post.getSalary()))
+					if (Ver.nb(post.getSalary()))
 						p.setSalary(post.getSalary());
 
-					if (Ver.isNotBlank(post.getSalaryText()))
+					if (Ver.nb(post.getSalaryText()))
 						p.setSalaryText(post.getSalaryText());
 
 					if (post.getSalaryType() != null)
 						p.setSalaryType(post.getSalaryType());
 
-					if (Ver.isNotBlank(post.getExperience()))
+					if (Ver.nb(post.getExperience()))
 						p.setExperience(post.getExperience());
 
-					if (Ver.isNotBlank(post.getExperienceCode()))
+					if (Ver.nb(post.getExperienceCode()))
 						p.setExperienceCode(post.getExperienceCode());
 
-					if (Ver.isNotBlank(post.getEducation()))
+					if (Ver.nb(post.getEducation()))
 						p.setEducation(post.getEducation());
 
-					if (Ver.isNotBlank(post.getEducationCode()))
+					if (Ver.nb(post.getEducationCode()))
 						p.setEducationCode(post.getEducationCode());
 
-					if (Ver.isBlank(post.getWelfare()))
+					if (Ver.nb(post.getWelfare()))
 						p.setWelfare(post.getWelfare());
 
-					if (Ver.isNotBlank(post.getWelfareCode()))
+					if (Ver.nb(post.getWelfareCode()))
 						p.setWelfareCode(post.getWelfareCode());
 
-					if (Ver.isNotBlank(post.getIntroduction()))
+					if (Ver.nb(post.getIntroduction()))
 						p.setIntroduction(post.getIntroduction());
 
-					if (Ver.isNotBlank(post.getAreaCode()))
+					if (Ver.nb(post.getAreaCode()))
 						p.setAreaCode(post.getAreaCode());
 
-					if (Ver.isNotBlank(post.getAddress()))
+					if (Ver.nb(post.getAddress()))
 						p.setAddress(post.getAddress());
 
 					if (post.getLbsId() != null)
@@ -1122,6 +1128,42 @@ public class Holder extends C3P0Store {
 			}
 		}
 		return p;
+	}
+
+	private static boolean holdPost(Post post) {
+		if (post.getLbsLon() != null && post.getLbsLat() != null)
+			postCluster.save(post);
+		if (Ver.nb(post.getDataUrl()))
+			postUrlMap.put(post.getDataUrl(), post);
+		if (Ver.nb(post.getEnterpriseName()) && Ver.nb(post.getName())) {
+			Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
+			if (postNameMap == null) {
+				postNameMap = new HashMap<String, Post>();
+				postEntNameMap.put(post.getEnterpriseName(), postNameMap);
+			}
+			postNameMap.put(post.getName(), post);
+		}
+		return true;
+	}
+
+	private static boolean holdAllPost(List<Post> list) {
+		for (Post post : list)
+			holdPost(post);
+		return true;
+	}
+
+	private static boolean holdEnterprise(Enterprise enterprise) {
+		if (Ver.nb(enterprise.getDataUrl()))
+			enterpriseUrlMap.put(enterprise.getDataUrl(), enterprise);
+		if (Ver.nb(enterprise.getName()))
+			enterpriseNameMap.put(enterprise.getName(), enterprise);
+		return true;
+	}
+
+	private static boolean holdAllEnterprise(List<Enterprise> list) {
+		for (Enterprise enterprise : list)
+			holdEnterprise(enterprise);
+		return true;
 	}
 
 }

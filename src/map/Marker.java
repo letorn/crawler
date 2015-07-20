@@ -1,11 +1,14 @@
 package map;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Marker<T extends Point> {
 
 	private double[] center;
+	private Map<Long, Integer> pointIndexes = new HashMap<Long, Integer>();
 	private List<T> points = new ArrayList<T>();
 
 	public Marker(double[] center) {
@@ -21,25 +24,40 @@ public class Marker<T extends Point> {
 	}
 
 	public boolean add(T point) {
-		if (!points.contains(point))
-			return points.add(point);
-		return false;
-	}
-
-	public boolean equals(Object object) {
-		if (object instanceof double[]) {
-			double[] other = (double[]) object;
-			return center[0] == other[0] && center[1] == other[1];
-		}
-		if (object instanceof Marker) {
-			double[] other = ((Marker) object).getCenter();
-			return center[0] == other[0] && center[1] == other[1];
+		if (point.getPointId() != null) {
+			Integer pointIndex = pointIndexes.get(point.getPointId());
+			if (pointIndex == null) {
+				points.add(point);
+				pointIndexes.put(point.getPointId(), points.size() - 1);
+				return true;
+			}
 		}
 		return false;
 	}
 
-	public int hashCode() {
-		return super.hashCode();
+	public boolean update(T point) {
+		if (point.getPointId() != null) {
+			Integer pointIndex = pointIndexes.get(point.getPointId());
+			if (pointIndex != null) {
+				points.set(pointIndex, point);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean save(T point) {
+		if (point.getPointId() != null) {
+			Integer pointIndex = pointIndexes.get(point.getPointId());
+			if (pointIndex == null) {
+				points.add(point);
+				pointIndexes.put(point.getPointId(), points.size() - 1);
+			} else {
+				points.set(pointIndex, point);
+			}
+			return true;
+		}
+		return false;
 	}
 
 }

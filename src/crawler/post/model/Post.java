@@ -289,6 +289,10 @@ public class Post implements Point {
 		this.enterpriseName = enterpriseName;
 	}
 
+	public Long getPointId() {
+		return lbsId;
+	}
+
 	public double[] getPoint() {
 		return new double[] { lbsLon, lbsLat };
 	}

@@ -249,17 +249,7 @@ Ext.define('Platform.posttask.View', {
     this.executeTask(ctx + '/posttask/stopCollector.do', record.get('cid'));
   },
   onDeleteBtnClick: function(table, rowIndex, colIndex, item, e, record) {
-    Ext.toast({
-      title: '提示',
-      html: '逗你的，不能删除哈哈哈！',
-      align: 't',
-      slideInDuration: 100,
-      slideBackDuration: 800,
-      hideDuration: 100,
-      autoCloseDelay: 1000,
-    });
-    // this.executeTask(ctx + '/posttask/deleteCollector.do',
-    // record.get('cid'));
+    this.executeTask(ctx + '/posttask/deleteCollector.do', record.get('cid'));
   },
   executeTask: function(url, cid) {
     var me = this;

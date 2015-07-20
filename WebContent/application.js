@@ -1,4 +1,5 @@
 var dashboard = {
+  post: '所有岗位',
   posttask: '岗位作业'
 };
 

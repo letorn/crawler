@@ -66,7 +66,7 @@ public class PostTaskService {
 			}
 		}
 
-		Map<String, Map<String, String>> postCategoryMap = Holder.getPostCategories();
+		Map<String, Map<String, String>> postCategoryMap = Holder.getPostCategoryCodeMap();
 		for (String code : postCategoryMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			Map<String, String> postCategory = postCategoryMap.get(code);
@@ -81,7 +81,7 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, String> postExperienceCodeMap = Holder.getPostExperiences();
+		Map<String, String> postExperienceCodeMap = Holder.getPostExperienceCodeMap();
 		for (String code : postExperienceCodeMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			String name = postExperienceCodeMap.get(code);
@@ -95,7 +95,7 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, String> postEducationCodeMap = Holder.getPostEducations();
+		Map<String, String> postEducationCodeMap = Holder.getPostEducationCodeMap();
 		for (String code : postEducationCodeMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			String name = postEducationCodeMap.get(code);
@@ -109,7 +109,7 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, String> enterpriseCategoryMap = Holder.getEnterpriseCategories();
+		Map<String, String> enterpriseCategoryMap = Holder.getEnterpriseCategoryCodeMap();
 		for (String code : enterpriseCategoryMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("code", code);
@@ -122,7 +122,7 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, String> enterpriseNatureMap = Holder.getEnterpriseNatures();
+		Map<String, String> enterpriseNatureMap = Holder.getEnterpriseNatureCodeMap();
 		for (String code : enterpriseNatureMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("code", code);
@@ -135,7 +135,7 @@ public class PostTaskService {
 			}
 		});
 
-		Map<String, String> enterpriseScaleMap = Holder.getEnterpriseScales();
+		Map<String, String> enterpriseScaleMap = Holder.getEnterpriseScaleCodeMap();
 		for (String code : enterpriseScaleMap.keySet()) {
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("code", code);
@@ -161,23 +161,22 @@ public class PostTaskService {
 		return collectors.get(cid);
 	}
 
-	public Boolean existCollector(String cid) {
-		if (StringUtils.isNotBlank(cid))
-			for (String id : collectors.keySet())
-				if (cid.contains(id))
-					return true;
-		return false;
-	}
-
-	public Boolean existCollector(String region, String area, String norm) {
-		String cid = StringUtils.isBlank(area) ? String.format("%s.%s", norm, region) : String.format("%s.%s.%s", norm, region, area);
+	public boolean existCollector(String cid) {
 		for (String id : collectors.keySet())
 			if (cid.contains(id))
 				return true;
 		return false;
 	}
 
-	public Boolean addCollector(String region, String area, String nid) {
+	public boolean existCollector(String region, String area, String nid) {
+		String cid = Ver.bl(area) ? String.format("%s.%s", nid, region) : String.format("%s.%s.%s", nid, region, area);
+		for (String id : collectors.keySet())
+			if (cid.contains(id))
+				return true;
+		return false;
+	}
+
+	public boolean addCollector(String region, String area, String nid) {
 		Map<String, Object> norm = norms.get(nid);
 		if (norm != null) {
 			Collector collector = new Collector(region, area, norm);
@@ -187,28 +186,28 @@ public class PostTaskService {
 		return false;
 	}
 
-	public Boolean startCollector(String cid) {
+	public boolean startCollector(String cid) {
 		Collector collector = collectors.get(cid);
 		if (collector != null)
 			return collector.start();
 		return false;
 	}
 
-	public Boolean pauseCollector(String cid) {
+	public boolean pauseCollector(String cid) {
 		Collector collector = collectors.get(cid);
 		if (collector != null)
 			return collector.pause();
 		return false;
 	}
 
-	public Boolean stopCollector(String cid) {
+	public boolean stopCollector(String cid) {
 		Collector collector = collectors.get(cid);
 		if (collector != null)
 			return collector.stop();
 		return false;
 	}
 
-	public Boolean deleteCollector(String cid) {
+	public boolean deleteCollector(String cid) {
 		Collector collector = collectors.remove(cid);
 		if (collector != null) {
 			return collector.clear();
@@ -216,11 +215,35 @@ public class PostTaskService {
 		return false;
 	}
 
-	public Boolean existPost(String cid, String url) {
+	public boolean existPost(String cid, String url) {
+		if (cid != null) {
+			Collector collector = collectors.get(cid);
+			if (collector != null)
+				return collector.existPost(url);
+		}
+		return false;
+	}
+
+	public Post getPost(String url) {
+		return Holder.getPost(url);
+	}
+
+	public Post getPost(String cid, String url) {
 		Collector collector = collectors.get(cid);
 		if (collector != null)
-			return collector.existPost(url);
-		return false;
+			return collector.getPost(url);
+		return null;
+	}
+
+	public Enterprise getEnterprise(String url) {
+		return Holder.getEnterprise(url);
+	}
+
+	public Enterprise getEnterprise(String cid, String url) {
+		Collector collector = collectors.get(cid);
+		if (collector != null)
+			return collector.getEnterprise(url);
+		return null;
 	}
 
 	public List<Map<String, String>> getPostCategories() {
@@ -247,7 +270,77 @@ public class PostTaskService {
 		return enterpriseScales;
 	}
 
-	public Boolean savePost(String cid, Post updatedPost, Enterprise updatedEnterprise) {
+	public boolean savePost(Post updatedPost, Enterprise updatedEnterprise) {
+		Post post = Holder.getPost(updatedPost.getDataUrl());
+		Enterprise enterprise = Holder.getEnterprise(updatedEnterprise.getDataUrl());
+		if (post != null && enterprise != null) {
+
+			enterprise.setStatus(0);
+
+			if (StringUtils.isNotBlank(updatedEnterprise.getName()) && !updatedEnterprise.getName().equals(enterprise.getName())) {
+				enterprise.setName(updatedEnterprise.getName());
+			}
+
+			if (Ver.nb(updatedEnterprise.getCategoryCode()) && !updatedEnterprise.getCategoryCode().equals(enterprise.getCategoryCode())) {
+				String categoryName = Holder.getEnterpriseCategoryCode(updatedEnterprise.getCategoryCode());
+				if (categoryName != null) {
+					enterprise.setCategory(categoryName);
+					enterprise.setCategoryCode(updatedEnterprise.getCategoryCode());
+				}
+			}
+
+			if (Ver.nb(updatedEnterprise.getAddress()) && !updatedEnterprise.getAddress().equals(enterprise.getAddress())) {
+				enterprise.setAddress(updatedEnterprise.getAddress());
+				String areaCode = Holder.getAreaCode(updatedEnterprise.getAddress());
+				if (Ver.nb(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
+					enterprise.setAreaCode(areaCode);
+					Double[] point = Client.getPoint(updatedEnterprise.getAddress());
+					if (point != null) {
+						enterprise.setLbsId(enterprise.getLbsId());
+						enterprise.setLbsLon(point[0]);
+						enterprise.setLbsLat(point[1]);
+					}
+				}
+			}
+
+			if (Ver.bl(enterprise.getName()) || Ver.bl(enterprise.getCategoryCode()) || Ver.bl(enterprise.getNatureCode()) || Ver.bl(enterprise.getScaleCode()) || Ver.bl(enterprise.getAreaCode()) || Ver.bl(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.bl(enterprise.getDataSrc()) || Ver.bl(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
+				enterprise.setStatus(-1);
+
+			post.setStatus(0);
+
+			if (StringUtils.isNotBlank(updatedPost.getName()) && !updatedPost.getName().equals(post.getName())) {
+				post.setName(updatedPost.getName());
+			}
+
+			if (StringUtils.isNotBlank(updatedPost.getCategoryCode()) && !updatedPost.getCategoryCode().equals(post.getCategoryCode())) {
+				Map<String, String> categoryMap = Holder.getPostCategoryCode(updatedPost.getCategoryCode());
+				if (categoryMap != null) {
+					post.setCategory(categoryMap.get("name"));
+					post.setCategoryCode(updatedPost.getCategoryCode());
+				}
+			}
+
+			if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
+				post.setStatus(-1);
+
+			if (enterprise.getStatus() == -1)
+				post.setStatus(-1);
+
+			if (post.getStatus() != -1) {
+				post.setAreaCode(enterprise.getAreaCode());
+				post.setAddress(enterprise.getAddress());
+				post.setLbsLon(enterprise.getLbsLon());
+				post.setLbsLat(enterprise.getLbsLat());
+
+				if (Holder.saveEnterprise(enterprise))
+					if (Holder.savePost(post))
+						return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean savePost(String cid, Post updatedPost, Enterprise updatedEnterprise) {
 		Collector collector = collectors.get(cid);
 		Post post = collector.getPost(updatedPost.getDataUrl());
 		Enterprise enterprise = collector.getEnterprise(updatedEnterprise.getDataUrl());
@@ -259,18 +352,18 @@ public class PostTaskService {
 				enterprise.setName(updatedEnterprise.getName());
 			}
 
-			if (Ver.isNotBlank(updatedEnterprise.getCategoryCode()) && !updatedEnterprise.getCategoryCode().equals(enterprise.getCategoryCode())) {
-				String categoryName = Holder.getEnterpriseCategory(updatedEnterprise.getCategoryCode());
+			if (Ver.nb(updatedEnterprise.getCategoryCode()) && !updatedEnterprise.getCategoryCode().equals(enterprise.getCategoryCode())) {
+				String categoryName = Holder.getEnterpriseCategoryCode(updatedEnterprise.getCategoryCode());
 				if (categoryName != null) {
 					enterprise.setCategory(categoryName);
 					enterprise.setCategoryCode(updatedEnterprise.getCategoryCode());
 				}
 			}
 
-			if (Ver.isNotBlank(updatedEnterprise.getAddress()) && !updatedEnterprise.getAddress().equals(enterprise.getAddress())) {
+			if (Ver.nb(updatedEnterprise.getAddress()) && !updatedEnterprise.getAddress().equals(enterprise.getAddress())) {
 				enterprise.setAddress(updatedEnterprise.getAddress());
 				String areaCode = Holder.getAreaCode(updatedEnterprise.getAddress());
-				if (Ver.isNotBlank(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
+				if (Ver.nb(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
 					enterprise.setAreaCode(areaCode);
 					Double[] point = Client.getPoint(updatedEnterprise.getAddress());
 					if (point != null) {
@@ -281,7 +374,7 @@ public class PostTaskService {
 				}
 			}
 
-			if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
+			if (Ver.bl(enterprise.getName()) || Ver.bl(enterprise.getCategoryCode()) || Ver.bl(enterprise.getNatureCode()) || Ver.bl(enterprise.getScaleCode()) || Ver.bl(enterprise.getAreaCode()) || Ver.bl(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.bl(enterprise.getDataSrc()) || Ver.bl(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 				enterprise.setStatus(-1);
 
 			post.setStatus(0);
@@ -291,14 +384,14 @@ public class PostTaskService {
 			}
 
 			if (StringUtils.isNotBlank(updatedPost.getCategoryCode()) && !updatedPost.getCategoryCode().equals(post.getCategoryCode())) {
-				Map<String, String> categoryMap = Holder.getPostCategory(updatedPost.getCategoryCode());
+				Map<String, String> categoryMap = Holder.getPostCategoryCode(updatedPost.getCategoryCode());
 				if (categoryMap != null) {
 					post.setCategory(categoryMap.get("name"));
 					post.setCategoryCode(updatedPost.getCategoryCode());
 				}
 			}
 
-			if (Ver.isBlank(post.getName()) || Ver.isBlank(post.getCategoryCode()) || Ver.isBlank(post.getNatureCode()) || Ver.isBlank(post.getExperienceCode()) || Ver.isBlank(post.getEducationCode()) || Ver.isBlank(post.getDataSrc()) || Ver.isBlank(post.getDataUrl()) || post.getUpdateDate() == null || Ver.isBlank(post.getEnterpriseUrl()) || Ver.isBlank(post.getEnterpriseName()))
+			if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
 				post.setStatus(-1);
 
 			if (enterprise.getStatus() == -1)
@@ -320,8 +413,23 @@ public class PostTaskService {
 		return false;
 	}
 
+	public List<Marker<Post>> getPostMarkers(int zoom) {
+		return Holder.getPostCluster().getMarkers(zoom);
+	}
+
 	public List<Marker<Post>> getPostMarkers(String cid, int zoom) {
 		return collectors.get(cid).getPostCluster().getMarkers(zoom);
+	}
+
+	public List<Post> getMarkerPosts(int zoom, double[] point, int start, int limit) {
+		List<Post> list = new ArrayList<Post>();
+		Marker<Post> marker = Holder.getPostCluster().getMarker(zoom, point);
+		if (marker != null) {
+			List<Post> posts = marker.getPoints();
+			for (int i = start; i < posts.size() && list.size() < limit; i++)
+				list.add(posts.get(i));
+		}
+		return list;
 	}
 
 	public List<Post> getMarkerPosts(String cid, int zoom, double[] point, int start, int limit) {
@@ -333,6 +441,13 @@ public class PostTaskService {
 				list.add(posts.get(i));
 		}
 		return list;
+	}
+
+	public int getMarkerPostSize(int zoom, double[] point) {
+		Marker<Post> marker = Holder.getPostCluster().getMarker(zoom, point);
+		if (marker != null)
+			return marker.getPoints().size();
+		return 0;
 	}
 
 	public int getMarkerPostSize(String cid, int zoom, double[] point) {

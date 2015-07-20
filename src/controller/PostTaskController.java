@@ -10,13 +10,13 @@ import javax.annotation.Resource;
 import map.Marker;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import service.PostTaskService;
+import util.Ver;
 import crawler.post.Collector;
 import crawler.post.model.Bill;
 import crawler.post.model.Enterprise;
@@ -78,14 +78,13 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> addTask(String region, String area, String norm) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(region) || StringUtils.isBlank(norm)) {
+		if (Ver.bl(region) || Ver.bl(norm)) {
 			resultMap.put("success", false);
 		} else {
-			if (postTaskService.existCollector(region, area, norm)) {
+			if (postTaskService.existCollector(region, area, norm))
 				resultMap.put("repeated", true);
-			} else {
+			else
 				postTaskService.addCollector(region, area, norm);
-			}
 			resultMap.put("success", true);
 		}
 		return resultMap;
@@ -95,7 +94,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pagedBill(String cid, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid) || !postTaskService.existCollector(cid) || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+		if (Ver.bl(cid) || !Ver.pz(start) || !Ver.pz(limit) || limit > 100 || !postTaskService.existCollector(cid)) {
 			resultMap.put("success", false);
 		} else {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
@@ -121,7 +120,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pagedPost(String cid, Integer postStatus, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid) || !postTaskService.existCollector(cid) || postStatus == null || postStatus < -1 || postStatus > 3 || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+		if (Ver.bl(cid) || Ver.nu(postStatus) || postStatus < -1 || postStatus > 3 || !Ver.pz(start) || !Ver.pz(limit) || limit > 100 || !postTaskService.existCollector(cid)) {
 			resultMap.put("success", false);
 		} else {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
@@ -153,7 +152,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pagedEnterprise(String cid, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (!postTaskService.existCollector(cid) || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+		if (Ver.bl(cid) || !Ver.pz(start) || !Ver.pz(limit) || limit > 100 || !postTaskService.existCollector(cid)) {
 			resultMap.put("success", false);
 		} else {
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
@@ -195,11 +194,19 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> postDetail(String cid, String url) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid) || StringUtils.isBlank(url) || !postTaskService.existPost(cid, url)) {
+		if (Ver.bl(url)) {
 			resultMap.put("success", false);
 		} else {
-			Collector collector = postTaskService.getCollector(cid);
-			Post post = collector.getPost(url);
+			Post post = null;
+			Enterprise enterprise = null;
+			if (Ver.nb(cid) && postTaskService.existPost(cid, url)) {
+				post = postTaskService.getPost(cid, url);
+				enterprise = postTaskService.getEnterprise(cid, post.getEnterpriseUrl());
+			} else {
+				post = postTaskService.getPost(url);
+				enterprise = postTaskService.getEnterprise(post.getEnterpriseUrl());
+			}
+
 			Map<String, Object> postData = new HashMap<String, Object>();
 			postData.put("dataUrl", post.getDataUrl());
 			postData.put("updateDate", post.getUpdateDate());
@@ -213,7 +220,6 @@ public class PostTaskController {
 			postData.put("introduction", post.getIntroduction());
 			resultMap.put("post", postData);
 
-			Enterprise enterprise = collector.getEnterprise(post.getEnterpriseUrl());
 			Map<String, Object> enterpriseData = new HashMap<String, Object>();
 			enterpriseData.put("dataUrl", enterprise.getDataUrl());
 			enterpriseData.put("name", enterprise.getName());
@@ -234,18 +240,22 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> savePost(@RequestBody Map<String, Object> map) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (map == null) {
+		if (Ver.nu(map)) {
 			resultMap.put("success", false);
 		} else {
 			JSONObject requestBody = JSONObject.fromObject(map);
-			if (requestBody.has("cid")) {
-				String cid = requestBody.getString("cid");
-				Post post = (Post) JSONObject.toBean(requestBody.getJSONObject("post"), Post.class);
-				Enterprise enterprise = (Enterprise) JSONObject.toBean(requestBody.getJSONObject("enterprise"), Enterprise.class);
-				if (!postTaskService.existCollector(cid) || post == null || StringUtils.isBlank(post.getDataUrl()) || enterprise == null || StringUtils.isBlank(enterprise.getDataUrl())) {
-					resultMap.put("success", false);
+			Post post = (Post) JSONObject.toBean(requestBody.getJSONObject("post"), Post.class);
+			Enterprise enterprise = (Enterprise) JSONObject.toBean(requestBody.getJSONObject("enterprise"), Enterprise.class);
+			if (post != null && enterprise != null) {
+				if (requestBody.has("cid")) {
+					String cid = requestBody.getString("cid");
+					if (postTaskService.existCollector(cid)) {
+						resultMap.put("success", postTaskService.savePost(cid, post, enterprise));
+					} else {
+						resultMap.put("success", false);
+					}
 				} else {
-					resultMap.put("success", postTaskService.savePost(cid, post, enterprise));
+					resultMap.put("success", postTaskService.savePost(post, enterprise));
 				}
 			} else {
 				resultMap.put("success", false);
@@ -258,7 +268,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> startCollector(String cid) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid)) {
+		if (Ver.bl(cid)) {
 			resultMap.put("success", false);
 		} else {
 			resultMap.put("success", postTaskService.startCollector(cid));
@@ -270,7 +280,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pauseCollector(String cid) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid)) {
+		if (Ver.bl(cid)) {
 			resultMap.put("success", false);
 		} else {
 			resultMap.put("success", postTaskService.pauseCollector(cid));
@@ -282,7 +292,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> stopCollector(String cid) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid)) {
+		if (Ver.bl(cid)) {
 			resultMap.put("success", false);
 		} else {
 			resultMap.put("success", postTaskService.stopCollector(cid));
@@ -294,7 +304,7 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> deleteCollector(String cid) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(cid)) {
+		if (Ver.bl(cid)) {
 			resultMap.put("success", false);
 		} else {
 			resultMap.put("success", postTaskService.deleteCollector(cid));
@@ -306,11 +316,17 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> mapData(String cid, Integer zoom) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (!postTaskService.existCollector(cid) || zoom == null) {
+		if (Ver.nu(zoom)) {
 			resultMap.put("success", false);
 		} else {
+			List<Marker<Post>> markerList = null;
+			if (Ver.nb(cid) && postTaskService.existCollector(cid))
+				markerList = postTaskService.getPostMarkers(cid, zoom);
+			else
+				markerList = postTaskService.getPostMarkers(zoom);
+
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
-			for (Marker<Post> marker : postTaskService.getPostMarkers(cid, zoom)) {
+			for (Marker<Post> marker : markerList) {
 				Map<String, Object> d = new HashMap<String, Object>();
 				d.put("center", marker.getCenter());
 				d.put("postCount", marker.getPoints().size());
@@ -326,11 +342,21 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> mapMarkerData(String cid, Integer zoom, double[] center, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (!postTaskService.existCollector(cid) || zoom == null || center == null || center.length != 2 || start == null || start < 0 || limit == null || limit < 0 || limit > 100) {
+		if (Ver.nu(zoom) || Ver.nu(center) || center.length != 2 || !Ver.pz(start) || !Ver.pz(limit) || limit > 100) {
 			resultMap.put("success", false);
 		} else {
+			List<Post> postList = null;
+			int totalPost = 0;
+			if (Ver.nb(cid) && postTaskService.existCollector(cid)) {
+				postList = postTaskService.getMarkerPosts(cid, zoom, center, start, limit);
+				totalPost = postTaskService.getMarkerPostSize(cid, zoom, center);
+			} else {
+				postList = postTaskService.getMarkerPosts(zoom, center, start, limit);
+				totalPost = postTaskService.getMarkerPostSize(zoom, center);
+			}
+
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
-			for (Post post : postTaskService.getMarkerPosts(cid, zoom, center, start, limit)) {
+			for (Post post : postList) {
 				Map<String, Object> d = new HashMap<String, Object>();
 				d.put("dataUrl", post.getDataUrl());
 				d.put("updateDate", post.getUpdateDate());
@@ -347,7 +373,7 @@ public class PostTaskController {
 				data.add(d);
 			}
 			resultMap.put("data", data);
-			resultMap.put("total", postTaskService.getMarkerPostSize(cid, zoom, center));
+			resultMap.put("total", totalPost);
 			resultMap.put("success", true);
 		}
 		return resultMap;

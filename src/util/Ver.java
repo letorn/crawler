@@ -2,12 +2,36 @@ package util;
 
 public class Ver {
 
-	public static boolean isBlank(String str) {
-		return str == null || "".equals(str.trim()) ? true : false;
+	public static boolean nu(Object str) {// null
+		return str == null;
 	}
 
-	public static boolean isNotBlank(String str) {
-		return !isBlank(str);
+	public static boolean nn(Object str) {// not null
+		return !nu(str);
+	}
+
+	public static boolean bl(String str) {// blank
+		return str == null || str.trim().length() == 0 ? true : false;
+	}
+
+	public static boolean nb(String str) {// not blank
+		return !bl(str);
+	}
+
+	public static boolean po(Integer num) {// > 0
+		return num != null && num > 0 ? true : false;
+	}
+
+	public static boolean pz(Integer num) {// >= 0
+		return num != null && num >= 0 ? true : false;
+	}
+
+	public static boolean ne(Integer num) {// < 0
+		return num != null && num < 0 ? true : false;
+	}
+
+	public static boolean nz(Integer num) {// <= 0
+		return num != null && num <= 0 ? true : false;
 	}
 
 	public static boolean eq(Object o1, Object o2) {

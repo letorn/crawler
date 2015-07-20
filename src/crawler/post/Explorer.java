@@ -18,7 +18,7 @@ import crawler.post.model.Bill;
 
 public class Explorer {
 
-	private Integer status = 0;// 0 停止, 1 启动, 2 暂停, 3 完成
+	private int status = 0;// 0 停止, 1 启动, 2 暂停, 3 完成
 	private Thread thread;
 
 	private Collector collector;
@@ -31,6 +31,8 @@ public class Explorer {
 
 	private String billContainerSelector;
 	private Map<String, String> billAttributeSelectors;
+
+	private int currentPage = 1;
 
 	public Explorer(Collector collector) {
 		this.collector = collector;
@@ -49,7 +51,7 @@ public class Explorer {
 		billAttributeSelectors = (Map<String, String>) billNorm.get("attribute");
 	}
 
-	public Boolean start() {
+	public boolean start() {
 		if (areaValue == null || thread != null) {
 			return false;
 		} else {
@@ -58,8 +60,8 @@ public class Explorer {
 			status = 1;
 			thread = new Thread(new Runnable() {
 				public void run() {
-					for (Integer pageValue = 1; status == 1; pageValue++) {
-						Document document = Client.get(String.format("%s?%s=%s&%s=%s", url, areaKey, areaValue, pageKey, pageValue), data);
+					while (status == 1) {
+						Document document = Client.get(String.format("%s?%s=%s&%s=%s", url, areaKey, areaValue, pageKey, currentPage++), data);
 						final AttributeCatcher billAttributeCatcher = new AttributeCatcher(document, billAttributeSelectors);
 						Elements containers = document.select(billContainerSelector);
 						if (containers.size() <= 0) {
@@ -82,7 +84,7 @@ public class Explorer {
 
 							Bill bill = toBill(billAttributes);
 							if (bill != null && status == 1) {
-								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000 * 2) {
+								if (collector.getDate().getTime() - bill.getDate().getTime() < 24 * 60 * 60 * 1000) {
 									collector.saveBill(bill);
 								} else {
 									finish();
@@ -98,26 +100,27 @@ public class Explorer {
 		return true;
 	}
 
-	public Boolean pause() {
+	public boolean pause() {
 		status = 2;
 		thread = null;
 		return true;
 	}
 
-	public Boolean finish() {
+	public boolean finish() {
 		status = 3;
 		thread = null;
 		return true;
 	}
 
-	public Boolean stop() {
+	public boolean stop() {
 		status = 0;
 		thread = null;
 		clear();
 		return true;
 	}
 
-	public Boolean clear() {
+	public boolean clear() {
+		currentPage = 1;
 		return collector.clearBill();
 	}
 

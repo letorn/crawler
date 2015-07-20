@@ -136,7 +136,7 @@ public class Stack {
 			public boolean next(Area area, int index) throws Exception {
 				if (area.getId() != null)
 					areaIdMap.put(area.getId(), area);
-				if (Ver.isNotBlank(area.getAreaCode()) && Ver.isNotBlank(area.getAreaName())) {
+				if (Ver.nb(area.getAreaCode()) && Ver.nb(area.getAreaName())) {
 					if (area.getAreaCode().matches("^\\d{3}$"))
 						areaTypeMap.get(AreaType.PROVINCE).add(area);
 					else if (area.getAreaCode().matches("^\\d{3}.\\d{3}$"))
@@ -153,7 +153,7 @@ public class Stack {
 			public boolean next(CategoryPost categoryPost, int index) throws Exception {
 				if (categoryPost.getId() != null)
 					categoryPostIdMap.put(categoryPost.getId(), categoryPost);
-				if (Ver.isNotBlank(categoryPost.getPostCategoryCode()))
+				if (Ver.nb(categoryPost.getPostCategoryCode()))
 					categoryPostCodeMap.put(categoryPost.getPostCategoryCode(), categoryPost);
 				return true;
 			}
@@ -185,7 +185,7 @@ public class Stack {
 			public boolean next(EntEnterprise entEnterprise, int index) throws Exception {
 				if (entEnterprise.getEntId() != null)
 					entEnterpriseIdMap.put(entEnterprise.getEntId(), entEnterprise);
-				if (Ver.isNotBlank(entEnterprise.getEntName()))
+				if (Ver.nb(entEnterprise.getEntName()))
 					entEnterpriseNameMap.put(entEnterprise.getEntName(), entEnterprise);
 				return true;
 			}
@@ -208,7 +208,7 @@ public class Stack {
 						EntEnterprise entEnterprise = entEnterpriseIdMap.get(entPost.getEntId());
 						if (entEnterprise != null) {
 							String entName = entEnterprise.getEntName();
-							if (Ver.isNotBlank(entName) && Ver.isNotBlank(entPost.getPostAddress())) {
+							if (Ver.nb(entName) && Ver.nb(entPost.getPostAddress())) {
 								Map<String, EntPost> entPostNameMap = entPostEntNameMap.get(entName);
 								if (entPostNameMap == null) {
 									entPostNameMap = new HashMap<String, EntPost>();
@@ -245,7 +245,7 @@ public class Stack {
 			public boolean next(Param param, int index) throws Exception {
 				if (param.getId() != null)
 					paramIdMap.put(param.getId(), param);
-				if (Ver.isNotBlank(param.getParamCode()))
+				if (Ver.nb(param.getParamCode()))
 					paramCodeMap.put(param.getParamCode(), param);
 				return true;
 			}
@@ -271,7 +271,7 @@ public class Stack {
 			public boolean next(Technology technology, int index) throws Exception {
 				if (technology.getTechnologyId() != null)
 					technologyIdMap.put(technology.getTechnologyId(), technology);
-				if (Ver.isNotBlank(technology.getTechnicalCode()))
+				if (Ver.nb(technology.getTechnicalCode()))
 					technologyCodeMap.put(technology.getTechnicalCode(), technology);
 				return true;
 			}
@@ -281,7 +281,7 @@ public class Stack {
 			public boolean next(TechnologyGategory technologyGategory, int index) throws Exception {
 				if (technologyGategory.getId() != null)
 					technologyGategoryIdMap.put(technologyGategory.getId(), technologyGategory);
-				if (Ver.isNotBlank(technologyGategory.getTechnologyGategoryCode()))
+				if (Ver.nb(technologyGategory.getTechnologyGategoryCode()))
 					technologyGategoryCodeMap.put(technologyGategory.getTechnologyGategoryCode(), technologyGategory);
 				return true;
 			}

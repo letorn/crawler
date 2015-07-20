@@ -60,7 +60,7 @@ public class Processor {
 		enterpriseAttributeMappers = (Map<String, Map<String, String>>) enterpriseNorm.get("mapper");
 	}
 
-	public Boolean start() {
+	public boolean start() {
 		if (thread != null) {
 			return false;
 		} else {
@@ -72,7 +72,7 @@ public class Processor {
 				public void run() {
 					Explorer explorer = collector.getExplorer();
 					List<Bill> bills = null;
-					Boolean lastTime = false;
+					boolean lastTime = false;
 					while (status == 1) {
 						if (explorer.getStatus() == 1) {
 							try {
@@ -161,26 +161,26 @@ public class Processor {
 		return true;
 	}
 
-	public Boolean pause() {
+	public boolean pause() {
 		status = 2;
 		thread = null;
 		return true;
 	}
 
-	public Boolean finish() {
+	public boolean finish() {
 		status = 3;
 		thread = null;
 		return true;
 	}
 
-	public Boolean stop() {
+	public boolean stop() {
 		status = 0;
 		thread = null;
 		clear();
 		return true;
 	}
 
-	public Boolean clear() {
+	public boolean clear() {
 		collector.clearPost();
 		collector.clearEnterprise();
 		lastProcessedBillIndex = -1;
@@ -226,7 +226,7 @@ public class Processor {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
 				if (StringUtils.isNotBlank(categoryCode)) {
-					Map<String, String> categoryMap = Holder.getPostCategory(categoryCode);
+					Map<String, String> categoryMap = Holder.getPostCategoryCode(categoryCode);
 					if (categoryMap != null) {
 						post.setCategoryCode(categoryCode);
 						post.setCategory(categoryMap.get("name"));
@@ -255,7 +255,7 @@ public class Processor {
 
 		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "007.001" : natureMapper.get(nature);
 		if (StringUtils.isNotBlank(natureCode)) {
-			String natureName = Holder.getPostNature(natureCode);
+			String natureName = Holder.getPostNatureCode(natureCode);
 			if (natureName != null) {
 				post.setNatureCode(natureCode);
 				post.setNature(natureName);
@@ -280,7 +280,7 @@ public class Processor {
 
 		String experienceCode = StringUtils.isBlank(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
 		if (StringUtils.isNotBlank(experienceCode)) {
-			String experienceName = Holder.getPostExperience(experienceCode);
+			String experienceName = Holder.getPostExperienceCode(experienceCode);
 			if (experienceName != null) {
 				post.setExperience(experienceName);
 				post.setExperienceCode(experienceCode);
@@ -289,7 +289,7 @@ public class Processor {
 
 		String educationCode = StringUtils.isBlank(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
 		if (StringUtils.isNotBlank(educationCode)) {
-			String educationName = Holder.getPostEducation(educationCode);
+			String educationName = Holder.getPostEducationCode(educationCode);
 			if (educationName != null) {
 				post.setEducation(educationName);
 				post.setEducationCode(educationCode);
@@ -342,7 +342,7 @@ public class Processor {
 
 		Holder.mergePost(post);
 
-		if (Ver.isBlank(post.getName()) || Ver.isBlank(post.getCategoryCode()) || Ver.isBlank(post.getNatureCode()) || Ver.isBlank(post.getExperienceCode()) || Ver.isBlank(post.getEducationCode()) || Ver.isBlank(post.getDataSrc()) || Ver.isBlank(post.getDataUrl()) || post.getUpdateDate() == null || post.getPublishDate() == null || Ver.isBlank(post.getEnterpriseUrl()) || Ver.isBlank(post.getEnterpriseName()))
+		if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || post.getPublishDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
 			post.setStatus(-1);
 
 		return post;
@@ -350,7 +350,7 @@ public class Processor {
 
 	private Enterprise toEnterprise(Map<String, String> map) {
 		String dateString = map.get("date");
-		Date date = Ver.isNotBlank(dateString) ? date = parseDate(dateString) : null;
+		Date date = Ver.nb(dateString) ? date = parseDate(dateString) : null;
 		String url = map.get("url");
 		String name = map.get("name");
 		String category = map.get("category");
@@ -373,7 +373,7 @@ public class Processor {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
 				if (StringUtils.isNotBlank(categoryCode)) {
-					String categoryName = Holder.getEnterpriseCategory(categoryCode);
+					String categoryName = Holder.getEnterpriseCategoryCode(categoryCode);
 					if (categoryName != null) {
 						enterprise.setCategoryCode(categoryCode);
 						enterprise.setCategory(categoryName);
@@ -385,7 +385,7 @@ public class Processor {
 
 		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "010.006" : natureMapper.get(nature);
 		if (StringUtils.isNotBlank(natureCode)) {
-			String natureName = Holder.getEnterpriseNature(natureCode);
+			String natureName = Holder.getEnterpriseNatureCode(natureCode);
 			if (natureName != null) {
 				enterprise.setNatureCode(natureCode);
 				enterprise.setNature(natureName);
@@ -394,7 +394,7 @@ public class Processor {
 
 		String scaleCode = StringUtils.isBlank(scale) || scaleMapper == null ? "011.001" : scaleMapper.get(scale);
 		if (StringUtils.isNotBlank(scaleCode)) {
-			String scaleName = Holder.getEnterpriseScale(scaleCode);
+			String scaleName = Holder.getEnterpriseScaleCode(scaleCode);
 			if (scaleName != null) {
 				enterprise.setScaleCode(scaleCode);
 				enterprise.setScale(scaleName);
@@ -434,19 +434,19 @@ public class Processor {
 
 		Holder.mergeEnterprise(enterprise);
 
-		if (Ver.isBlank(enterprise.getName()) || Ver.isBlank(enterprise.getCategoryCode()) || Ver.isBlank(enterprise.getNatureCode()) || Ver.isBlank(enterprise.getScaleCode()) || Ver.isBlank(enterprise.getAreaCode()) || Ver.isBlank(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.isBlank(enterprise.getDataSrc()) || Ver.isBlank(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
+		if (Ver.bl(enterprise.getName()) || Ver.bl(enterprise.getCategoryCode()) || Ver.bl(enterprise.getNatureCode()) || Ver.bl(enterprise.getScaleCode()) || Ver.bl(enterprise.getAreaCode()) || Ver.bl(enterprise.getAddress()) || enterprise.getLbsLon() == null || enterprise.getLbsLat() == null || Ver.bl(enterprise.getDataSrc()) || Ver.bl(enterprise.getDataUrl()) || enterprise.getCreateDate() == null)
 			enterprise.setStatus(-1);
 
 		return enterprise;
 	}
 
 	private void commitPosts() {
-		Holder.saveEnterprise(enterprises, enterpriseUpdateInterval);
+		Holder.saveEnterprise(enterprises);
 		enterprises.clear();
 		enterpriseUrlIndexes.clear();
 
-		Holder.savePost(posts, postUpdateInterval);
-		collector.getPostCluster().addAll(posts);
+		Holder.savePost(posts);
+		collector.getPostCluster().saveAll(posts);
 		posts.clear();
 	}
 
