@@ -14,7 +14,7 @@
 
   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
     <property name="driverClass" value="net.sf.log4jdbc.DriverSpy" />
-    <property name="jdbcUrl" value="jdbc:log4jdbc:mysql://mysql:3306/zcdh_uni_test?useUnicode=true&amp;characterEncoding=utf8" />
+    <property name="jdbcUrl" value="jdbc:log4jdbc:mysql://mysql:3306/my_zcdh_uni?useUnicode=true&amp;characterEncoding=utf8" />
     <property name="user" value="admin" />
     <property name="password" value="123456" />
     <!--
