@@ -1,6 +1,6 @@
 var dashboard = {
-  post: '所有岗位',
-  posttask: '岗位作业'
+  posttask: '岗位作业',
+  post: '所有岗位'
 };
 
 Ext.application({

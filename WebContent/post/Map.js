@@ -7,21 +7,22 @@ Ext.define('Platform.post.Map', {
     var me = this;
 
     me.listeners = {
-      afterrender: me.onAfterRender
+      afterlayout: me.onAfterLayout
     };
 
     me.callParent();
   },
-  onAfterRender: function() {
-    var me = this;
-    if (!me.map) {
-      me.initMap();
+  onAfterLayout: function() {
+    if (!this.map) {
+      this.initMap();
     }
-    me.loadData(8, true);
+    this.loadData(5, true);
   },
   initMap: function() {
     var me = this;
-    me.map = new BMap.Map(Ext.getDom(me.getTargetEl()));
+    me.map = new BMap.Map(me.body.dom, {
+      minZoom: 5
+    });
     var scaleControl = new BMap.ScaleControl({
       anchor: BMAP_ANCHOR_TOP_LEFT
     });
@@ -29,17 +30,16 @@ Ext.define('Platform.post.Map', {
     me.map.addControl(scaleControl);
     me.map.addControl(navigationControl);
     me.map.enableScrollWheelZoom();
-    me.map.setMinZoom(5);
     me.map.centerAndZoom(new BMap.Point(113.203125, 33.884664), 5);
     me.map.addEventListener('zoomend', function(e) {
       var target = e.target, zoom = target.getZoom();
       me.loadData(zoom);
     });
-    me.map.addEventListener('tilesloaded', function(e) {
+    Ext.defer(function() {
       Ext.query('.anchorBL').forEach(function(el) {
         el.style.display = 'none';
       });
-    });
+    }, 200);
   },
   addMarkers: function(data, autoViewport) {
     var me = this, points = [];
@@ -100,8 +100,8 @@ Ext.define('Platform.post.MapMarker', {
   title: '岗位',
   closeAction: 'hide',
   resizable: false,
-  width: 1000,
-  height: 500,
+  width: 500,
+  height: 300,
   layout: 'fit',
   initComponent: function() {
     var me = this;

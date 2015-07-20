@@ -120,12 +120,21 @@ public class PostTaskController {
 	@ResponseBody
 	public Map<String, Object> pagedPost(String cid, Integer postStatus, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (Ver.bl(cid) || Ver.nu(postStatus) || postStatus < -1 || postStatus > 3 || !Ver.pz(start) || !Ver.pz(limit) || limit > 100 || !postTaskService.existCollector(cid)) {
+		if (Ver.nu(postStatus) || postStatus < -1 || postStatus > 3 || !Ver.pz(start) || !Ver.pz(limit) || limit > 100) {
 			resultMap.put("success", false);
 		} else {
+			List<Post> postList = null;
+			int postSize = 0;
+			if (Ver.nb(cid) && postTaskService.existCollector(cid)) {
+				postList = postTaskService.findPost(cid, postStatus, start, limit);
+				postSize = postTaskService.getPostSize(cid, postStatus);
+			} else {
+				postList = postTaskService.findPost(start, limit);
+				postSize = postTaskService.getPostSize();
+			}
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 			Collector collector = postTaskService.getCollector(cid);
-			for (Post post : collector.findPost(postStatus, start, limit)) {
+			for (Post post : postList) {
 				Map<String, Object> d = new HashMap<String, Object>();
 				d.put("dataUrl", post.getDataUrl());
 				d.put("updateDate", post.getUpdateDate());
@@ -142,7 +151,7 @@ public class PostTaskController {
 				data.add(d);
 			}
 			resultMap.put("data", data);
-			resultMap.put("total", collector.postSizes()[postStatus + 1]);
+			resultMap.put("total", postSize);
 			resultMap.put("success", true);
 		}
 		return resultMap;

@@ -250,6 +250,7 @@ Ext.define('Platform.posttask.View', {
   },
   onDeleteBtnClick: function(table, rowIndex, colIndex, item, e, record) {
     this.executeTask(ctx + '/posttask/deleteCollector.do', record.get('cid'));
+    this.getStore().load();
   },
   executeTask: function(url, cid) {
     var me = this;

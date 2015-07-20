@@ -235,6 +235,28 @@ public class PostTaskService {
 		return null;
 	}
 
+	public List<Post> findPost(Integer start, Integer limit) {
+		return new ArrayList<Post>();
+	}
+
+	public List<Post> findPost(String cid, Integer postStatus, Integer start, Integer limit) {
+		Collector collector = collectors.get(cid);
+		if (collector != null)
+			return collector.findPost(postStatus, start, limit);
+		return new ArrayList<Post>();
+	}
+
+	public int getPostSize(String cid, Integer postStatus) {
+		Collector collector = collectors.get(cid);
+		if (collector != null)
+			return collector.postSizes()[postStatus + 1];
+		return 0;
+	}
+
+	public int getPostSize() {
+		return 0;
+	}
+
 	public Enterprise getEnterprise(String url) {
 		return Holder.getEnterprise(url);
 	}

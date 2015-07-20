@@ -370,10 +370,10 @@ public class Holder {
 
 					EntAbilityRequire educationEntAbilityRequire = entAbilityRequireDao.getEducation(post.getId());
 					if (educationEntAbilityRequire != null) {
-						if (Ver.nq(post.getCategoryCode(), educationEntAbilityRequire.getPostCode()) || Ver.nq(post.getExperienceCode(), educationEntAbilityRequire.getParamCode())) {
-							Param educationParam = paramDao.get(post.getExperienceCode());
+						if (Ver.nq(post.getCategoryCode(), educationEntAbilityRequire.getPostCode()) || Ver.nq(post.getEducationCode(), educationEntAbilityRequire.getParamCode())) {
+							Param educationParam = paramDao.get(post.getEducationCode());
 							educationEntAbilityRequire.setPostCode(post.getCategoryCode());
-							educationEntAbilityRequire.setParamCode(post.getExperienceCode());
+							educationEntAbilityRequire.setParamCode(post.getEducationCode());
 							educationEntAbilityRequire.setGrade(educationParam.getParamValue());
 							educationEntAbilityRequire.setWeightPoint(educationEntAbilityRequire.getTotalPoint() / educationEntAbilityRequire.getGrade());
 							entAbilityRequireUpdateList.add(educationEntAbilityRequire);
@@ -492,7 +492,7 @@ public class Holder {
 							educationEntAbilityRequire.setPostId(post.getId());
 							educationEntAbilityRequire.setEntId(enterprise.getId());
 							educationEntAbilityRequire.setPostCode(post.getCategoryCode());
-							educationEntAbilityRequire.setParamCode(post.getExperienceCode());
+							educationEntAbilityRequire.setParamCode(post.getEducationCode());
 							educationEntAbilityRequire.setGrade(educationParam.getParamValue());
 							educationEntAbilityRequire.setMatchType(educationTechnology.getMatchType());
 							educationEntAbilityRequire.setTechnologyCode(educationTechnology.getTechnicalCode());
@@ -634,10 +634,10 @@ public class Holder {
 
 				EntAbilityRequire educationEntAbilityRequire = entAbilityRequireDao.getEducation(post.getId());
 				if (educationEntAbilityRequire != null) {
-					if (Ver.nq(post.getCategoryCode(), educationEntAbilityRequire.getPostCode()) || Ver.nq(post.getExperienceCode(), educationEntAbilityRequire.getParamCode())) {
-						Param educationParam = paramDao.get(post.getExperienceCode());
+					if (Ver.nq(post.getCategoryCode(), educationEntAbilityRequire.getPostCode()) || Ver.nq(post.getEducationCode(), educationEntAbilityRequire.getParamCode())) {
+						Param educationParam = paramDao.get(post.getEducationCode());
 						educationEntAbilityRequire.setPostCode(post.getCategoryCode());
-						educationEntAbilityRequire.setParamCode(post.getExperienceCode());
+						educationEntAbilityRequire.setParamCode(post.getEducationCode());
 						educationEntAbilityRequire.setGrade(educationParam.getParamValue());
 						educationEntAbilityRequire.setWeightPoint(educationEntAbilityRequire.getTotalPoint() / educationEntAbilityRequire.getGrade());
 						entAbilityRequireUpdateList.add(educationEntAbilityRequire);
@@ -758,7 +758,7 @@ public class Holder {
 						educationEntAbilityRequire.setPostId(post.getId());
 						educationEntAbilityRequire.setEntId(enterprise.getId());
 						educationEntAbilityRequire.setPostCode(post.getCategoryCode());
-						educationEntAbilityRequire.setParamCode(post.getExperienceCode());
+						educationEntAbilityRequire.setParamCode(post.getEducationCode());
 						educationEntAbilityRequire.setGrade(educationParam.getParamValue());
 						educationEntAbilityRequire.setMatchType(educationTechnology.getMatchType());
 						educationEntAbilityRequire.setTechnologyCode(educationTechnology.getTechnicalCode());
