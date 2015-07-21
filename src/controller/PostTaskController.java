@@ -118,22 +118,21 @@ public class PostTaskController {
 
 	@RequestMapping("pagedPost.do")
 	@ResponseBody
-	public Map<String, Object> pagedPost(String cid, Integer postStatus, Integer start, Integer limit) {
+	public Map<String, Object> pagedPost(String cid, Integer postStatus, String name, Integer start, Integer limit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		if (Ver.nu(postStatus) || postStatus < -1 || postStatus > 3 || !Ver.pz(start) || !Ver.pz(limit) || limit > 100) {
+		if (!Ver.pz(start) || !Ver.pz(limit) || limit > 100) {
 			resultMap.put("success", false);
 		} else {
 			List<Post> postList = null;
 			int postSize = 0;
-			if (Ver.nb(cid) && postTaskService.existCollector(cid)) {
+			if (Ver.nb(cid) && Ver.nn(postStatus) && postStatus >= -1 && postStatus <= 3 && postTaskService.existCollector(cid)) {
 				postList = postTaskService.findPost(cid, postStatus, start, limit);
 				postSize = postTaskService.getPostSize(cid, postStatus);
 			} else {
-				postList = postTaskService.findPost(start, limit);
-				postSize = postTaskService.getPostSize();
+				postList = postTaskService.findPost(name, start, limit);
+				postSize = postTaskService.getPostSize(name);
 			}
 			List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
-			Collector collector = postTaskService.getCollector(cid);
 			for (Post post : postList) {
 				Map<String, Object> d = new HashMap<String, Object>();
 				d.put("dataUrl", post.getDataUrl());

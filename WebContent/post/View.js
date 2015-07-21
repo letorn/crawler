@@ -6,7 +6,7 @@ Ext.define('Platform.post.View', {
   initComponent: function() {
     var me = this;
 
-    me.items = [Platform.widget('post-map')/* , Platform.widget('post-list') */];
+    me.items = [Platform.widget('post-map'), Platform.widget('post-list')];
 
     me.callParent();
   }

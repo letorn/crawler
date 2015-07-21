@@ -235,8 +235,8 @@ public class PostTaskService {
 		return null;
 	}
 
-	public List<Post> findPost(Integer start, Integer limit) {
-		return new ArrayList<Post>();
+	public List<Post> findPost(String name, Integer start, Integer limit) {
+		return Holder.find(name, start, limit);
 	}
 
 	public List<Post> findPost(String cid, Integer postStatus, Integer start, Integer limit) {
@@ -253,8 +253,8 @@ public class PostTaskService {
 		return 0;
 	}
 
-	public int getPostSize() {
-		return 0;
+	public int getPostSize(String name) {
+		return Holder.getPostSize(name);
 	}
 
 	public Enterprise getEnterprise(String url) {

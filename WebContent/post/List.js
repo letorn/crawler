@@ -6,7 +6,17 @@ Ext.define('Platform.post.List', {
   initComponent: function() {
     var me = this;
 
+    me.tbar = [{
+      itemId: 'postNameKey',
+      xtype: 'textfield'
+    }, {
+      xtype: 'button',
+      text: '查询',
+      handler: Ext.bind(me.loadData, me)
+    }];
+
     me.store = Store.create({
+      pageSize: 50,
       fields: ['dataUrl', 'updateDate', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
       proxy: {
         type: 'ajax',
@@ -84,15 +94,18 @@ Ext.define('Platform.post.List', {
     };
 
     me.listeners = {
+      afterrender: me.loadData,
       itemdblclick: me.onItemDblClick
     };
 
     me.callParent();
   },
   loadData: function() {
-    var me = this;
-    me.gridStore.proxy.extraParams = {};
-    me.gridStore.loadPage(1);
+    var me = this, postNameKeyField = me.down('#postNameKey');
+    me.store.proxy.extraParams = {
+      name: postNameKeyField.getValue()
+    };
+    me.store.loadPage(1);
   },
   columnFormatter: function(value, metaData, record, rowIndex, colIndex, store, el, e) {
     if (value != null) {
@@ -105,8 +118,8 @@ Ext.define('Platform.post.List', {
   onItemDblClick: function(gridview, record, item, index) {
     var me = this;
     if (!me.detailWindow) {
-      me.detailWindow = Platform.widget('posttask-post-detail');
-      me.detailWindow.postGridStore = me.gridStore;
+      me.detailWindow = Platform.widget('post-map-marker-detail');
+      me.detailWindow.postGridStore = me.store;
     }
     me.detailWindow.loadData(record.get('dataUrl'));
     me.detailWindow.show();

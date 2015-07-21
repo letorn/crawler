@@ -70,7 +70,11 @@ public class Holder {
 	private static int lastAccountNum = -1;
 
 	private static Cluster<Post> postCluster = new Cluster<Post>();
-	private static Map<String, Post> postUrlMap = new ConcurrentHashMap<String, Post>();
+	// private static Map<String, Post> postUrlMap = new
+	// ConcurrentHashMap<String, Post>();
+	private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
+	private static List<Post> postList = new ArrayList<Post>();
+	private static ThreadLocal<Integer> localPostNameCount = new ThreadLocal<Integer>();
 	private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
 	private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
 	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
@@ -309,7 +313,47 @@ public class Holder {
 	}
 
 	public static Post getPost(String url) {
-		return postUrlMap.get(url);
+		Integer postUrlIndex = postUrlIndexes.get(url);
+		if (postUrlIndex != null)
+			return postList.get(postUrlIndex);
+		return null;
+	}
+
+	public static List<Post> find(String name, Integer start, Integer limit) {
+		List<Post> list = new ArrayList<Post>();
+		if (Ver.bl(name)) {
+			for (int i = start, counter = 0; i < postList.size() && counter < limit; i++)
+				list.add(counter++, postList.get(i));
+		} else {
+			Integer localCount = 0;
+			for (int i = start, counter = 0; i < postList.size(); i++) {
+				Post post = postList.get(i);
+				if ((Ver.nb(post.getName()) && post.getName().contains(name)) || (Ver.nb(post.getEnterpriseName()) && post.getEnterpriseName().contains(name))) {
+					if (counter < limit)
+						list.add(counter++, postList.get(i));
+					localCount++;
+				}
+			}
+			localPostNameCount.set(localCount);
+		}
+		return list;
+	}
+
+	public static int getPostSize(String name) {
+		Integer localCount = localPostNameCount.get();
+		if (localCount != null) {
+			return localCount;
+		} else if (Ver.bl(name)) {
+			return postList.size();
+		} else {
+			int counter = 0;
+			for (int i = 0; i < postList.size(); i++) {
+				Post post = postList.get(i);
+				if ((Ver.nb(post.getName()) && post.getName().contains(name)) || (Ver.nb(post.getEnterpriseName()) && post.getEnterpriseName().contains(name)))
+					counter++;
+			}
+			return counter;
+		}
 	}
 
 	public static Enterprise getEnterprise(String url) {
@@ -1133,8 +1177,15 @@ public class Holder {
 	private static boolean holdPost(Post post) {
 		if (post.getLbsLon() != null && post.getLbsLat() != null)
 			postCluster.save(post);
-		if (Ver.nb(post.getDataUrl()))
-			postUrlMap.put(post.getDataUrl(), post);
+		if (Ver.nb(post.getDataUrl())) {
+			Integer postIndex = postUrlIndexes.get(post.getDataUrl());
+			if (postIndex != null) {
+				postList.set(postIndex, post);
+			} else {
+				postList.add(post);
+				postUrlIndexes.put(post.getDataUrl(), postList.size() - 1);
+			}
+		}
 		if (Ver.nb(post.getEnterpriseName()) && Ver.nb(post.getName())) {
 			Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
 			if (postNameMap == null) {
