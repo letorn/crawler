@@ -97,7 +97,9 @@ public class Holder {
 	private static EntPromotionDao entPromotionDao;
 
 	public void init() {
-		logger.info("binning holder dao");
+		logger.info("------ init holder ------");
+
+		logger.info("binning dao ...");
 		areaDao = WebContext.getBean(AreaDao.class);
 		categoryPostDao = WebContext.getBean(CategoryPostDao.class);
 		entAbilityRequireDao = WebContext.getBean(EntAbilityRequireDao.class);
@@ -115,16 +117,18 @@ public class Holder {
 		viewEntPostDao = WebContext.getBean(ViewEntPostDao.class);
 		entPromotionDao = WebContext.getBean(EntPromotionDao.class);
 
-		logger.info("");
+		logger.info("binning tag ...");
 		for (Tag tag : tagDao.findAll()) {
 			tagCodeMap.put(tag.getTagCode(), tag.getTagName());
 			tagNameMap.put(tag.getTagName(), tag.getTagCode());
 		}
 
+		logger.info("binning area ...");
 		for (Area area : areaDao.find(AreaType.CITY))
 			if (!area.getAreaName().contains("行政"))
 				areaNameMap.put(area.getAreaName().replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), area.getAreaCode());
 
+		logger.info("binning post ...");
 		for (model.Post post : postDao.findAll()) {
 			CategoryPost categoryPost = categoryPostDao.get(post.getPostCategoryCode());
 			if (categoryPost != null) {
@@ -136,6 +140,7 @@ public class Holder {
 			}
 		}
 
+		logger.info("binning param ...");
 		for (Param param : paramDao.findAll()) {
 			String categoryCode = param.getParamCategoryCode();
 			if ("007".equals(categoryCode)) {
@@ -151,11 +156,14 @@ public class Holder {
 			}
 		}
 
+		logger.info("binning industry ...");
 		for (Industry industry : industryDao.findAll())
 			enterpriseCategoryCodeMap.put(industry.getIndustryCode(), industry.getIndustryName());
 
+		logger.info("binning lastAccountNum ...");
 		lastAccountNum = entAccountDao.getLastAutoAccountNum();
 
+		logger.info("binning entEnterprise ...");
 		for (EntEnterprise entEnterprise : entEnterpriseDao.findAll()) {
 			Enterprise enterprise = new Enterprise();
 			enterprise.setId(entEnterprise.getEntId());
@@ -188,6 +196,7 @@ public class Holder {
 			holdEnterprise(enterprise);
 		}
 
+		logger.info("binning entPost ...");
 		for (EntPost entPost : entPostDao.findAll()) {
 			if (entPost.getEntId() != null) {
 				EntEnterprise entEnterprise = entEnterpriseDao.get(entPost.getEntId());
@@ -245,6 +254,7 @@ public class Holder {
 			}
 		}
 
+		logger.info("-------------------------");
 	}
 
 	public static String getTagCode(String tagName) {

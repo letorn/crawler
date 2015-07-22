@@ -131,7 +131,7 @@ public class Stack {
 	}
 
 	public void init() {
-		logger.info("------ init Stack ------");
+		logger.info("------ init stack ------");
 		areaDao.selectList("select * from zcdh_area where is_delete=1 or is_delete is null", new Iterator<Area>() {
 			public boolean next(Area area, int index) throws Exception {
 				if (area.getId() != null)
