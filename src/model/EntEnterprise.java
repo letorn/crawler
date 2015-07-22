@@ -99,7 +99,7 @@ public class EntEnterprise implements Serializable {
 	private String zip;
 
 	@Column("invited_ent_id")
-	private String invitedEntId;
+	private Long invitedEntId;
 
 	@Column("welfare_selected")
 	private String welfareSelected;
@@ -375,11 +375,11 @@ public class EntEnterprise implements Serializable {
 		this.zip = zip;
 	}
 
-	public String getInvitedEntId() {
+	public Long getInvitedEntId() {
 		return invitedEntId;
 	}
 
-	public void setInvitedEntId(String invitedEntId) {
+	public void setInvitedEntId(Long invitedEntId) {
 		this.invitedEntId = invitedEntId;
 	}
 

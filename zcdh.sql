@@ -1,9 +1,11 @@
 # 备份数据库
-mysqldump -h 192.168.1.30 -u admin -p zcdh_uni_test zcdh_tag zcdh_area zcdh_param zcdh_post zcdh_category_post zcdh_technology zcdh_technology_gategory zcdh_industry zcdh_ent_post zcdh_ent_post_status zcdh_ent_promotion zcdh_ent_ability_require zcdh_view_ent_post zcdh_ent_account zcdh_ent_enterprise zcdh_ent_lbs > zcdh_uni_test.sql
+mysqldump -h 192.168.1.30 -u admin -p zcdh_uni_test zcdh_area zcdh_category_post zcdh_ent_ability_require zcdh_ent_account zcdh_ent_enterprise zcdh_ent_lbs zcdh_ent_post zcdh_ent_post_status zcdh_ent_promotion zcdh_industry zcdh_param zcdh_post zcdh_tag  zcdh_technology zcdh_technology_gategory zcdh_view_ent_post > zcdh_uni_test.sql.2015.7.22
 
 # 创建数据库
 DROP DATABASE IF EXISTS zcdh_uni_test;
 CREATE DATABASE IF NOT EXISTS zcdh_uni_test DEFAULT CHARACTER SET utf8;
+DROP DATABASE IF EXISTS my_zcdh_uni;
+CREATE DATABASE IF NOT EXISTS my_zcdh_uni DEFAULT CHARACTER SET utf8;
 
 # 修改表结构
 ALTER TABLE zcdh_ent_account ADD COLUMN create_mode TINYINT;

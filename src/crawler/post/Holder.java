@@ -97,6 +97,7 @@ public class Holder {
 	private static EntPromotionDao entPromotionDao;
 
 	public void init() {
+		logger.info("binning holder dao");
 		areaDao = WebContext.getBean(AreaDao.class);
 		categoryPostDao = WebContext.getBean(CategoryPostDao.class);
 		entAbilityRequireDao = WebContext.getBean(EntAbilityRequireDao.class);
@@ -114,6 +115,7 @@ public class Holder {
 		viewEntPostDao = WebContext.getBean(ViewEntPostDao.class);
 		entPromotionDao = WebContext.getBean(EntPromotionDao.class);
 
+		logger.info("");
 		for (Tag tag : tagDao.findAll()) {
 			tagCodeMap.put(tag.getTagCode(), tag.getTagName());
 			tagNameMap.put(tag.getTagName(), tag.getTagCode());
@@ -197,7 +199,7 @@ public class Holder {
 					post.setCategoryCode(entPost.getPostCode());
 					post.setNumber(entPost.getHeadcounts());
 					post.setIsSeveral(entPost.getIsSeveral());
-					post.setNumberText(post.getIsSeveral() == 1 ? "若干" : (post.getNumber() == null ? null : String.valueOf(post.getNumber())));
+					post.setNumberText(post.getIsSeveral() != null && post.getIsSeveral() == 1 ? "若干" : (post.getNumber() == null ? null : String.valueOf(post.getNumber())));
 					post.setNatureCode(entPost.getPjobCategory());
 					if (post.getNatureCode() != null)
 						post.setNature(postNatureCodeMap.get(post.getNatureCode()));
