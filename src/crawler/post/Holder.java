@@ -1089,9 +1089,9 @@ public class Holder extends C3P0Store {
 	}
 
 	private static Post savePostPromotion(Post post, Connection connection) throws Exception {
-		Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
 		if (post.getPostPromotionId() == null) {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
 			insertStatement.setLong(1, post.getId());
 			insertStatement.setLong(2, enterprise.getId());
 			insertStatement.setString(3, "");
@@ -1104,12 +1104,14 @@ public class Holder extends C3P0Store {
 	}
 
 	private static List<Post> saveAllPostPromotion(List<Post> list, Connection connection) throws Exception {
-		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_lbs(longitude, latitude) values(?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list)
 			if (post.getPostPromotionId() == null) {
-				insertStatement.setDouble(1, post.getLbsLon());
-				insertStatement.setDouble(2, post.getLbsLat());
+				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+				insertStatement.setLong(1, post.getId());
+				insertStatement.setLong(2, enterprise.getId());
+				insertStatement.setString(3, "");
 				insertStatement.addBatch();
 				inserted.add(post);
 			}
@@ -1367,6 +1369,7 @@ public class Holder extends C3P0Store {
 				updateStatement.setLong(9, enterprise.getLbsId());
 				updateStatement.setString(10, enterprise.getDataSrc());
 				updateStatement.setString(11, enterprise.getDataUrl());
+				updateStatement.setLong(12, enterprise.getId());
 				updateStatement.addBatch();
 				enterprise.setStatus(3);
 			} else {
@@ -1416,7 +1419,7 @@ public class Holder extends C3P0Store {
 		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_account(ent_id, account, pwd, create_mode, create_date, status) values(?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 		List<Enterprise> inserted = new ArrayList<Enterprise>();
 		for (Enterprise enterprise : list)
-			if (enterprise.getEnterpriseAccountId() != null) {
+			if (enterprise.getEnterpriseAccountId() == null) {
 				insertStatement.setLong(1, enterprise.getId());
 				insertStatement.setString(2, String.format("zcdh%s", accountNumFormat.format(++lastAccountNum)));
 				insertStatement.setString(3, "oSBrriGEzW8KHAL6b9J63w==");

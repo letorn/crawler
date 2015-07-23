@@ -78,7 +78,7 @@ SELECT * FROM
 
 SELECT * 
 FROM zcdh_view_ent_post
-
+`my_zcdh_uni`
 SELECT e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, 
  l.lbs_id, l.longitude, l.latitude,
  a.account_id
@@ -124,3 +124,6 @@ WHERE t.technical_code IN('-0000000000003', '-0000000000004')
 
 
 SELECT param_name, param_code, param_value, param_category_code FROM zcdh_param WHERE (is_delete=1 OR is_delete IS NULL) AND param_category_code IN('007', '005', '004', '010', '011')
+
+SELECT * FROM zcdh_ent_enterprise WHERE ent_name LIKE '%陶城%'
+SELECT * FROM zcdh_ent_enterprise WHERE data_url LIKE '%http://search.51job.com/list/co,c,2902545,000000,10,1.html%'
