@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import map.LbsClient;
 import map.Marker;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
@@ -50,6 +51,8 @@ public class PostTaskService {
 
 	private static Map<String, Collector> collectors = new ConcurrentHashMap<String, Collector>();
 
+	private LbsClient lbsClient = new LbsClient();
+	
 	@PostConstruct
 	private void init() {
 		File normDir = new File(WebContext.getAppRoot(), "norm");
@@ -316,7 +319,7 @@ public class PostTaskService {
 				String areaCode = Holder.getAreaCode(updatedEnterprise.getAddress());
 				if (Ver.nb(areaCode) && !areaCode.equals(enterprise.getAreaCode())) {
 					enterprise.setAreaCode(areaCode);
-					Double[] point = Client.getPoint(updatedEnterprise.getAddress());
+					Double[] point = lbsClient.getPoint(updatedEnterprise.getAddress());
 					if (point != null) {
 						enterprise.setLbsId(enterprise.getLbsId());
 						enterprise.setLbsLon(point[0]);

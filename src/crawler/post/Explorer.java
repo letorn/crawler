@@ -13,7 +13,7 @@ import org.jsoup.select.Elements;
 import org.jsoup.select.NodeVisitor;
 
 import crawler.AttributeCatcher;
-import crawler.Client;
+import crawler.DocumentClient;
 import crawler.post.model.Bill;
 
 public class Explorer {
@@ -33,6 +33,8 @@ public class Explorer {
 	private Map<String, String> billAttributeSelectors;
 
 	private int currentPage = 1;
+
+	private DocumentClient documentClient = new DocumentClient();
 
 	public Explorer(Collector collector) {
 		this.collector = collector;
@@ -61,7 +63,7 @@ public class Explorer {
 			thread = new Thread(new Runnable() {
 				public void run() {
 					while (status == 1) {
-						Document document = Client.get(String.format("%s?%s=%s&%s=%s", url, areaKey, areaValue, pageKey, currentPage++), data);
+						Document document = documentClient.get(String.format("%s?%s=%s&%s=%s", url, areaKey, areaValue, pageKey, currentPage++), data);
 						final AttributeCatcher billAttributeCatcher = new AttributeCatcher(document, billAttributeSelectors);
 						Elements containers = document.select(billContainerSelector);
 						if (containers.size() <= 0) {

@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import map.LbsClient;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
@@ -16,7 +18,7 @@ import org.jsoup.select.NodeVisitor;
 
 import util.Ver;
 import crawler.AttributeCatcher;
-import crawler.Client;
+import crawler.DocumentClient;
 import crawler.post.model.Bill;
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
@@ -44,6 +46,9 @@ public class Processor {
 	private List<Enterprise> enterprises = new ArrayList<Enterprise>();
 	private Map<String, Integer> enterpriseUrlIndexes = new HashMap<String, Integer>();
 
+	private DocumentClient documentClient = new DocumentClient();
+	private LbsClient lbsClient = new LbsClient();
+	
 	public Processor(Collector collector) {
 		this.collector = collector;
 
@@ -92,7 +97,7 @@ public class Processor {
 							String postUrl = bill.getPostUrl();
 							String enterpriseUrl = bill.getEnterpriseUrl();
 
-							Document document = Client.get(postUrl);
+							Document document = documentClient.get(postUrl);
 							final AttributeCatcher postAttributeCatcher = new AttributeCatcher(document, postAttributeSelectors);
 							final AttributeCatcher enterpriseAttributeCatcher = new AttributeCatcher(document, enterpriseAttributeSelectors);
 							final Map<String, String> postAttributes = new HashMap<String, String>();
@@ -413,7 +418,7 @@ public class Processor {
 			String areaCode = Holder.getAreaCode(address);
 			if (areaCode != null) {
 				enterprise.setAreaCode(areaCode);
-				Double[] point = Client.getPoint(address);
+				Double[] point = lbsClient.getPoint(address);
 				if (point != null) {
 					enterprise.setLbsLon(point[0]);
 					enterprise.setLbsLat(point[1]);
