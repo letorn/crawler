@@ -1132,12 +1132,18 @@ public class Holder extends C3P0Store {
 			updateStatement.setString(4, post.getSalary());
 			Integer minSalary = null;
 			Integer maxSalary = null;
-			if (post.getSalary() != null && post.getSalary().contains("-")) {
-				String[] salaries = post.getSalary().split("-", 2);
-				if (salaries[0].matches("^\\d+$"))
-					minSalary = Integer.parseInt(salaries[0]);
-				if (salaries[1].matches("^\\d+$"))
-					maxSalary = Integer.parseInt(salaries[1]);
+			if (post.getSalary() != null) {
+				if (post.getSalary().endsWith("+")) {
+					String salary = post.getSalary().replaceAll("+", "");
+					if (salary.matches("^\\d+$"))
+						minSalary = Integer.parseInt(salary);
+				} else if (post.getSalary().contains("-")) {
+					String[] salaries = post.getSalary().split("-", 2);
+					if (salaries[0].matches("^\\d+$"))
+						minSalary = Integer.parseInt(salaries[0]);
+					if (salaries[1].matches("^\\d+$"))
+						maxSalary = Integer.parseInt(salaries[1]);					
+				}
 			}
 			if (minSalary != null)
 				updateStatement.setInt(5, minSalary);

@@ -48,7 +48,7 @@ public class Processor {
 
 	private DocumentClient documentClient = new DocumentClient();
 	private LbsClient lbsClient = new LbsClient();
-	
+
 	public Processor(Collector collector) {
 		this.collector = collector;
 
@@ -106,8 +106,26 @@ public class Processor {
 								public void head(Node node, int depth) {
 									if (node instanceof Element) {
 										Element element = (Element) node;
-										postAttributes.putAll(postAttributeCatcher.attempt(element));
-										enterpriseAttributes.putAll(enterpriseAttributeCatcher.attempt(element));
+										// postAttributes.putAll(postAttributeCatcher.attempt(element));
+										// enterpriseAttributes.putAll(enterpriseAttributeCatcher.attempt(element));
+										Map<String, String> postAttrs = postAttributeCatcher.attempt(element);
+										if (postAttrs.size() > 0)
+											for (String attrName : postAttrs.keySet()) {
+												String attrValue = postAttributes.get(attrName);
+												if (attrValue != null)
+													postAttributes.put(attrName, String.format("%s %s", attrValue, postAttrs.get(attrName)));
+												else
+													postAttributes.put(attrName, postAttrs.get(attrName));
+											}
+										Map<String, String> enterpriseAttrs = enterpriseAttributeCatcher.attempt(element);
+										if (enterpriseAttrs.size() > 0)
+											for (String attrName : enterpriseAttrs.keySet()) {
+												String attrValue = enterpriseAttributes.get(attrName);
+												if (attrValue != null)
+													enterpriseAttributes.put(attrName, String.format("%s %s", attrValue, enterpriseAttrs.get(attrName)));
+												else
+													enterpriseAttributes.put(attrName, enterpriseAttrs.get(attrName));
+											}
 									}
 								}
 
@@ -271,7 +289,7 @@ public class Processor {
 			post.setSalary("0");
 			post.setSalaryText("面议");
 		} else {
-			salary = salary.replaceAll("[^\\d-]", "");
+			salary = salary.replaceAll("[^\\d-+]", "");
 			post.setSalary(salary);
 			post.setSalaryText(salary);
 			if (salaryMapper != null) {
