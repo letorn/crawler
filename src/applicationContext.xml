@@ -80,7 +80,7 @@
     </property>
   </bean>
 
-  <bean class="dao.data.Stack" init-method="init" />
+  <!-- <bean class="dao.data.Stack" init-method="init" /> -->
   <context:component-scan base-package="util" />
   <context:component-scan base-package="init" />
   <context:component-scan base-package="crawler" />

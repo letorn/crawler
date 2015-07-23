@@ -13,12 +13,12 @@ import dao.data.Store;
 @Repository
 public class TagDao extends Store<Tag> {
 
-	public Tag get(Object id) {
+	/*public Tag get(Object id) {
 		return Stack.tagIdMap.get(id);
 	}
 
 	public List<Tag> findAll() {
 		return new ArrayList<Tag>(Stack.tagIdMap.values());
-	}
+	}*/
 
 }

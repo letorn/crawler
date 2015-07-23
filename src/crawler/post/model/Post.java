@@ -41,6 +41,12 @@ public class Post implements Point {
 	private String enterpriseUrl;
 	private String enterpriseName;
 
+	private Long experienceId;
+	private Long educationId;
+	private Long postStatusId;
+	private Long postPromotionId;
+	private Long postViewId;
+
 	public Long getId() {
 		return id;
 	}
@@ -287,6 +293,46 @@ public class Post implements Point {
 
 	public void setEnterpriseName(String enterpriseName) {
 		this.enterpriseName = enterpriseName;
+	}
+
+	public Long getExperienceId() {
+		return experienceId;
+	}
+
+	public void setExperienceId(Long experienceId) {
+		this.experienceId = experienceId;
+	}
+
+	public Long getEducationId() {
+		return educationId;
+	}
+
+	public void setEducationId(Long educationId) {
+		this.educationId = educationId;
+	}
+
+	public Long getPostStatusId() {
+		return postStatusId;
+	}
+
+	public void setPostStatusId(Long postStatusId) {
+		this.postStatusId = postStatusId;
+	}
+
+	public Long getPostPromotionId() {
+		return postPromotionId;
+	}
+
+	public void setPostPromotionId(Long postPromotionId) {
+		this.postPromotionId = postPromotionId;
+	}
+
+	public Long getPostViewId() {
+		return postViewId;
+	}
+
+	public void setPostViewId(Long postViewId) {
+		this.postViewId = postViewId;
 	}
 
 	public Long getPointId() {
