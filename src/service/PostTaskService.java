@@ -52,7 +52,7 @@ public class PostTaskService {
 	private static Map<String, Collector> collectors = new ConcurrentHashMap<String, Collector>();
 
 	private LbsClient lbsClient = new LbsClient();
-	
+
 	@PostConstruct
 	private void init() {
 		File normDir = new File(WebContext.getAppRoot(), "norm");
@@ -345,18 +345,27 @@ public class PostTaskService {
 				}
 			}
 
-			if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
+			if (Ver.nb(updatedPost.getAddress()) && !updatedPost.getAddress().equals(post.getAddress())) {
+				post.setAddress(updatedPost.getAddress());
+				String areaCode = Holder.getAreaCode(updatedPost.getAddress());
+				if (Ver.nb(areaCode) && !areaCode.equals(post.getAreaCode())) {
+					post.setAreaCode(areaCode);
+					Double[] point = lbsClient.getPoint(updatedPost.getAddress());
+					if (point != null) {
+						post.setLbsId(post.getLbsId());
+						post.setLbsLon(point[0]);
+						post.setLbsLat(point[1]);
+					}
+				}
+			}
+
+			if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getAreaCode()) || Ver.bl(post.getAddress()) || post.getLbsLon() == null || post.getLbsLat() == null || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
 				post.setStatus(-1);
 
 			if (enterprise.getStatus() == -1)
 				post.setStatus(-1);
 
 			if (post.getStatus() != -1) {
-				post.setAreaCode(enterprise.getAreaCode());
-				post.setAddress(enterprise.getAddress());
-				post.setLbsLon(enterprise.getLbsLon());
-				post.setLbsLat(enterprise.getLbsLat());
-
 				if (Holder.saveEnterprise(enterprise))
 					if (Holder.savePost(post))
 						return true;

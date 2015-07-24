@@ -62,7 +62,8 @@
       experience: 'td:matches(^工作年限) + td',
       education: 'td:matches(^学) + td',
       welfare: 'span[class=Welfare_label]',
-      address: 'td:matches(^工作地点) + td',
+      area: 'td:matches(^工作地点) + td',
+      address: 'td > div:has(strong:matches(上班地址)) + div',
       introduction: 'strong:matches(^职位描述) ~ div#ptext'
     },
     mapper: {

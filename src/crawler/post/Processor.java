@@ -149,10 +149,14 @@ public class Processor {
 								post.setStatus(-1);
 
 							if (post.getStatus() != -1) {
-								post.setAreaCode(enterprise.getAreaCode());
-								post.setAddress(enterprise.getAddress());
-								post.setLbsLon(enterprise.getLbsLon());
-								post.setLbsLat(enterprise.getLbsLat());
+								if (post.getAreaCode() == null)
+									post.setAreaCode(enterprise.getAreaCode());
+								if (post.getAddress() == null)
+									post.setAddress(enterprise.getAddress());
+								if (post.getLbsLon() == null)
+									post.setLbsLon(enterprise.getLbsLon());
+								if (post.getLbsLat() == null)
+									post.setLbsLat(enterprise.getLbsLat());
 
 								if (!enterpriseUrlIndexes.containsKey(enterprise.getDataUrl())) {
 									enterprises.add(enterprise);
@@ -228,6 +232,7 @@ public class Processor {
 		String experience = map.get("experience");
 		String education = map.get("education");
 		String welfare = map.get("welfare");
+		String area = map.get("area");
 		String address = map.get("address");
 		String introduction = map.get("introduction");
 		String enterpriseUrl = map.get("enterpriseUrl");
@@ -336,8 +341,20 @@ public class Processor {
 			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
 		}
 
-		if (StringUtils.isNotBlank(address))
+		if (Ver.nb(area) && Ver.nb(address)) {
+			area = area.replaceAll("\\s+|-", "");
+			address = area + address;
 			post.setAddress(address);
+			String areaCode = Holder.getAreaCode(address);
+			if (areaCode != null) {
+				post.setAreaCode(areaCode);
+				Double[] point = lbsClient.getPoint(address);
+				if (point != null) {
+					post.setLbsLon(point[0]);
+					post.setLbsLat(point[1]);
+				}
+			}
+		}
 
 		if (StringUtils.isNotBlank(introduction))
 			post.setIntroduction(introduction);

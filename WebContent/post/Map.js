@@ -310,6 +310,10 @@ Ext.define('Platform.post.MapMarkerDetail', {
         name: 'welfare',
         readOnly: true
       }, {
+        xtype: 'textfield',
+        fieldLabel: '地址',
+        name: 'address'
+      }, {
         xtype: 'textarea',
         fieldLabel: '介绍',
         name: 'introduction',

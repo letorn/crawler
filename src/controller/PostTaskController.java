@@ -225,6 +225,7 @@ public class PostTaskController {
 			postData.put("experienceCode", post.getExperienceCode());
 			postData.put("educationCode", post.getEducationCode());
 			postData.put("welfare", post.getWelfare());
+			postData.put("address", post.getAddress());
 			postData.put("introduction", post.getIntroduction());
 			resultMap.put("post", postData);
 

@@ -1,5 +1,7 @@
 package crawler.post;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -11,11 +13,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import map.Cluster;
 
 import org.apache.log4j.Logger;
+import org.apache.tomcat.util.codec.binary.Base64;
 
 import util.Ver;
 import crawler.post.model.Enterprise;
@@ -44,6 +48,7 @@ public class Holder extends C3P0Store {
 	private static Map<String, String> enterpriseScaleCodeMap = new ConcurrentHashMap<String, String>();
 
 	private static DecimalFormat accountNumFormat = new DecimalFormat("0000000");
+	private static DecimalFormat passwordNumFormat = new DecimalFormat("000000");
 	private static int lastAccountNum = -1;
 
 	private static Cluster<Post> postCluster = new Cluster<Post>();
@@ -54,6 +59,16 @@ public class Holder extends C3P0Store {
 	private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
 	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
 
+	private static MessageDigest messageDigest;
+	private static Random random = new Random();
+	static {
+		try {
+			messageDigest = MessageDigest.getInstance("MD5");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void init() {
 		logger.info("------ init holder ------");
 
@@ -1428,7 +1443,7 @@ public class Holder extends C3P0Store {
 			if (enterprise.getEnterpriseAccountId() == null) {
 				insertStatement.setLong(1, enterprise.getId());
 				insertStatement.setString(2, String.format("zcdh%s", accountNumFormat.format(++lastAccountNum)));
-				insertStatement.setString(3, "oSBrriGEzW8KHAL6b9J63w==");
+				insertStatement.setString(3, md5Encoder(passwordNumFormat.format(random.nextInt(1000000))));
 				insertStatement.setInt(4, 2);
 				insertStatement.setDate(5, new Date(enterprise.getCreateDate().getTime()));
 				insertStatement.setDouble(6, 1);
@@ -1440,6 +1455,15 @@ public class Holder extends C3P0Store {
 		for (int i = 0; generatedSet.next(); i++)
 			inserted.get(i).setEnterpriseAccountId(generatedSet.getLong(1));
 		return list;
+	}
+
+	private static String md5Encoder(String str) {
+		try {
+			return Base64.encodeBase64String(messageDigest.digest(str.getBytes("utf-8")));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 }
