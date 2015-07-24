@@ -622,11 +622,20 @@ public class Holder extends C3P0Store {
 				if (Ver.nb(enterprise.getAddress()))
 					ent.setAddress(enterprise.getAddress());
 
+				if (enterprise.getCreateDate() != null)
+					ent.setCreateDate(enterprise.getCreateDate());
+
 				if (enterprise.getLbsId() != null)
 					ent.setLbsId(enterprise.getLbsId());
 
-				if (enterprise.getCreateDate() != null)
-					ent.setCreateDate(enterprise.getCreateDate());
+				if (enterprise.getLbsLon() != null)
+					ent.setLbsLon(enterprise.getLbsLon());
+
+				if (enterprise.getLbsLat() != null)
+					ent.setLbsLat(enterprise.getLbsLat());
+
+				if (enterprise.getEnterpriseAccountId() != null)
+					ent.setEnterpriseAccountId(enterprise.getEnterpriseAccountId());
 			}
 		}
 		return ent;
@@ -697,14 +706,35 @@ public class Holder extends C3P0Store {
 					if (Ver.nb(post.getAddress()))
 						p.setAddress(post.getAddress());
 
-					if (post.getLbsId() != null)
-						p.setLbsId(post.getLbsId());
-
 					if (post.getUpdateDate() != null)
 						p.setUpdateDate(post.getUpdateDate());
 
 					if (post.getPublishDate() != null)
 						p.setPublishDate(post.getPublishDate());
+
+					if (post.getLbsId() != null)
+						p.setLbsId(post.getLbsId());
+
+					if (post.getLbsLon() != null)
+						p.setLbsLon(post.getLbsLon());
+
+					if (post.getLbsLat() != null)
+						p.setLbsLat(post.getLbsLat());
+
+					if (post.getExperienceId() != null)
+						p.setExperienceId(post.getExperienceId());
+
+					if (post.getEducationId() != null)
+						p.setEducationId(post.getEducationId());
+
+					if (post.getPostStatusId() != null)
+						p.setPostStatusId(post.getPostStatusId());
+
+					if (post.getPostPromotionId() != null)
+						p.setPostPromotionId(post.getPostPromotionId());
+
+					if (post.getPostViewId() != null)
+						p.setPostViewId(post.getPostViewId());
 				}
 			}
 		}
@@ -1157,7 +1187,7 @@ public class Holder extends C3P0Store {
 					if (salaries[0].matches("^\\d+$"))
 						minSalary = Integer.parseInt(salaries[0]);
 					if (salaries[1].matches("^\\d+$"))
-						maxSalary = Integer.parseInt(salaries[1]);					
+						maxSalary = Integer.parseInt(salaries[1]);
 				}
 			}
 			if (minSalary != null)
