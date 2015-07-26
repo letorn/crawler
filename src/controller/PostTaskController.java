@@ -226,6 +226,8 @@ public class PostTaskController {
 			postData.put("educationCode", post.getEducationCode());
 			postData.put("welfare", post.getWelfare());
 			postData.put("address", post.getAddress());
+			postData.put("lbsLon", post.getLbsLon());
+			postData.put("lbsLat", post.getLbsLat());
 			postData.put("introduction", post.getIntroduction());
 			resultMap.put("post", postData);
 
@@ -237,6 +239,8 @@ public class PostTaskController {
 			enterpriseData.put("scaleCode", enterprise.getScaleCode());
 			enterpriseData.put("website", enterprise.getWebsite());
 			enterpriseData.put("address", enterprise.getAddress());
+			enterpriseData.put("lbsLon", enterprise.getLbsLon());
+			enterpriseData.put("lbsLat", enterprise.getLbsLat());
 			enterpriseData.put("introduction", enterprise.getIntroduction());
 			resultMap.put("enterprise", enterpriseData);
 

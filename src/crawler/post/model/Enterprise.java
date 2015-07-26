@@ -27,6 +27,7 @@ public class Enterprise {
 	private Integer status = 0;// 0 未处理, 1忽略, 2 新增, 3 更新, 大于1表示已经处理
 
 	private Long enterpriseAccountId;
+	private Integer enterpriseAccountCreateMode;
 
 	public Long getId() {
 		return id;
@@ -186,6 +187,14 @@ public class Enterprise {
 
 	public void setEnterpriseAccountId(Long enterpriseAccountId) {
 		this.enterpriseAccountId = enterpriseAccountId;
+	}
+
+	public Integer getEnterpriseAccountCreateMode() {
+		return enterpriseAccountCreateMode;
+	}
+
+	public void setEnterpriseAccountCreateMode(Integer enterpriseAccountCreateMode) {
+		this.enterpriseAccountCreateMode = enterpriseAccountCreateMode;
 	}
 
 }

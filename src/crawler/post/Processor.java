@@ -222,7 +222,7 @@ public class Processor {
 
 	private Post toPost(Map<String, String> map) {
 		String dateString = map.get("date");
-		Date date = StringUtils.isNotBlank(dateString) ? date = parseDate(dateString) : null;
+		Date date = Ver.nb(dateString) ? date = parseDate(dateString) : null;
 		String url = map.get("url");
 		String name = map.get("name");
 		String category = map.get("category");
@@ -239,21 +239,19 @@ public class Processor {
 		String enterpriseName = map.get("enterpriseName");
 
 		Map<String, String> categoryMapper = postAttributeMappers.get("category");
-		Map<String, String> numberMapper = postAttributeMappers.get("number");
 		Map<String, String> natureMapper = postAttributeMappers.get("nature");
-		Map<String, String> salaryMapper = postAttributeMappers.get("salary");
 		Map<String, String> experienceMapper = postAttributeMappers.get("experience");
 		Map<String, String> educationMapper = postAttributeMappers.get("education");
 
 		Post post = new Post();
 
-		if (StringUtils.isNotBlank(name))
+		if (Ver.nb(name))
 			post.setName(name);
 
-		if (StringUtils.isNotBlank(category) && categoryMapper != null) {
+		if (Ver.nb(category) && categoryMapper != null) {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
-				if (StringUtils.isNotBlank(categoryCode)) {
+				if (Ver.nb(categoryCode)) {
 					Map<String, String> categoryMap = Holder.getPostCategoryCode(categoryCode);
 					if (categoryMap != null) {
 						post.setCategoryCode(categoryCode);
@@ -264,89 +262,111 @@ public class Processor {
 			}
 		}
 
-		if (StringUtils.isBlank(number) || numberMapper == null) {
+		if (Ver.bl(number)) {
 			post.setNumber(1);
 			post.setNumberText("1");
 			post.setIsSeveral(0);
+		} else if (number.contains("若干")) {
+			post.setNumber(10);
+			post.setNumberText("若干");
+			post.setIsSeveral(1);
 		} else {
-			String num = numberMapper.get(number);
-			if (StringUtils.isBlank(num)) {
-				post.setNumber(number.matches("^\\d+$") ? Integer.parseInt(number) : 3);
-				post.setNumberText(String.valueOf(number));
+			number = number.replaceAll("[^\\d]", "");
+			if (number.matches("^\\d+$")) {
+				post.setNumber(Integer.parseInt(number));
+				post.setNumberText(number);
 				post.setIsSeveral(0);
 			} else {
-				post.setNumber(number.matches("^\\d+$") ? Integer.parseInt(num) : 10);
-				post.setNumberText("若干");
-				post.setIsSeveral(1);
+				post.setNumber(1);
+				post.setNumberText("1");
+				post.setIsSeveral(0);
 			}
 		}
 
-		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "007.001" : natureMapper.get(nature);
-		if (StringUtils.isNotBlank(natureCode)) {
+		String natureCode = Ver.bl(nature) || natureMapper == null ? "007.001" : natureMapper.get(nature);
+		if (Ver.nb(natureCode)) {
 			String natureName = Holder.getPostNatureCode(natureCode);
-			if (natureName != null) {
+			if (Ver.nb(natureName)) {
 				post.setNatureCode(natureCode);
 				post.setNature(natureName);
 			}
 		}
 
-		if (StringUtils.isBlank(salary)) {
+		if (Ver.bl(salary) || salary.contains("面议")) {
 			post.setSalary("0");
 			post.setSalaryText("面议");
 		} else {
-			salary = salary.replaceAll("[^\\d-+]", "");
+			boolean unit = salary.contains("万");
+			boolean year = salary.contains("年");
+			salary = salary.replaceAll("[^\\d-]", "");
+			String[] strs = salary.split("-");
+			List<Integer> sals = new ArrayList<Integer>();
+			for (String str : strs)
+				if (Ver.nb(str))
+					sals.add(Integer.valueOf(str));
+			if (unit)
+				for (int i = 0; i < sals.size(); i++)
+					sals.set(i, sals.get(i) * 10000);
+			if (year)
+				for (int i = 0; i < sals.size(); i++)
+					sals.set(i, new Double(Math.rint(sals.get(i) / 1200.0)).intValue() * 100);
+			salary = StringUtils.join(sals, "-");
 			post.setSalary(salary);
 			post.setSalaryText(salary);
-			if (salaryMapper != null) {
-				String num = salaryMapper.get(salary);
-				if (StringUtils.isNotBlank(num)) {
-					post.setSalary(num);
-					post.setSalaryText(num);
-				}
-			}
 		}
 
-		String experienceCode = StringUtils.isBlank(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
-		if (StringUtils.isNotBlank(experienceCode)) {
+		String experienceCode = Ver.bl(experience) || experienceMapper == null ? "005.009" : experienceMapper.get(experience);
+		if (Ver.nb(experienceCode)) {
 			String experienceName = Holder.getPostExperienceCode(experienceCode);
-			if (experienceName != null) {
+			if (Ver.nb(experienceName)) {
 				post.setExperience(experienceName);
 				post.setExperienceCode(experienceCode);
 			}
 		}
 
-		String educationCode = StringUtils.isBlank(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
-		if (StringUtils.isNotBlank(educationCode)) {
+		String educationCode = Ver.bl(education) || educationMapper == null ? "004.011" : educationMapper.get(education);
+		if (Ver.nb(educationCode)) {
 			String educationName = Holder.getPostEducationCode(educationCode);
-			if (educationName != null) {
+			if (Ver.nb(educationName)) {
 				post.setEducation(educationName);
 				post.setEducationCode(educationCode);
 			}
 		}
 
-		if (StringUtils.isNotBlank(welfare)) {
-			String[] wels = welfare.split("\\s+");
-			String[] welNames = new String[wels.length];
-			String[] welCodes = new String[wels.length];
-			for (int i = 0; i < wels.length; i++) {
-				String code = Holder.getTagCode(wels[i]);
-				welNames[i] = wels[i];
-				if (code == null) {
-					welCodes[i] = String.format("self&%s", wels[i]);
-				} else {
-					welCodes[i] = String.format("system&%s&%s", code, wels[i]);
-				}
+		if (Ver.nb(welfare)) {
+			String[] welNames = welfare.split("\\s+");
+			String[] welCodes = new String[welNames.length];
+			for (int i = 0; i < welNames.length; i++) {
+				String code = Holder.getTagCode(welNames[i]);
+				welCodes[i] = Ver.nb(code) ? String.format("system&%s&%s", code, welNames[i]) : String.format("self&%s", welNames[i]);
 			}
 			post.setWelfare(StringUtils.join(welNames, " "));
 			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
 		}
 
 		if (Ver.nb(area) && Ver.nb(address)) {
-			area = area.replaceAll("\\s+|-", "");
-			address = area + address;
+			boolean done = false;
+			boolean include = false;
+			String[] strs = area.split("\\s*-\\s*");
+			for (int i = strs.length - 1; i >= 0; i--) {
+				if (address.startsWith(strs[i])) {
+					address = StringUtils.join(strs, "", 0, i) + address;
+					done = true;
+					break;
+				} else {
+					if (address.contains(strs[i]))
+						include = true;
+				}
+			}
+			if (!done && !include)
+				address = StringUtils.join(strs, "") + address;
+		}
+
+		if (Ver.nb(address)) {
+			address = address.replaceAll("\\s+", "");
 			post.setAddress(address);
 			String areaCode = Holder.getAreaCode(address);
-			if (areaCode != null) {
+			if (Ver.nb(areaCode)) {
 				post.setAreaCode(areaCode);
 				Double[] point = lbsClient.getPoint(address);
 				if (point != null) {
@@ -356,13 +376,13 @@ public class Processor {
 			}
 		}
 
-		if (StringUtils.isNotBlank(introduction))
+		if (Ver.nb(introduction))
 			post.setIntroduction(introduction);
 
-		if (StringUtils.isNotBlank(collector.getNid()))
+		if (Ver.nb(collector.getNid()))
 			post.setDataSrc(collector.getNid());
 
-		if (StringUtils.isNotBlank(url))
+		if (Ver.nb(url))
 			post.setDataUrl(url);
 
 		if (date != null) {
@@ -374,10 +394,10 @@ public class Processor {
 			post.setPublishDate(now);
 		}
 
-		if (StringUtils.isNotBlank(enterpriseUrl))
+		if (Ver.nb(enterpriseUrl))
 			post.setEnterpriseUrl(enterpriseUrl);
 
-		if (StringUtils.isNotBlank(enterpriseName))
+		if (Ver.nb(enterpriseName))
 			post.setEnterpriseName(enterpriseName);
 
 		Holder.mergePost(post);
@@ -406,15 +426,15 @@ public class Processor {
 
 		Enterprise enterprise = new Enterprise();
 
-		if (StringUtils.isNotBlank(name))
+		if (Ver.nb(name))
 			enterprise.setName(name);
 
-		if (StringUtils.isNotBlank(category) && categoryMapper != null) {
+		if (Ver.nb(category) && categoryMapper != null) {
 			for (String cate : category.split("\\s+")) {
 				String categoryCode = categoryMapper.get(cate);
-				if (StringUtils.isNotBlank(categoryCode)) {
+				if (Ver.nb(categoryCode)) {
 					String categoryName = Holder.getEnterpriseCategoryCode(categoryCode);
-					if (categoryName != null) {
+					if (Ver.nb(categoryName)) {
 						enterprise.setCategoryCode(categoryCode);
 						enterprise.setCategory(categoryName);
 						break;
@@ -423,35 +443,35 @@ public class Processor {
 			}
 		}
 
-		String natureCode = StringUtils.isBlank(nature) || natureMapper == null ? "010.006" : natureMapper.get(nature);
-		if (StringUtils.isNotBlank(natureCode)) {
+		String natureCode = Ver.bl(nature) || natureMapper == null ? "010.006" : natureMapper.get(nature);
+		if (Ver.nb(natureCode)) {
 			String natureName = Holder.getEnterpriseNatureCode(natureCode);
-			if (natureName != null) {
+			if (Ver.nb(natureName)) {
 				enterprise.setNatureCode(natureCode);
 				enterprise.setNature(natureName);
 			}
 		}
 
-		String scaleCode = StringUtils.isBlank(scale) || scaleMapper == null ? "011.001" : scaleMapper.get(scale);
-		if (StringUtils.isNotBlank(scaleCode)) {
+		String scaleCode = Ver.bl(scale) || scaleMapper == null ? "011.001" : scaleMapper.get(scale);
+		if (Ver.nb(scaleCode)) {
 			String scaleName = Holder.getEnterpriseScaleCode(scaleCode);
-			if (scaleName != null) {
+			if (Ver.nb(scaleName)) {
 				enterprise.setScaleCode(scaleCode);
 				enterprise.setScale(scaleName);
 			}
 		}
 
-		if (StringUtils.isNotBlank(introduction))
+		if (Ver.nb(introduction))
 			enterprise.setIntroduction(introduction);
 
-		if (StringUtils.isNotBlank(website))
+		if (Ver.nb(website))
 			enterprise.setWebsite(website);
 
-		if (StringUtils.isNotBlank(address)) {
-			address = address.replaceAll("^地 址：", "");
+		if (Ver.nb(address)) {
+			address = address.replaceAll("\\s+", "").replaceAll("^地址：", "");
 			enterprise.setAddress(address);
 			String areaCode = Holder.getAreaCode(address);
-			if (areaCode != null) {
+			if (Ver.nb(areaCode)) {
 				enterprise.setAreaCode(areaCode);
 				Double[] point = lbsClient.getPoint(address);
 				if (point != null) {
@@ -461,10 +481,10 @@ public class Processor {
 			}
 		}
 
-		if (StringUtils.isNotBlank(collector.getNid()))
+		if (Ver.nb(collector.getNid()))
 			enterprise.setDataSrc(collector.getNid());
 
-		if (StringUtils.isNotBlank(url))
+		if (Ver.nb(url))
 			enterprise.setDataUrl(url);
 
 		if (date != null)

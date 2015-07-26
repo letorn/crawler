@@ -37,7 +37,7 @@ public class Holder extends C3P0Store {
 
 	private static Map<String, Map<String, Object>> technologyCodeMap = new ConcurrentHashMap<String, Map<String, Object>>();
 	private static Map<String, Map<String, Object>> abilityParamCodeMap = new ConcurrentHashMap<String, Map<String, Object>>();
-	
+
 	private static Map<String, Map<String, String>> postCategoryCodeMap = new ConcurrentHashMap<String, Map<String, String>>();
 	private static Map<String, String> postNatureCodeMap = new ConcurrentHashMap<String, String>();
 	private static Map<String, String> postExperienceCodeMap = new ConcurrentHashMap<String, String>();
@@ -68,15 +68,11 @@ public class Holder extends C3P0Store {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void init() {
 		logger.info("------ init holder ------");
 
 		logger.info("binning tag ...");
-		/*for (Tag tag : tagDao.findAll()) {
-			tagNameMap.put(tag.getTagName(), tag.getTagCode());
-			tagCodeMap.put(tag.getTagCode(), tag.getTagName());
-		}*/
 		selectResultSet("select tag_name, tag_code from zcdh_tag where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				tagNameMap.put(resultSet.getString("tag_name"), resultSet.getString("tag_code"));
@@ -86,28 +82,14 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning area ...");
-		/*for (Area area : areaDao.find(AreaType.CITY))
-			if (!area.getAreaName().contains("行政"))
-				areaNameMap.put(area.getAreaName().replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), area.getAreaCode());*/
 		selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 or is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$' and area_name not regexp '行政'", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				areaNameMap.put(resultSet.getString("area_name").replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), resultSet.getString("area_code"));
 				return true;
 			}
 		});
-		
-		
+
 		logger.info("binning post category ...");
-		/*for (model.Post post : postDao.findAll()) {
-			CategoryPost categoryPost = categoryPostDao.get(post.getPostCategoryCode());
-			if (categoryPost != null) {
-				Map<String, String> postCategorie = new HashMap<String, String>();
-				postCategorie.put("name", post.getPostName());
-				postCategorie.put("code", post.getPostCode());
-				postCategorie.put("group", categoryPost.getPostCategoryName());
-				postCategoryCodeMap.put(post.getPostCode(), postCategorie);
-			}
-		}*/
 		selectResultSet("select p.post_name, p.post_code, cp.post_category_name from zcdh_post p join zcdh_category_post cp on p.post_category_code=cp.post_category_code where p.is_delete=1 or p.is_delete is null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Map<String, String> postCategorie = new HashMap<String, String>();
@@ -118,7 +100,7 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-		
+
 		logger.info("binning technology ...");
 		selectResultSet("select t.technical_code, t.match_type, c.technology_gategory_code, c.percent from zcdh_technology t join zcdh_technology_gategory c on c.technology_gategory_code=t.techonlogy_gategory_code where (t.is_delete=1 or t.is_delete is null) and t.technical_code in('-0000000000003', '-0000000000004')", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
@@ -131,22 +113,8 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-		
+
 		logger.info("binning param ...");
-		/*for (Param param : paramDao.findAll()) {
-			String categoryCode = param.getParamCategoryCode();
-			if ("007".equals(categoryCode)) {
-				postNatureCodeMap.put(param.getParamCode(), param.getParamName());
-			} else if ("005".equals(categoryCode)) {
-				postExperienceCodeMap.put(param.getParamCode(), param.getParamName());
-			} else if ("004".equals(categoryCode)) {
-				postEducationCodeMap.put(param.getParamCode(), param.getParamName());
-			} else if ("010".equals(categoryCode)) {
-				enterpriseNatureCodeMap.put(param.getParamCode(), param.getParamName());
-			} else if ("011".equals(categoryCode)) {
-				enterpriseScaleCodeMap.put(param.getParamCode(), param.getParamName());
-			}
-		}*/
 		selectResultSet("select param_name, param_code, param_value, param_category_code from zcdh_param where (is_delete=1 or is_delete is null) and param_category_code in('007', '005', '004', '010', '011')", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				String categoryCode = resultSet.getString("param_category_code");
@@ -180,56 +148,22 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-		
+
 		logger.info("binning enterprise category ...");
-		/*for (Industry industry : industryDao.findAll())
-			enterpriseCategoryCodeMap.put(industry.getIndustryCode(), industry.getIndustryName());*/
 		selectResultSet("select industry_name, industry_code from zcdh_industry where (is_delete=1 or is_delete is null) and industry_code regexp '^[0-9]{3}\\.[0-9]{3}$'", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				enterpriseCategoryCodeMap.put(resultSet.getString("industry_code"), resultSet.getString("industry_name"));
 				return true;
 			}
 		});
-		
+
 		logger.info("binning last account num ...");
-		// lastAccountNum = entAccountDao.getLastAutoAccountNum();
 		String lastAccount = selectString("select account from zcdh_ent_account where account regexp '^zcdh[0-9]{7}$' order by create_date desc limit 0,1");
-		if (lastAccount != null) 
+		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 
 		logger.info("binning enterprise ...");
-		/*for (EntEnterprise entEnterprise : entEnterpriseDao.findAll()) {
-			Enterprise enterprise = new Enterprise();
-			enterprise.setId(entEnterprise.getEntId());
-			enterprise.setName(entEnterprise.getEntName());
-			enterprise.setCategoryCode(entEnterprise.getIndustry());
-			if (enterprise.getCategoryCode() != null)
-				enterprise.setCategory(enterpriseCategoryCodeMap.get(enterprise.getCategoryCode()));
-			enterprise.setNatureCode(entEnterprise.getProperty());
-			if (enterprise.getNatureCode() != null)
-				enterprise.setNature(enterpriseNatureCodeMap.get(enterprise.getNatureCode()));
-			enterprise.setScaleCode(entEnterprise.getEmployNum());
-			if (enterprise.getScaleCode() != null)
-				enterprise.setScale(enterpriseScaleCodeMap.get(enterprise.getScaleCode()));
-			enterprise.setIntroduction(entEnterprise.getIntroduction());
-			enterprise.setWebsite(entEnterprise.getEntWeb());
-			enterprise.setAreaCode(entEnterprise.getParea());
-			enterprise.setAddress(entEnterprise.getAddress());
-			if (entEnterprise.getLbsId() != null) {
-				EntLbs entLbs = entLbsDao.get(entEnterprise.getLbsId());
-				if (entLbs != null) {
-					enterprise.setLbsId(entLbs.getLbsId());
-					enterprise.setLbsLon(entLbs.getLongitude());
-					enterprise.setLbsLat(entLbs.getLatitude());
-				}
-			}
-			enterprise.setDataSrc(entEnterprise.getDataSrc());
-			enterprise.setDataUrl(entEnterprise.getDataUrl());
-			enterprise.setCreateDate(entEnterprise.getCreateDate());
-
-			holdEnterprise(enterprise);
-		}*/
-		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude from zcdh_ent_enterprise e join zcdh_ent_lbs l on l.lbs_id=e.lbs_id", new Iterator<ResultSet>() {
+		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id left join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Enterprise enterprise = new Enterprise();
 				enterprise.setId(resultSet.getLong("ent_id"));
@@ -255,69 +189,14 @@ public class Holder extends C3P0Store {
 					enterprise.setLbsLon(resultSet.getDouble("longitude"));
 					enterprise.setLbsLat(resultSet.getDouble("latitude"));
 				}
-				
+				enterprise.setEnterpriseAccountId(resultSet.getLong("account_id"));
+				enterprise.setEnterpriseAccountCreateMode(resultSet.getInt("create_mode"));
 				holdEnterprise(enterprise);
 				return true;
 			}
 		});
 
 		logger.info("binning post ...");
-		/*for (EntPost entPost : entPostDao.findAll()) {
-			if (entPost.getEntId() != null) {
-				EntEnterprise entEnterprise = entEnterpriseDao.get(entPost.getEntId());
-				if (entEnterprise != null) {
-					Post post = new Post();
-					post.setId(entPost.getId());
-					post.setName(entPost.getPostAliases());
-					post.setCategory(entPost.getPostName());
-					post.setCategoryCode(entPost.getPostCode());
-					post.setNumber(entPost.getHeadcounts());
-					post.setIsSeveral(entPost.getIsSeveral());
-					post.setNumberText(post.getIsSeveral() != null && post.getIsSeveral() == 1 ? "若干" : (post.getNumber() == null ? null : String.valueOf(post.getNumber())));
-					post.setNatureCode(entPost.getPjobCategory());
-					if (post.getNatureCode() != null)
-						post.setNature(postNatureCodeMap.get(post.getNatureCode()));
-					post.setSalary(entPost.getPsalary());
-					if (post.getSalary() != null)
-						post.setSalaryText("0".equals(post.getSalary()) ? "面议" : post.getSalary());
-					post.setSalaryType(entPost.getSalaryType());
-					EntAbilityRequire experienceEntAbilityRequire = entAbilityRequireDao.getExperience(post.getId());
-					if (experienceEntAbilityRequire != null) {
-						post.setExperienceCode(experienceEntAbilityRequire.getParamCode());
-						if (post.getExperienceCode() != null)
-							post.setExperience(postExperienceCodeMap.get(post.getExperienceCode()));
-					}
-					EntAbilityRequire educationEntAbilityRequire = entAbilityRequireDao.getEducation(post.getId());
-					if (educationEntAbilityRequire != null) {
-						post.setEducationCode(educationEntAbilityRequire.getParamCode());
-						if (post.getEducationCode() != null)
-							post.setEducation(postEducationCodeMap.get(post.getEducationCode()));
-					}
-					post.setWelfareCode(entPost.getTagSelected());
-					if (post.getWelfareCode() != null)
-						post.setWelfare(post.getWelfareCode().replaceAll("\\d|system|self|&", "").replaceAll("\\$\\$", " "));
-					post.setIntroduction(entPost.getPostRemark());
-					post.setAreaCode(entPost.getParea());
-					post.setAddress(entPost.getPostAddress());
-					if (entPost.getLbsId() != null) {
-						EntLbs entLbs = entLbsDao.get(entPost.getLbsId());
-						if (entLbs != null) {
-							post.setLbsId(entLbs.getLbsId());
-							post.setLbsLon(entLbs.getLongitude());
-							post.setLbsLat(entLbs.getLatitude());
-						}
-					}
-					post.setDataSrc(entPost.getDataSrc());
-					post.setDataUrl(entPost.getDataUrl());
-					post.setUpdateDate(entPost.getUpdateDate());
-					post.setPublishDate(entPost.getPublishDate());
-					post.setEnterpriseUrl(entEnterprise.getDataUrl());
-					post.setEnterpriseName(entEnterprise.getEntName());
-
-					holdPost(post);
-				}
-			}
-		}*/
 		selectResultSet("select distinct p.id, p.post_aliases, p.post_name, p.post_code, p.headcounts, p.is_several, p.pjob_category, p.psalary, p.salary_type, p.tag_selected, p.post_remark, p.parea, p.post_address, p.data_src, p.data_url, p.update_date, p.publish_date, l.lbs_id, l.longitude, l.latitude, ex.ent_ability_id ex_id, ex.param_code ex_code, ed.ent_ability_id ed_id, ed.param_code ed_code, ps.ps_id status_id, v.id view_id, e.ent_name, e.data_url ent_url from zcdh_ent_post p left join zcdh_ent_lbs l on l.lbs_id=p.lbs_id left join zcdh_ent_ability_require ex on ex.post_id=p.id and ex.technology_code='-0000000000003' left join zcdh_ent_ability_require ed on ed.post_id=p.id and ed.technology_code='-0000000000004' left join zcdh_ent_post_status ps on ps.post_id=p.id join zcdh_view_ent_post v on v.post_id=p.id join zcdh_ent_enterprise e on e.ent_id=p.ent_id where p.data_src is not null and p.data_url is not null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Post post = new Post();
@@ -444,6 +323,13 @@ public class Holder extends C3P0Store {
 		return null;
 	}
 
+	public static Post removePost(String name, String enterpriseName) {
+		Map<String, Post> postNameMap = postEntNameMap.get(enterpriseName);
+		if (postNameMap != null)
+			return postNameMap.remove(name);
+		return null;
+	}
+
 	public static List<Post> find(String name, Integer start, Integer limit) {
 		List<Post> list = new ArrayList<Post>();
 		if (Ver.bl(name)) {
@@ -483,6 +369,10 @@ public class Holder extends C3P0Store {
 
 	public static Enterprise getEnterprise(String url) {
 		return enterpriseUrlMap.get(url);
+	}
+
+	public static Enterprise removeEnterprise(String name) {
+		return enterpriseUrlMap.remove(name);
 	}
 
 	public static Cluster<Post> getPostCluster() {
@@ -589,53 +479,24 @@ public class Holder extends C3P0Store {
 		if (ent.getName() != null) {
 			Enterprise enterprise = enterpriseNameMap.get(ent.getName());
 			if (enterprise != null) {
-
 				ent.setId(enterprise.getId());
-
-				if (Ver.nb(enterprise.getCategory()))
+				if (enterprise.getEnterpriseAccountCreateMode() == null || enterprise.getEnterpriseAccountCreateMode() == 0) {
 					ent.setCategory(enterprise.getCategory());
-
-				if (Ver.nb(enterprise.getCategoryCode()))
 					ent.setCategoryCode(enterprise.getCategoryCode());
-
-				if (Ver.nb(enterprise.getNature()))
 					ent.setNature(enterprise.getNature());
-
-				if (Ver.nb(enterprise.getNatureCode()))
 					ent.setNatureCode(enterprise.getNatureCode());
-
-				if (Ver.nb(enterprise.getScale()))
 					ent.setScale(enterprise.getScale());
-
-				if (Ver.nb(enterprise.getScaleCode()))
 					ent.setScaleCode(enterprise.getScaleCode());
-
-				if (Ver.nb(enterprise.getIntroduction()))
 					ent.setIntroduction(enterprise.getIntroduction());
-
-				if (Ver.nb(enterprise.getWebsite()))
 					ent.setWebsite(enterprise.getWebsite());
-
-				if (Ver.nb(enterprise.getAreaCode()))
 					ent.setAreaCode(enterprise.getAreaCode());
-
-				if (Ver.nb(enterprise.getAddress()))
 					ent.setAddress(enterprise.getAddress());
-
-				if (enterprise.getCreateDate() != null)
 					ent.setCreateDate(enterprise.getCreateDate());
-
-				if (enterprise.getLbsId() != null)
-					ent.setLbsId(enterprise.getLbsId());
-
-				if (enterprise.getLbsLon() != null)
 					ent.setLbsLon(enterprise.getLbsLon());
-
-				if (enterprise.getLbsLat() != null)
 					ent.setLbsLat(enterprise.getLbsLat());
-
-				if (enterprise.getEnterpriseAccountId() != null)
-					ent.setEnterpriseAccountId(enterprise.getEnterpriseAccountId());
+				}
+				ent.setLbsId(enterprise.getLbsId());
+				ent.setEnterpriseAccountId(enterprise.getEnterpriseAccountId());
 			}
 		}
 		return ent;
@@ -648,93 +509,12 @@ public class Holder extends C3P0Store {
 				Post post = postNameMap.get(p.getName());
 				if (post != null) {
 					p.setId(post.getId());
-
-					if (Ver.nb(post.getCategory()))
-						p.setCategory(post.getCategory());
-
-					if (Ver.nb(post.getCategoryCode()))
-						p.setCategoryCode(post.getCategoryCode());
-
-					if (post.getNumber() != null)
-						p.setNumber(post.getNumber());
-
-					if (Ver.nb(post.getNumberText()))
-						p.setNumberText(post.getNumberText());
-
-					if (post.getIsSeveral() != null)
-						p.setIsSeveral(post.getIsSeveral());
-
-					if (Ver.nb(post.getNature()))
-						p.setNature(post.getNature());
-
-					if (Ver.nb(post.getNatureCode()))
-						p.setNatureCode(post.getNatureCode());
-
-					if (Ver.nb(post.getSalary()))
-						p.setSalary(post.getSalary());
-
-					if (Ver.nb(post.getSalaryText()))
-						p.setSalaryText(post.getSalaryText());
-
-					if (post.getSalaryType() != null)
-						p.setSalaryType(post.getSalaryType());
-
-					if (Ver.nb(post.getExperience()))
-						p.setExperience(post.getExperience());
-
-					if (Ver.nb(post.getExperienceCode()))
-						p.setExperienceCode(post.getExperienceCode());
-
-					if (Ver.nb(post.getEducation()))
-						p.setEducation(post.getEducation());
-
-					if (Ver.nb(post.getEducationCode()))
-						p.setEducationCode(post.getEducationCode());
-
-					if (Ver.nb(post.getWelfare()))
-						p.setWelfare(post.getWelfare());
-
-					if (Ver.nb(post.getWelfareCode()))
-						p.setWelfareCode(post.getWelfareCode());
-
-					if (Ver.nb(post.getIntroduction()))
-						p.setIntroduction(post.getIntroduction());
-
-					if (Ver.nb(post.getAreaCode()))
-						p.setAreaCode(post.getAreaCode());
-
-					if (Ver.nb(post.getAddress()))
-						p.setAddress(post.getAddress());
-
-					if (post.getUpdateDate() != null)
-						p.setUpdateDate(post.getUpdateDate());
-
-					if (post.getPublishDate() != null)
-						p.setPublishDate(post.getPublishDate());
-
-					if (post.getLbsId() != null)
-						p.setLbsId(post.getLbsId());
-
-					if (post.getLbsLon() != null)
-						p.setLbsLon(post.getLbsLon());
-
-					if (post.getLbsLat() != null)
-						p.setLbsLat(post.getLbsLat());
-
-					if (post.getExperienceId() != null)
-						p.setExperienceId(post.getExperienceId());
-
-					if (post.getEducationId() != null)
-						p.setEducationId(post.getEducationId());
-
-					if (post.getPostStatusId() != null)
-						p.setPostStatusId(post.getPostStatusId());
-
-					if (post.getPostPromotionId() != null)
-						p.setPostPromotionId(post.getPostPromotionId());
-
-					if (post.getPostViewId() != null)
-						p.setPostViewId(post.getPostViewId());
+					p.setLbsId(post.getLbsId());
+					p.setExperienceId(post.getExperienceId());
+					p.setEducationId(post.getEducationId());
+					p.setPostStatusId(post.getPostStatusId());
+					p.setPostPromotionId(post.getPostPromotionId());
+					p.setPostViewId(post.getPostViewId());
 				}
 			}
 		}
@@ -1515,5 +1295,5 @@ public class Holder extends C3P0Store {
 			return null;
 		}
 	}
-	
+
 }

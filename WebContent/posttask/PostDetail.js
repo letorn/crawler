@@ -18,7 +18,7 @@ Ext.define('Platform.posttask.PostDetail', {
       defaults: {
         labelAlign: 'right',
         labelWidth: 65,
-        width: 320
+        width: 400
       },
       items: [{
         xtype: 'textfield',
@@ -91,9 +91,35 @@ Ext.define('Platform.posttask.PostDetail', {
         name: 'welfare',
         readOnly: true
       }, {
+        itemId: 'postAddress',
         xtype: 'textfield',
         fieldLabel: '地址',
         name: 'address'
+      }, {
+        layout: 'column',
+        border: false,
+        items: [{
+          itemId: 'postLbsLon',
+          columnWidth: 0.4,
+          xtype: 'displayfield',
+          fieldLabel: '经度',
+          name: 'lbsLon',
+          labelAlign: 'right',
+          labelWidth: 65
+        }, {
+          itemId: 'postLbsLat',
+          columnWidth: 0.4,
+          xtype: 'displayfield',
+          fieldLabel: '纬度',
+          name: 'lbsLat',
+          labelAlign: 'right',
+          labelWidth: 40
+        }, {
+          columnWidth: 0.2,
+          xtype: 'button',
+          text: '定位',
+          handler: Ext.bind(me.popupPostAddrMap, me)
+        }]
       }, {
         xtype: 'textarea',
         fieldLabel: '介绍',
@@ -110,7 +136,7 @@ Ext.define('Platform.posttask.PostDetail', {
       defaults: {
         labelAlign: 'right',
         labelWidth: 65,
-        width: 320
+        width: 400
       },
       items: [{
         xtype: 'textfield',
@@ -165,9 +191,35 @@ Ext.define('Platform.posttask.PostDetail', {
         name: 'website',
         readOnly: true
       }, {
+        itemId: 'enterpriseAddress',
         xtype: 'textfield',
         fieldLabel: '地址',
         name: 'address'
+      }, {
+        layout: 'column',
+        border: false,
+        items: [{
+          itemId: 'enterpriseLbsLon',
+          columnWidth: 0.4,
+          xtype: 'displayfield',
+          fieldLabel: '经度',
+          name: 'lbsLon',
+          labelAlign: 'right',
+          labelWidth: 65
+        }, {
+          itemId: 'enterpriseLbsLat',
+          columnWidth: 0.4,
+          xtype: 'displayfield',
+          fieldLabel: '纬度',
+          name: 'lbsLat',
+          labelAlign: 'right',
+          labelWidth: 40
+        }, {
+          columnWidth: 0.2,
+          xtype: 'button',
+          text: '定位',
+          handler: Ext.bind(me.popupEnterpriseAddrMap, me)
+        }]
       }, {
         xtype: 'textarea',
         fieldLabel: '介绍',
@@ -240,8 +292,8 @@ Ext.define('Platform.posttask.PostDetail', {
     me.setLoading(true);
     var map = {
       cid: me.cid,
-      post: postView.getValues(),
-      enterprise: enterpriseView.getValues()
+      post: postView.form.getFieldValues(),
+      enterprise: enterpriseView.form.getFieldValues()
     };
     Ext.Ajax.request({
       async: false,
@@ -278,5 +330,154 @@ Ext.define('Platform.posttask.PostDetail', {
   },
   cancelBtnClick: function() {
     this.close();
+  },
+  initAddressMap: function() {
+    var me = this;
+    me.geocoder = new BMap.Geocoder();
+    me.addressMap = Ext.widget('window', {
+      width: 400,
+      height: 280,
+      header: false,
+      closable: false,
+      resizable: false,
+      closeAction: 'hide',
+      modal: true,
+      bbar: [{
+        id: 'autoText',
+        itemId: 'text',
+        xtype: 'combobox',
+        fieldLabel: '地址',
+        labelWidth: 40,
+        labelAlign: 'right',
+        width: 270,
+        queryMode: 'local',
+        triggerAction: 'all',
+        displayField: 'text',
+        valueField: 'text',
+        store: Store.create({
+          type: 'array',
+          fields: ['text'],
+          data: [],
+          listeners: {
+            datachanged: function(store) {
+              store.picker.doQuery('', true);
+            }
+          }
+        }),
+        listeners: {
+          change: function(field, newValue) {
+            var win = field.ownerCt.ownerCt;
+            me.delayedSearch.delay(800);
+          }
+        }
+      }, {
+        text: '确定',
+        handler: function(btn) {
+          var win = btn.ownerCt.ownerCt, textCmp = win.down('#text'), point = win.getPoint();
+          if (win.closeCallback) {
+            win.closeCallback('', point.lng, point.lat);
+          }
+          win.addressCmp.setValue(textCmp.getValue());
+          win.lngCmp.setValue(point.lng);
+          win.latCmp.setValue(point.lat);
+          win.close();
+        }
+      }, {
+        text: '取消',
+        handler: function(btn) {
+          var win = btn.ownerCt.ownerCt;
+          win.close();
+        }
+      }],
+      listeners: {
+        afterlayout: function(win) {
+          var textCmp = win.down('#text'), textStore = textCmp.getStore();
+          win.map = new BMap.Map(win.body.dom, {
+            minZoom: 5
+          });
+          win.map.enableScrollWheelZoom();
+          win.map.centerAndZoom(new BMap.Point(113.203125, 33.884664), 5);
+          var local = new BMap.Autocomplete({
+            location: win.map,
+            input: 'autoText',
+            onSearchComplete: function(rs) {
+              textStore.picker = textCmp;
+              textStore.loadData(rs.Nq.map(function(item) {
+                var done = false, include = false, address = item.business, strs = [item.province, item.city, item.district];
+                for (var i = strs.length - 1; i >= 0; i--) {
+                  var str = strs[i].replace(/省$|市$|区$/g, '');
+                  if (str.length > 0) {
+                    if (address.startsWith(str)) {
+                      address = strs.slice(0, i).join('') + address;
+                      done = true;
+                      break;
+                    } else {
+                      if (address.includes(str))
+                        include = true;
+                    }
+                  }
+                }
+                if (!done && !include)
+                  address = strs.join('') + address;
+                return [address];
+              }));
+            }
+          });
+          me.delayedSearch = new Ext.util.DelayedTask(function() {
+            var newValue = textCmp.getValue();
+            local.search(newValue);
+            me.geocoder.getPoint(newValue, function(point) {
+              var point = new BMap.Point(point.lng, point.lat);
+              win.addressMarker.setPosition(point);
+              win.map.centerAndZoom(point, 16);
+            });
+          });
+          Ext.defer(function() {
+            Ext.query('.anchorBL').forEach(function(el) {
+              el.style.display = 'none';
+            });
+          }, 200);
+        }
+      },
+      setPoint: function(addressCmp, lngCmp, latCmp) {
+        var win = this, textCmp = win.down('#text');
+        win.addressCmp = addressCmp;
+        win.lngCmp = lngCmp;
+        win.latCmp = latCmp;
+        textCmp.setRawValue(addressCmp.getValue());
+        var point = new BMap.Point(lngCmp.getValue() || 113.203125, latCmp.getValue() || 33.884664);
+        win.map.centerAndZoom(point, 16);
+        win.addressMarker = new BMap.Marker(point);
+        win.addressMarker.addEventListener('dragend', function(e) {
+          var marker = this;
+          me.geocoder.getLocation(e.point, function(rs) {
+            textCmp.setRawValue(rs.address);
+          });
+        });
+        win.addressMarker.enableDragging();
+        win.map.clearOverlays();
+        win.map.addOverlay(win.addressMarker);
+      },
+      getPoint: function() {
+        var win = this;
+        return win.addressMarker.getPosition();
+      }
+    });
+  },
+  popupPostAddrMap: function() {
+    var me = this, addressField = me.down('#postAddress'), lbsLonField = me.down('#postLbsLon'), lbsLatField = me.down('#postLbsLat');
+    if (!me.addressMap) {
+      me.initAddressMap();
+    }
+    me.addressMap.showAt(addressField.el.getX(), addressField.el.getY() - me.addressMap.height - 2)
+    me.addressMap.setPoint(addressField, lbsLonField, lbsLatField);
+  },
+  popupEnterpriseAddrMap: function() {
+    var me = this, addressField = me.down('#enterpriseAddress'), lbsLonField = me.down('#enterpriseLbsLon'), lbsLatField = me.down('#enterpriseLbsLat');
+    if (!me.addressMap) {
+      me.initAddressMap();
+    }
+    me.addressMap.showAt(addressField.el.getX(), addressField.el.getY() - me.addressMap.height - 2)
+    me.addressMap.setPoint(addressField, lbsLonField, lbsLatField);
   }
 });
