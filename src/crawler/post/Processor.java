@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import map.LbsClient;
 
@@ -43,6 +45,7 @@ public class Processor {
 	private Map<String, Map<String, String>> enterpriseAttributeMappers;
 
 	private List<Post> posts = new ArrayList<Post>();
+	private Set<String> postUniNames = new HashSet<String>();
 	private List<Enterprise> enterprises = new ArrayList<Enterprise>();
 	private Map<String, Integer> enterpriseUrlIndexes = new HashMap<String, Integer>();
 
@@ -165,6 +168,7 @@ public class Processor {
 
 								if (enterpriseUrlIndexes.containsKey(post.getEnterpriseUrl())) {
 									posts.add(post);
+									postUniNames.add(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""));
 									bill.setStatus(2);
 								}
 							}
@@ -341,7 +345,7 @@ public class Processor {
 				welCodes[i] = Ver.nb(code) ? String.format("system&%s&%s", code, welNames[i]) : String.format("self&%s", welNames[i]);
 			}
 			post.setWelfare(StringUtils.join(welNames, " "));
-			post.setWelfareCode(StringUtils.join(welCodes, "&&"));
+			post.setWelfareCode(StringUtils.join(welCodes, "$$"));
 		}
 
 		if (Ver.nb(area) && Ver.nb(address)) {
@@ -402,7 +406,7 @@ public class Processor {
 
 		Holder.mergePost(post);
 
-		if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || post.getPublishDate() == null || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
+		if (Ver.bl(post.getName()) || Ver.bl(post.getCategoryCode()) || Ver.bl(post.getNatureCode()) || Ver.bl(post.getExperienceCode()) || Ver.bl(post.getEducationCode()) || Ver.bl(post.getDataSrc()) || Ver.bl(post.getDataUrl()) || post.getUpdateDate() == null || post.getPublishDate() == null || postUniNames.contains(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : "")) || Ver.bl(post.getEnterpriseUrl()) || Ver.bl(post.getEnterpriseName()))
 			post.setStatus(-1);
 
 		return post;

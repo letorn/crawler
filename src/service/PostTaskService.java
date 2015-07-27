@@ -430,7 +430,7 @@ public class PostTaskService {
 
 	private static String mergePost(Post post, Post updatedPost) {
 		post.setStatus(0);
-		String oldPostName = post.getName();
+		String oldPostName = String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : "");
 		post.setName(updatedPost.getName());
 
 		post.setCategory(null);

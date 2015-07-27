@@ -163,7 +163,7 @@ public class Holder extends C3P0Store {
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 
 		logger.info("binning enterprise ...");
-		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id left join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
+		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Enterprise enterprise = new Enterprise();
 				enterprise.setId(resultSet.getLong("ent_id"));
@@ -323,10 +323,10 @@ public class Holder extends C3P0Store {
 		return null;
 	}
 
-	public static Post removePost(String name, String enterpriseName) {
+	public static Post removePost(String uniname, String enterpriseName) {
 		Map<String, Post> postNameMap = postEntNameMap.get(enterpriseName);
 		if (postNameMap != null)
-			return postNameMap.remove(name);
+			return postNameMap.remove(uniname);
 		return null;
 	}
 
@@ -506,7 +506,7 @@ public class Holder extends C3P0Store {
 		if (p.getEnterpriseName() != null) {
 			Map<String, Post> postNameMap = postEntNameMap.get(p.getEnterpriseName());
 			if (postNameMap != null && p.getName() != null) {
-				Post post = postNameMap.get(p.getName());
+				Post post = postNameMap.get(String.format("%s-%s", p.getName(), Ver.nb(p.getAreaCode()) ? p.getAreaCode() : ""));
 				if (post != null) {
 					p.setId(post.getId());
 					p.setLbsId(post.getLbsId());
@@ -539,7 +539,7 @@ public class Holder extends C3P0Store {
 				postNameMap = new HashMap<String, Post>();
 				postEntNameMap.put(post.getEnterpriseName(), postNameMap);
 			}
-			postNameMap.put(post.getName(), post);
+			postNameMap.put(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""), post);
 		}
 		return true;
 	}
