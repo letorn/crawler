@@ -12,7 +12,12 @@ Ext.define('Platform.posttask.Bill', {
 
     me.gridStore = Store.create({
       pageSize: 50,
-      fields: ['date', 'postUrl', 'postName', 'enterpriseUrl', 'enterpriseName', 'status'],
+      fields: [{
+        name: 'date',
+        convert: function(value) {
+          return Ext.Date.parse(value, 'Y-m-d H:i:s')
+        }
+      }, 'postUrl', 'postName', 'enterpriseUrl', 'enterpriseName', 'status'],
       proxy: {
         type: 'ajax',
         url: ctx + '/posttask/pagedBill.do',

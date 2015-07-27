@@ -280,7 +280,7 @@ Ext.define('Platform.posttask.PostDetail', {
       callback: function(options, success, response) {
         var response = Ext.decode(response.responseText);
         if (response.success) {
-          response.post.updateDate = new Date(response.post.updateDate);
+          response.post.updateDate = Ext.Date.parse(response.post.updateDate, 'Y-m-d H:i:s');
           me.postView.getForm().setValues(response.post);
           me.enterpriseView.getForm().setValues(response.enterprise);
         }

@@ -17,7 +17,12 @@ Ext.define('Platform.post.List', {
 
     me.store = Store.create({
       pageSize: 50,
-      fields: ['dataUrl', 'updateDate', 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
+      fields: ['dataUrl', {
+        name: 'updateDate',
+        convert: function(value) {
+          return Ext.Date.parse(value, 'Y-m-d H:i:s')
+        }
+      }, 'name', 'category', 'numberText', 'nature', 'salaryText', 'experience', 'education', 'welfare', 'address', 'introduction'],
       proxy: {
         type: 'ajax',
         url: ctx + '/posttask/pagedPost.do',
