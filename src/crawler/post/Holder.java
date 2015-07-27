@@ -351,19 +351,21 @@ public class Holder extends C3P0Store {
 	}
 
 	public static int getPostSize(String name) {
-		Integer localCount = localPostNameCount.get();
-		if (localCount != null) {
-			return localCount;
-		} else if (Ver.bl(name)) {
+		if (Ver.bl(name)) {
 			return postList.size();
 		} else {
-			int counter = 0;
-			for (int i = 0; i < postList.size(); i++) {
-				Post post = postList.get(i);
-				if ((Ver.nb(post.getName()) && post.getName().contains(name)) || (Ver.nb(post.getEnterpriseName()) && post.getEnterpriseName().contains(name)))
-					counter++;
+			Integer localCount = localPostNameCount.get();
+			if (localCount != null) {
+				return localCount;
+			} else {
+				int counter = 0;
+				for (int i = 0; i < postList.size(); i++) {
+					Post post = postList.get(i);
+					if ((Ver.nb(post.getName()) && post.getName().contains(name)) || (Ver.nb(post.getEnterpriseName()) && post.getEnterpriseName().contains(name)))
+						counter++;
+				}
+				return counter;
 			}
-			return counter;
 		}
 	}
 
