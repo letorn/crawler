@@ -444,6 +444,7 @@ Ext.define('Platform.posttask.PostDetail', {
         win.addressCmp = addressCmp;
         win.lngCmp = lngCmp;
         win.latCmp = latCmp;
+        textCmp.reset();
         textCmp.setRawValue(addressCmp.getValue());
         var point = new BMap.Point(lngCmp.getValue() || 113.203125, latCmp.getValue() || 33.884664);
         win.map.centerAndZoom(point, 16);
