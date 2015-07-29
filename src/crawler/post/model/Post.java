@@ -8,12 +8,12 @@ public class Post implements Point {
 
 	private Long id;
 	private String name;
-	private String category;
+	private String category;// 职位职能
 	private String categoryCode;
 	private Integer number;
 	private String numberText;
 	private Integer isSeveral;
-	private String nature;
+	private String nature;// 岗位性质
 	private String natureCode;
 	private String salary;
 	private String salaryText;
@@ -22,13 +22,13 @@ public class Post implements Point {
 	private String experienceCode;
 	private String education;
 	private String educationCode;
-	private String welfare;
+	private String welfare;// 福利
 	private String welfareCode;
 	private String introduction;
 	private String areaCode;
 	private String address;
-	private String dataSrc;
-	private String dataUrl;
+	private String dataSrc;// 数据来源
+	private String dataUrl;// 页面链接
 	private Date updateDate;
 	private Date publishDate;
 

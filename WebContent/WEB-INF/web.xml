@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="3.1">
 
+  <session-config>
+    <session-timeout>30</session-timeout>
+  </session-config>
+
   <display-name>crawler</display-name>
 
   <context-param>

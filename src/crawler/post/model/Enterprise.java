@@ -6,18 +6,18 @@ public class Enterprise {
 
 	private Long id;
 	private String name;
-	private String category;
+	private String category;// 公司行业
 	private String categoryCode;
-	private String nature;
+	private String nature;// 公司性质
 	private String natureCode;
-	private String scale;
+	private String scale;// 公司规模
 	private String scaleCode;
 	private String introduction;
 	private String website;
 	private String areaCode;
 	private String address;
-	private String dataSrc;
-	private String dataUrl;
+	private String dataSrc;// 数据来源
+	private String dataUrl;// 页面链接
 	private Date createDate;
 
 	private Long lbsId;

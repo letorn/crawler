@@ -952,7 +952,7 @@ public class Holder extends C3P0Store {
 	private static Post savePostView(Post post, Connection connection) throws Exception {
 		Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
 		if (post.getPostViewId() != null) {
-			PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=? where id=?");
+			PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=?, publish_date=? where id=?");
 			updateStatement.setString(1, post.getName());
 			updateStatement.setString(2, post.getCategoryCode());
 			updateStatement.setString(3, post.getNatureCode());
@@ -989,7 +989,8 @@ public class Holder extends C3P0Store {
 			updateStatement.setString(13, enterprise.getCategoryCode());
 			updateStatement.setString(14, enterprise.getNatureCode());
 			updateStatement.setString(15, enterprise.getScaleCode());
-			updateStatement.setLong(16, post.getPostViewId());
+			updateStatement.setDate(16, new Date(post.getUpdateDate().getTime()));
+			updateStatement.setLong(17, post.getPostViewId());
 			updateStatement.executeUpdate();
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_view_ent_post(post_id, post_aliases, post_code, post_property_code, salary_code, min_salary, max_salary, salary_type, tag_selected, area_code, lon, lat, ent_id, ent_name, industry, property, employ_num, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -1025,7 +1026,7 @@ public class Holder extends C3P0Store {
 			insertStatement.setString(15, enterprise.getCategoryCode());
 			insertStatement.setString(16, enterprise.getNatureCode());
 			insertStatement.setString(17, enterprise.getScaleCode());
-			insertStatement.setDate(18, new Date(post.getPublishDate().getTime()));
+			insertStatement.setDate(18, new Date(post.getUpdateDate().getTime()));
 			insertStatement.executeUpdate();
 			ResultSet generatedSet = insertStatement.getGeneratedKeys();
 			if (generatedSet.next())
@@ -1035,7 +1036,7 @@ public class Holder extends C3P0Store {
 	}
 
 	private static List<Post> saveAllPostView(List<Post> list, Connection connection) throws Exception {
-		PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=? where id=?");
+		PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=?, publish_date=? where id=?");
 		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_view_ent_post(post_id, post_aliases, post_code, post_property_code, salary_code, min_salary, max_salary, salary_type, tag_selected, area_code, lon, lat, ent_id, ent_name, industry, property, employ_num, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list) {
@@ -1071,7 +1072,8 @@ public class Holder extends C3P0Store {
 				updateStatement.setString(13, enterprise.getCategoryCode());
 				updateStatement.setString(14, enterprise.getNatureCode());
 				updateStatement.setString(15, enterprise.getScaleCode());
-				updateStatement.setLong(16, post.getPostViewId());
+				updateStatement.setDate(16, new Date(post.getUpdateDate().getTime()));
+				updateStatement.setLong(17, post.getPostViewId());
 				updateStatement.addBatch();
 			} else {
 				insertStatement.setLong(1, post.getId());
@@ -1106,7 +1108,7 @@ public class Holder extends C3P0Store {
 				insertStatement.setString(15, enterprise.getCategoryCode());
 				insertStatement.setString(16, enterprise.getNatureCode());
 				insertStatement.setString(17, enterprise.getScaleCode());
-				insertStatement.setDate(18, new Date(post.getPublishDate().getTime()));
+				insertStatement.setDate(18, new Date(post.getUpdateDate().getTime()));
 				insertStatement.addBatch();
 				inserted.add(post);
 			}

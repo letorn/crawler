@@ -10,6 +10,7 @@
     http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+  <!-- 正式环境配置 -->
   <!-- <context:property-override location="classpath:bean.overrides"/> -->
 
   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
@@ -33,8 +34,10 @@
     </property>
   </bean>
 
+  <!-- 定时任务 -->
   <task:annotation-driven />
 
+  <!-- 返回Json时的Formatter -->
   <mvc:annotation-driven conversion-service="conversionService">
     <mvc:message-converters>
       <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
@@ -50,11 +53,13 @@
       </bean>
     </mvc:message-converters>
   </mvc:annotation-driven>
-  
+
+  <!-- 拦截器 -->
   <mvc:interceptors>
     <bean class="init.WebInterceptor" />
   </mvc:interceptors>
-  
+
+  <!-- 接收数据时的Formatter -->
   <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
     <property name="registerDefaultFormatters" value="false" />
     <property name="formatters">
@@ -75,6 +80,7 @@
     </property>
   </bean>
 
+  <!-- 注解扫描 -->
   <!-- <bean class="dao.data.Stack" init-method="init" /> -->
   <context:component-scan base-package="util" />
   <context:component-scan base-package="init" />
