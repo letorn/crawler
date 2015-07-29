@@ -15,10 +15,49 @@ import javax.sql.DataSource;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.redis.core.RedisTemplate;
 
 public class C3P0Store implements ApplicationContextAware {
 
+	public static RedisTemplate<Object, Object> redisTemplate;
 	public static DataSource dataSource;
+
+	public static boolean hashPut(Object key, Object subKey, Object value) {
+		redisTemplate.opsForHash().put(key, subKey, value);
+		return true;
+	}
+
+	public static boolean hashPutAll(Object key, Map<? extends Object, ? extends Object> map) {
+		redisTemplate.opsForHash().putAll(key, map);
+		return true;
+	}
+
+	public static Object hashGet(Object key, Object subKey) {
+		return redisTemplate.opsForHash().get(key, subKey);
+	}
+
+	public static boolean listPut(Object key, Object value) {
+		redisTemplate.opsForList().rightPush(key, value);
+		return false;
+	}
+
+	public static boolean listPutAll(Object key, List<Object> list) {
+		redisTemplate.opsForList().rightPushAll(key, list);
+		return false;
+	}
+
+	public static List<Object> listGet(Object key) {
+		return (List<Object>) redisTemplate.opsForList().rightPop(key);
+	}
+
+	public static boolean valuePut(String key, Object value) {
+		redisTemplate.opsForValue().set(key, value);
+		return true;
+	}
+
+	public static Object valueGet(Object key) {
+		return redisTemplate.opsForValue().get(key);
+	}
 
 	public static Map<String, Object> selectMetaMap(String sql) {
 		return executeWithResultSet(sql, new Getter<Map<String, Object>>() {
@@ -536,6 +575,7 @@ public class C3P0Store implements ApplicationContextAware {
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		redisTemplate = applicationContext.getBean(RedisTemplate.class);
 		dataSource = applicationContext.getBean(DataSource.class);
 	}
 

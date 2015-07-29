@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import map.LbsClient;
 import map.Marker;
@@ -53,6 +54,16 @@ public class PostTaskService {
 
 	@PostConstruct
 	private void init() {
+		initNorms();
+		initCodes();
+	}
+
+	@PreDestroy
+	private void destroy() {
+		System.out.println(Holder.getPostCategoryCodeMap());
+	}
+
+	public boolean initNorms() {
 		File normDir = new File(WebContext.getAppRoot(), "norm");
 		File[] normFiles = normDir.listFiles();
 		for (File normFile : normFiles) {
@@ -66,88 +77,109 @@ public class PostTaskService {
 				enterpriseNorms.put(nid, (Map<String, Object>) norm.get("enterprise"));
 			}
 		}
+		return true;
+	}
 
-		Map<String, Map<String, String>> postCategoryMap = Holder.getPostCategoryCodeMap();
-		for (String code : postCategoryMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			Map<String, String> postCategory = postCategoryMap.get(code);
-			map.put("code", postCategory.get("code"));
-			map.put("name", postCategory.get("name"));
-			map.put("group", postCategory.get("group"));
-			postCategories.add(postCategoryMap.get(code));
-		}
-		Collections.sort(postCategories, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+	public boolean initCodes() {
+		if (Holder.isInitedParams()) {
+			Map<String, Map<String, String>> postCategoryMap = Holder.getPostCategoryCodeMap();
+			for (String code : postCategoryMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				Map<String, String> postCategory = postCategoryMap.get(code);
+				map.put("code", postCategory.get("code"));
+				map.put("name", postCategory.get("name"));
+				map.put("group", postCategory.get("group"));
+				postCategories.add(postCategoryMap.get(code));
 			}
-		});
+			Collections.sort(postCategories, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
 
-		Map<String, String> postExperienceCodeMap = Holder.getPostExperienceCodeMap();
-		for (String code : postExperienceCodeMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			String name = postExperienceCodeMap.get(code);
-			map.put("name", name);
-			map.put("code", code);
-			postExperiences.add(map);
-		}
-		Collections.sort(postExperiences, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+			Map<String, String> postExperienceCodeMap = Holder.getPostExperienceCodeMap();
+			for (String code : postExperienceCodeMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				String name = postExperienceCodeMap.get(code);
+				map.put("name", name);
+				map.put("code", code);
+				postExperiences.add(map);
 			}
-		});
+			Collections.sort(postExperiences, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
 
-		Map<String, String> postEducationCodeMap = Holder.getPostEducationCodeMap();
-		for (String code : postEducationCodeMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			String name = postEducationCodeMap.get(code);
-			map.put("name", name);
-			map.put("code", code);
-			postEducations.add(map);
-		}
-		Collections.sort(postEducations, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+			Map<String, String> postEducationCodeMap = Holder.getPostEducationCodeMap();
+			for (String code : postEducationCodeMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				String name = postEducationCodeMap.get(code);
+				map.put("name", name);
+				map.put("code", code);
+				postEducations.add(map);
 			}
-		});
+			Collections.sort(postEducations, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
 
-		Map<String, String> enterpriseCategoryMap = Holder.getEnterpriseCategoryCodeMap();
-		for (String code : enterpriseCategoryMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("code", code);
-			map.put("name", enterpriseCategoryMap.get(code));
-			enterpriseCategories.add(map);
-		}
-		Collections.sort(enterpriseCategories, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+			Map<String, String> enterpriseCategoryMap = Holder.getEnterpriseCategoryCodeMap();
+			for (String code : enterpriseCategoryMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("code", code);
+				map.put("name", enterpriseCategoryMap.get(code));
+				enterpriseCategories.add(map);
 			}
-		});
+			Collections.sort(enterpriseCategories, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
 
-		Map<String, String> enterpriseNatureMap = Holder.getEnterpriseNatureCodeMap();
-		for (String code : enterpriseNatureMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("code", code);
-			map.put("name", enterpriseNatureMap.get(code));
-			enterpriseNatures.add(map);
-		}
-		Collections.sort(enterpriseNatures, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+			Map<String, String> enterpriseNatureMap = Holder.getEnterpriseNatureCodeMap();
+			for (String code : enterpriseNatureMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("code", code);
+				map.put("name", enterpriseNatureMap.get(code));
+				enterpriseNatures.add(map);
 			}
-		});
+			Collections.sort(enterpriseNatures, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
 
-		Map<String, String> enterpriseScaleMap = Holder.getEnterpriseScaleCodeMap();
-		for (String code : enterpriseScaleMap.keySet()) {
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("code", code);
-			map.put("name", enterpriseScaleMap.get(code));
-			enterpriseScales.add(map);
-		}
-		Collections.sort(enterpriseScales, new Comparator<Map<String, String>>() {
-			public int compare(Map<String, String> map1, Map<String, String> map2) {
-				return map1.get("code").compareTo(map2.get("code"));
+			Map<String, String> enterpriseScaleMap = Holder.getEnterpriseScaleCodeMap();
+			for (String code : enterpriseScaleMap.keySet()) {
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("code", code);
+				map.put("name", enterpriseScaleMap.get(code));
+				enterpriseScales.add(map);
 			}
-		});
+			Collections.sort(enterpriseScales, new Comparator<Map<String, String>>() {
+				public int compare(Map<String, String> map1, Map<String, String> map2) {
+					return map1.get("code").compareTo(map2.get("code"));
+				}
+			});
+			return true;
+		}
+		return false;
+	}
+
+	public boolean initHolderParams() {
+		if (Holder.initParams())
+			return initCodes();
+		return false;
+	}
+
+	public boolean initHolderEnterprises() {
+		return Holder.initEnterprises();
+	}
+
+	public boolean initHolderPosts() {
+		return Holder.initPosts();
 	}
 
 	public Map<String, Map<String, Object>> getBillNorms() {

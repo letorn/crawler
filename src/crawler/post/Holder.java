@@ -30,26 +30,30 @@ public class Holder extends C3P0Store {
 
 	private static Logger logger = Logger.getLogger(Holder.class);
 
-	private static Map<String, String> areaNameMap = new ConcurrentHashMap<String, String>();
+	private static boolean initedParams = false;
+	private static boolean initedEnterprises = false;
+	private static boolean initedPosts = false;
 
-	private static Map<String, String> tagCodeMap = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> tagNameMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> areaNameMap = new HashMap<String, String>();
 
-	private static Map<String, Map<String, Object>> technologyCodeMap = new ConcurrentHashMap<String, Map<String, Object>>();
-	private static Map<String, Map<String, Object>> abilityParamCodeMap = new ConcurrentHashMap<String, Map<String, Object>>();
+	private static Map<String, String> tagCodeMap = new HashMap<String, String>();
+	private static Map<String, String> tagNameMap = new HashMap<String, String>();
 
-	private static Map<String, Map<String, String>> postCategoryCodeMap = new ConcurrentHashMap<String, Map<String, String>>();
-	private static Map<String, String> postNatureCodeMap = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> postExperienceCodeMap = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> postEducationCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, Map<String, Object>> technologyCodeMap = new HashMap<String, Map<String, Object>>();
+	private static Map<String, Map<String, Object>> abilityParamCodeMap = new HashMap<String, Map<String, Object>>();
 
-	private static Map<String, String> enterpriseCategoryCodeMap = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> enterpriseNatureCodeMap = new ConcurrentHashMap<String, String>();
-	private static Map<String, String> enterpriseScaleCodeMap = new ConcurrentHashMap<String, String>();
+	private static Map<String, Map<String, String>> postCategoryCodeMap = new HashMap<String, Map<String, String>>();
+	private static Map<String, String> postNatureCodeMap = new HashMap<String, String>();
+	private static Map<String, String> postExperienceCodeMap = new HashMap<String, String>();
+	private static Map<String, String> postEducationCodeMap = new HashMap<String, String>();
+
+	private static Map<String, String> enterpriseCategoryCodeMap = new HashMap<String, String>();
+	private static Map<String, String> enterpriseNatureCodeMap = new HashMap<String, String>();
+	private static Map<String, String> enterpriseScaleCodeMap = new HashMap<String, String>();
 
 	private static DecimalFormat accountNumFormat = new DecimalFormat("0000000");
 	private static DecimalFormat passwordNumFormat = new DecimalFormat("000000");
-	private static int lastAccountNum = -1;
+	private static Integer lastAccountNum = -1;
 
 	private static Cluster<Post> postCluster = new Cluster<Post>();
 	private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
@@ -71,6 +75,47 @@ public class Holder extends C3P0Store {
 
 	public void init() {
 		logger.info("------ init holder ------");
+		tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
+		tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
+		areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
+		postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
+		technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
+		postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
+		postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
+		postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
+		abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
+		enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
+		enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
+		enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
+		lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
+		if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
+			initedParams = true;
+
+		lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
+		// initParams();
+		initEnterprises();
+		initPosts();
+		logger.info("-------------------------");
+	}
+
+	public static boolean isInitedParams() {
+		return initedParams;
+	}
+
+	public static boolean initParams() {
+		tagNameMap = new HashMap<String, String>();
+		tagCodeMap = new HashMap<String, String>();
+		areaNameMap = new HashMap<String, String>();
+		postCategoryCodeMap = new HashMap<String, Map<String, String>>();
+		technologyCodeMap = new HashMap<String, Map<String, Object>>();
+		postNatureCodeMap = new HashMap<String, String>();
+		postExperienceCodeMap = new HashMap<String, String>();
+		postEducationCodeMap = new HashMap<String, String>();
+		abilityParamCodeMap = new HashMap<String, Map<String, Object>>();
+		enterpriseNatureCodeMap = new HashMap<String, String>();
+		enterpriseScaleCodeMap = new HashMap<String, String>();
+		enterpriseCategoryCodeMap = new HashMap<String, String>();
+		lastAccountNum = -1;
 
 		logger.info("binning tag ...");
 		selectResultSet("select tag_name, tag_code from zcdh_tag where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
@@ -162,6 +207,23 @@ public class Holder extends C3P0Store {
 		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 
+		valuePut("crawler-post-holder-tagNameMap", tagNameMap);
+		valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
+		valuePut("crawler-post-holder-areaNameMap", areaNameMap);
+		valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
+		valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
+		valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
+		valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
+		valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
+		valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
+		valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
+		valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
+		valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
+		valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
+		return true;
+	}
+
+	public static boolean initEnterprises() {
 		logger.info("binning enterprise ...");
 		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
@@ -196,6 +258,10 @@ public class Holder extends C3P0Store {
 			}
 		});
 
+		return true;
+	}
+
+	public static boolean initPosts() {
 		logger.info("binning post ...");
 		selectResultSet("select distinct p.id, p.post_aliases, p.post_name, p.post_code, p.headcounts, p.is_several, p.pjob_category, p.psalary, p.salary_type, p.tag_selected, p.post_remark, p.parea, p.post_address, p.data_src, p.data_url, p.update_date, p.publish_date, l.lbs_id, l.longitude, l.latitude, ex.ent_ability_id ex_id, ex.param_code ex_code, ed.ent_ability_id ed_id, ed.param_code ed_code, ps.ps_id status_id, v.id view_id, e.ent_name, e.data_url ent_url from zcdh_ent_post p left join zcdh_ent_lbs l on l.lbs_id=p.lbs_id left join zcdh_ent_ability_require ex on ex.post_id=p.id and ex.technology_code='-0000000000003' left join zcdh_ent_ability_require ed on ed.post_id=p.id and ed.technology_code='-0000000000004' left join zcdh_ent_post_status ps on ps.post_id=p.id join zcdh_view_ent_post v on v.post_id=p.id join zcdh_ent_enterprise e on e.ent_id=p.ent_id where p.data_src is not null and p.data_url is not null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
@@ -246,7 +312,8 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-		logger.info("-------------------------");
+
+		return true;
 	}
 
 	public static String getTagCode(String tagName) {

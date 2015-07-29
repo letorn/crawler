@@ -13,6 +13,24 @@
   <!-- 正式环境配置 -->
   <!-- <context:property-override location="classpath:bean.overrides"/> -->
 
+  <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">    
+    <property name="caches">
+      <set>
+        <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" />
+      </set>
+    </property>
+  </bean>
+
+  <!-- redis -->
+  <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+    <property name="hostName" value="redis" />
+    <property name="port" value="6379" />
+  </bean>
+  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+    <property name="connectionFactory" ref="jedisFactory" />
+  </bean>
+
+  <!-- mysql -->
   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
     <property name="driverClass" value="net.sf.log4jdbc.DriverSpy" />
     <property name="jdbcUrl" value="jdbc:log4jdbc:mysql://mysql:3306/my_zcdh_uni?useUnicode=true&amp;characterEncoding=utf8" />
@@ -25,17 +43,6 @@
     <property name="maxIdleTime" value="60" />
     <property name="idleConnectionTestPeriod" value="60" />
   </bean>
-
-  <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">    
-    <property name="caches">
-      <set>
-        <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" />
-      </set>
-    </property>
-  </bean>
-
-  <!-- 定时任务 -->
-  <task:annotation-driven />
 
   <!-- 返回Json时的Formatter -->
   <mvc:annotation-driven conversion-service="conversionService">
@@ -53,11 +60,6 @@
       </bean>
     </mvc:message-converters>
   </mvc:annotation-driven>
-
-  <!-- 拦截器 -->
-  <mvc:interceptors>
-    <bean class="init.WebInterceptor" />
-  </mvc:interceptors>
 
   <!-- 接收数据时的Formatter -->
   <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
@@ -80,8 +82,16 @@
     </property>
   </bean>
 
+  <!-- 定时任务 -->
+  <task:annotation-driven />
+
+  <!-- 拦截器 -->
+  <mvc:interceptors>
+    <bean class="init.WebInterceptor" />
+  </mvc:interceptors>
+
   <!-- 注解扫描 -->
-  <!-- <bean class="dao.data.Stack" init-method="init" /> -->
+  <bean class="dao.data.Stack" init-method="init" />
   <context:component-scan base-package="util" />
   <context:component-scan base-package="init" />
   <context:component-scan base-package="crawler" />

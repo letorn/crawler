@@ -29,6 +29,38 @@ public class PostTaskController {
 	@Resource
 	private PostTaskService postTaskService;
 
+	@RequestMapping("initNorms.do")
+	@ResponseBody
+	public Map<String, Object> initNorms() {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", postTaskService.initNorms());
+		return resultMap;
+	}
+
+	@RequestMapping("initHolderParams.do")
+	@ResponseBody
+	public Map<String, Object> initHolderParams() {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", postTaskService.initHolderParams());
+		return resultMap;
+	}
+
+	@RequestMapping("initHolderEnterprises.do")
+	@ResponseBody
+	public Map<String, Object> initHolderEnterprises() {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", postTaskService.initHolderEnterprises());
+		return resultMap;
+	}
+
+	@RequestMapping("initHolderPosts.do")
+	@ResponseBody
+	public Map<String, Object> initHolderPosts() {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", postTaskService.initHolderPosts());
+		return resultMap;
+	}
+
 	@RequestMapping("norms.do")
 	@ResponseBody
 	public Map<String, Object> norms() {
