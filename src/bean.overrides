@@ -8,3 +8,6 @@ dataSource.initialPoolSize = 3
 dataSource.acquireIncrement = 3
 dataSource.maxIdleTime = 60
 dataSource.idleConnectionTestPeriod = 60
+
+jedisFactory.hostName = redis
+jedisFactory.port = 6379

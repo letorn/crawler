@@ -60,7 +60,6 @@ public class PostTaskService {
 
 	@PreDestroy
 	private void destroy() {
-		System.out.println(Holder.getPostCategoryCodeMap());
 	}
 
 	public boolean initNorms() {

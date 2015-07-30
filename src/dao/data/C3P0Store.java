@@ -575,7 +575,7 @@ public class C3P0Store implements ApplicationContextAware {
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		redisTemplate = applicationContext.getBean(RedisTemplate.class);
+		// redisTemplate = applicationContext.getBean(RedisTemplate.class);
 		dataSource = applicationContext.getBean(DataSource.class);
 	}
 

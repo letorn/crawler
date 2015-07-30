@@ -22,6 +22,7 @@
   </bean>
 
   <!-- redis -->
+  <!--
   <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
     <property name="hostName" value="redis" />
     <property name="port" value="6379" />
@@ -29,6 +30,7 @@
   <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
     <property name="connectionFactory" ref="jedisFactory" />
   </bean>
+  -->
 
   <!-- mysql -->
   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">

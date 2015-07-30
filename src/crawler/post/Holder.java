@@ -30,6 +30,8 @@ public class Holder extends C3P0Store {
 
 	private static Logger logger = Logger.getLogger(Holder.class);
 
+	private static boolean useCache = redisTemplate != null ? true : false;
+
 	private static boolean initedParams = false;
 	private static boolean initedEnterprises = false;
 	private static boolean initedPosts = false;
@@ -75,26 +77,27 @@ public class Holder extends C3P0Store {
 
 	public void init() {
 		logger.info("------ init holder ------");
-		tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
-		tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
-		areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
-		postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
-		technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
-		postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
-		postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
-		postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
-		abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
-		enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
-		enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
-		enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
-		lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
-		if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
-			initedParams = true;
-
-		lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
-		// initParams();
-		initEnterprises();
-		initPosts();
+		if (useCache) {
+			tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
+			tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
+			areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
+			postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
+			technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
+			postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
+			postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
+			postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
+			abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
+			enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
+			enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
+			enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
+			lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
+			if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
+				initedParams = true;
+		} else {
+			initParams();
+			initEnterprises();
+			initPosts();
+		}
 		logger.info("-------------------------");
 	}
 
@@ -207,19 +210,23 @@ public class Holder extends C3P0Store {
 		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 
-		valuePut("crawler-post-holder-tagNameMap", tagNameMap);
-		valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
-		valuePut("crawler-post-holder-areaNameMap", areaNameMap);
-		valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
-		valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
-		valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
-		valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
-		valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
-		valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
-		valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
-		valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
-		valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
-		valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
+		initedParams = true;
+
+		if (useCache) {
+			valuePut("crawler-post-holder-tagNameMap", tagNameMap);
+			valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
+			valuePut("crawler-post-holder-areaNameMap", areaNameMap);
+			valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
+			valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
+			valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
+			valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
+			valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
+			valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
+			valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
+			valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
+			valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
+			valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
+		}
 		return true;
 	}
 
@@ -257,7 +264,7 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-
+		initedEnterprises = true;
 		return true;
 	}
 
@@ -312,7 +319,7 @@ public class Holder extends C3P0Store {
 				return true;
 			}
 		});
-
+		initedPosts = true;
 		return true;
 	}
 
