@@ -46,7 +46,7 @@ public class RedisStack implements ApplicationContextAware {
 		return false;
 	}
 
-	public static boolean setContains(Object key, Set<Object> value) {
+	public static boolean setContain(Object key, Set<Object> value) {
 		return redisTemplate.opsForSet().isMember(key, value);
 	}
 
@@ -60,12 +60,18 @@ public class RedisStack implements ApplicationContextAware {
 		return true;
 	}
 
-	public static Object hashContains(Object key, Object subKey) {
+	public static Object hashContainKey(Object key, Object subKey) {
 		return redisTemplate.opsForHash().hasKey(key, subKey);
 	}
 
 	public static Object hashGet(Object key, Object subKey) {
 		return redisTemplate.opsForHash().get(key, subKey);
+	}
+
+	public static Object hashRemove(Object key, Object subKey) {
+		Object value = redisTemplate.opsForHash().get(key, subKey);
+		redisTemplate.opsForHash().delete(key, subKey);
+		return value;
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

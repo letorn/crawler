@@ -33,8 +33,12 @@ public class LocalStack {
 		return false;
 	}
 
-	public static boolean listPutAll(Object key, List<Object> list) {
-		listMap.put(key, list);
+	public static boolean listPutAll(Object key, List<Object> values) {
+		List<Object> list = listMap.get(key);
+		if (list == null)
+			listMap.put(key, values);
+		else
+			list.addAll(values);
 		return false;
 	}
 
@@ -55,12 +59,16 @@ public class LocalStack {
 		return false;
 	}
 
-	public static boolean setPutAll(Object key, Set<Object> value) {
-		setMap.put(key, value);
+	public static boolean setPutAll(Object key, Set<Object> values) {
+		Set<Object> set = setMap.get(key);
+		if (set == null)
+			setMap.put(key, values);
+		else
+			set.addAll(values);
 		return false;
 	}
 
-	public static boolean setContains(Object key, Set<Object> value) {
+	public static boolean setContain(Object key, Set<Object> value) {
 		Set<Object> set = setMap.get(key);
 		if (set != null)
 			return set.contains(value);
@@ -77,12 +85,16 @@ public class LocalStack {
 		return true;
 	}
 
-	public static boolean hashPutAll(Object key, Map<Object, Object> map) {
-		hashMap.put(key, map);
+	public static boolean hashPutAll(Object key, Map<Object, Object> values) {
+		Map<Object, Object> map = hashMap.get(key);
+		if (map == null)
+			hashMap.put(key, values);
+		else
+			map.putAll(values);
 		return true;
 	}
 
-	public static Object hashContains(Object key, Object subKey) {
+	public static Object hashContainKey(Object key, Object subKey) {
 		Map<Object, Object> map = hashMap.get(key);
 		if (map != null)
 			return map.containsKey(subKey);
@@ -93,6 +105,13 @@ public class LocalStack {
 		Map<Object, Object> map = hashMap.get(key);
 		if (map != null)
 			return map.get(subKey);
+		return null;
+	}
+
+	public static Object hashRemove(Object key, Object subKey) {
+		Map<Object, Object> map = hashMap.get(key);
+		if (map != null)
+			return map.remove(subKey);
 		return null;
 	}
 

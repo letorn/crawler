@@ -25,14 +25,14 @@ import util.Ver;
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
 import dao.data.C3P0Store;
+import dao.data.C3P0Store.Iterator;
+import dao.data.Stack;
 
-public class Holder extends C3P0Store {
+public class Holder {
 
 	private static Logger logger = Logger.getLogger(Holder.class);
 
 	private static C3P0Store store = new C3P0Store();
-	
-	private static boolean useCache = false;
 
 	private static boolean initedParams = false;
 	private static boolean initedEnterprises = false;
@@ -60,12 +60,13 @@ public class Holder extends C3P0Store {
 	private static Integer lastAccountNum = -1;
 
 	private static Cluster<Post> postCluster = new Cluster<Post>();
-	private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
-	private static List<Post> postList = new ArrayList<Post>();
-	private static ThreadLocal<Integer> localPostNameCount = new ThreadLocal<Integer>();
-	private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
-	private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
-	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
+
+	// private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
+	// private static List<Post> postList = new ArrayList<Post>();
+	// private static ThreadLocal<Integer> localPostNameCount = new ThreadLocal<Integer>();
+	// private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
+	// private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
+	// private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
 
 	private static MessageDigest messageDigest;
 	private static Random random = new Random();
@@ -79,32 +80,37 @@ public class Holder extends C3P0Store {
 
 	public void init() {
 		logger.info("------ init holder ------");
-		if (useCache) {
-//			tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
-//			tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
-//			areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
-//			postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
-//			technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
-//			postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
-//			postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
-//			postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
-//			abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
-//			enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
-//			enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
-//			enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
-//			lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
-//			if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
-//				initedParams = true;
-		} else {
-			initParams();
-			initEnterprises();
-			initPosts();
+		initedParams = (Boolean) Stack.valueGet("crawler-posttask-holder-initedParams");
+		if (initedParams) {
+			tagNameMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-tagNameMap");
+			tagCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-tagCodeMap");
+			areaNameMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-areaNameMap");
+			postCategoryCodeMap = (Map<String, Map<String, String>>) Stack.valueGet("crawler-posttask-holder-postCategoryCodeMap");
+			technologyCodeMap = (Map<String, Map<String, Object>>) Stack.valueGet("crawler-posttask-holder-technologyCodeMap");
+			postNatureCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-postNatureCodeMap");
+			postExperienceCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-postExperienceCodeMap");
+			postEducationCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-postEducationCodeMap");
+			abilityParamCodeMap = (Map<String, Map<String, Object>>) Stack.valueGet("crawler-posttask-holder-abilityParamCodeMap");
+			enterpriseNatureCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-enterpriseNatureCodeMap");
+			enterpriseScaleCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-enterpriseScaleCodeMap");
+			enterpriseCategoryCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-enterpriseCategoryCodeMap");
+			lastAccountNum = (Integer) Stack.valueGet("crawler-posttask-holder-lastAccountNum");
 		}
+		initedEnterprises = (Boolean) Stack.valueGet("crawler-posttask-holder-initedEnterprises");
+		initedPosts = (Boolean) Stack.valueGet("crawler-posttask-holder-initedPosts");
 		logger.info("-------------------------");
 	}
 
 	public static boolean isInitedParams() {
 		return initedParams;
+	}
+
+	public static boolean isInitedEnterprises() {
+		return initedEnterprises;
+	}
+
+	public static boolean isInitedPosts() {
+		return initedPosts;
 	}
 
 	public static boolean initParams() {
@@ -211,24 +217,21 @@ public class Holder extends C3P0Store {
 		String lastAccount = store.selectString("select account from zcdh_ent_account where account regexp '^zcdh[0-9]{7}$' order by create_date desc limit 0,1");
 		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
-
 		initedParams = true;
-
-		if (useCache) {
-//			valuePut("crawler-post-holder-tagNameMap", tagNameMap);
-//			valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
-//			valuePut("crawler-post-holder-areaNameMap", areaNameMap);
-//			valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
-//			valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
-//			valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
-//			valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
-//			valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
-//			valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
-//			valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
-//			valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
-//			valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
-//			valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
-		}
+		Stack.valuePut("crawler-posttask-holder-tagNameMap", tagNameMap);
+		Stack.valuePut("crawler-posttask-holder-tagCodeMap", tagCodeMap);
+		Stack.valuePut("crawler-posttask-holder-areaNameMap", areaNameMap);
+		Stack.valuePut("crawler-posttask-holder-postCategoryCodeMap", postCategoryCodeMap);
+		Stack.valuePut("crawler-posttask-holder-technologyCodeMap", technologyCodeMap);
+		Stack.valuePut("crawler-posttask-holder-postNatureCodeMap", postNatureCodeMap);
+		Stack.valuePut("crawler-posttask-holder-postExperienceCodeMap", postExperienceCodeMap);
+		Stack.valuePut("crawler-posttask-holder-postEducationCodeMap", postEducationCodeMap);
+		Stack.valuePut("crawler-posttask-holder-abilityParamCodeMap", abilityParamCodeMap);
+		Stack.valuePut("crawler-posttask-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
+		Stack.valuePut("crawler-posttask-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
+		Stack.valuePut("crawler-posttask-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
+		Stack.valuePut("crawler-posttask-holder-lastAccountNum", lastAccountNum);
+		Stack.valuePut("crawler-posttask-holder-initedParams", initedParams);
 		return true;
 	}
 
@@ -262,11 +265,12 @@ public class Holder extends C3P0Store {
 				}
 				enterprise.setEnterpriseAccountId(resultSet.getLong("account_id"));
 				enterprise.setEnterpriseAccountCreateMode(resultSet.getInt("create_mode"));
-				holdEnterprise(enterprise);
+				stackPutEnterprise(enterprise);// holdEnterprise(enterprise);
 				return true;
 			}
 		});
 		initedEnterprises = true;
+		Stack.valuePut("crawler-posttask-holder-initedEnterprises", initedEnterprises);
 		return true;
 	}
 
@@ -317,11 +321,12 @@ public class Holder extends C3P0Store {
 				post.setEnterpriseUrl(resultSet.getString("ent_url"));
 				post.setEnterpriseName(resultSet.getString("ent_name"));
 
-				holdPost(post);
+				stackPutPost(post);// holdPost(post);
 				return true;
 			}
 		});
 		initedPosts = true;
+		Stack.valuePut("crawler-posttask-holder-initedPosts", initedPosts);
 		return true;
 	}
 
@@ -389,7 +394,7 @@ public class Holder extends C3P0Store {
 	}
 
 	public static boolean existEnterprise(String enterpriseName) {
-		return enterpriseNameMap.containsKey(enterpriseName);
+		return stackContainsEnterpriseName(enterpriseName); // enterpriseNameMap.containsKey(enterpriseName);
 	}
 
 	public static Post getPost(String url) {
@@ -446,41 +451,15 @@ public class Holder extends C3P0Store {
 	}
 
 	public static Enterprise getEnterprise(String url) {
-		return enterpriseUrlMap.get(url);
+		return stackGetEnterpriseByUrl(url); // enterpriseUrlMap.get(url);
 	}
 
 	public static Enterprise removeEnterprise(String name) {
-		return enterpriseUrlMap.remove(name);
+		return stackRemoveEnterpriseByName(name);// enterpriseNameMap.remove(name);
 	}
 
 	public static Cluster<Post> getPostCluster() {
 		return postCluster;
-	}
-
-	public static boolean savePost(List<Post> list) {
-		Connection connection = store.openConnection();
-		try {
-			connection.setAutoCommit(false);
-			saveAllPostLbs(list, connection);
-			saveAllPost(list, connection);
-			saveAllPostExperience(list, connection);
-			saveAllPostEducation(list, connection);
-			saveAllPostStatus(list, connection);
-			saveAllPostView(list, connection);
-			connection.commit();
-			holdAllPost(list);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			try {
-				connection.rollback();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
-			return false;
-		} finally {
-			store.closeConnection(connection);
-		}
 	}
 
 	public static boolean savePost(Post post) {
@@ -494,7 +473,7 @@ public class Holder extends C3P0Store {
 			savePostStatus(post, connection);
 			savePostView(post, connection);
 			connection.commit();
-			holdPost(post);
+			stackPutPost(post);// holdPost(post);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -508,15 +487,19 @@ public class Holder extends C3P0Store {
 			store.closeConnection(connection);
 		}
 	}
-
-	public static boolean saveEnterprise(List<Enterprise> list) {
+	
+	public static boolean saveAllPost(List<Post> list) {
 		Connection connection = store.openConnection();
 		try {
 			connection.setAutoCommit(false);
-			saveAllEnterpriseLbs(list, connection);
-			saveAllEnterprise(list, connection);
+			saveAllPostLbs(list, connection);
+			saveAllPost(list, connection);
+			saveAllPostExperience(list, connection);
+			saveAllPostEducation(list, connection);
+			saveAllPostStatus(list, connection);
+			saveAllPostView(list, connection);
 			connection.commit();
-			holdAllEnterprise(list);
+			stackPutAllPost(list);// holdAllPost(list);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -538,7 +521,7 @@ public class Holder extends C3P0Store {
 			saveEnterpriseLbs(enterprise, connection);
 			saveEnterprise(enterprise, connection);
 			connection.commit();
-			holdEnterprise(enterprise);
+			stackPutEnterprise(enterprise);// holdEnterprise(enterprise);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -553,9 +536,31 @@ public class Holder extends C3P0Store {
 		}
 	}
 
+	public static boolean saveAllEnterprise(List<Enterprise> list) {
+		Connection connection = store.openConnection();
+		try {
+			connection.setAutoCommit(false);
+			saveAllEnterpriseLbs(list, connection);
+			saveAllEnterprise(list, connection);
+			connection.commit();
+			stackPutAllEnterprise(list);// holdAllEnterprise(list);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			return false;
+		} finally {
+			store.closeConnection(connection);
+		}
+	}
+	
 	public static Enterprise mergeEnterprise(Enterprise ent) {
 		if (ent.getName() != null) {
-			Enterprise enterprise = enterpriseNameMap.get(ent.getName());
+			Enterprise enterprise = stackGetEnterpriseByName(ent.getName());// enterpriseNameMap.get(ent.getName());
 			if (enterprise != null) {
 				ent.setId(enterprise.getId());
 				if (enterprise.getEnterpriseAccountCreateMode() == null || enterprise.getEnterpriseAccountCreateMode() == 0) {
@@ -597,49 +602,6 @@ public class Holder extends C3P0Store {
 			}
 		}
 		return p;
-	}
-
-	private static boolean holdPost(Post post) {
-		if (post.getLbsLon() != null && post.getLbsLat() != null)
-			postCluster.save(post);
-		if (Ver.nb(post.getDataUrl())) {
-			Integer postIndex = postUrlIndexes.get(post.getDataUrl());
-			if (postIndex != null) {
-				postList.set(postIndex, post);
-			} else {
-				postList.add(post);
-				postUrlIndexes.put(post.getDataUrl(), postList.size() - 1);
-			}
-		}
-		if (Ver.nb(post.getEnterpriseName()) && Ver.nb(post.getName())) {
-			Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
-			if (postNameMap == null) {
-				postNameMap = new HashMap<String, Post>();
-				postEntNameMap.put(post.getEnterpriseName(), postNameMap);
-			}
-			postNameMap.put(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""), post);
-		}
-		return true;
-	}
-
-	private static boolean holdAllPost(List<Post> list) {
-		for (Post post : list)
-			holdPost(post);
-		return true;
-	}
-
-	private static boolean holdEnterprise(Enterprise enterprise) {
-		if (Ver.nb(enterprise.getDataUrl()))
-			enterpriseUrlMap.put(enterprise.getDataUrl(), enterprise);
-		if (Ver.nb(enterprise.getName()))
-			enterpriseNameMap.put(enterprise.getName(), enterprise);
-		return true;
-	}
-
-	private static boolean holdAllEnterprise(List<Enterprise> list) {
-		for (Enterprise enterprise : list)
-			holdEnterprise(enterprise);
-		return true;
 	}
 
 	private static Post savePostLbs(Post post, Connection connection) throws Exception {
@@ -697,7 +659,7 @@ public class Holder extends C3P0Store {
 			updateStatement.executeUpdate();
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 			Integer paramPercent = (Integer) abilityParam.get("percent");
 			Double totalPoint = paramPercent / 2.0;
 			insertStatement.setLong(1, post.getId());
@@ -732,7 +694,7 @@ public class Holder extends C3P0Store {
 				updateStatement.setLong(4, post.getExperienceId());
 				updateStatement.addBatch();
 			} else {
-				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 				Integer paramPercent = (Integer) abilityParam.get("percent");
 				Double totalPoint = paramPercent / 2.0;
 				insertStatement.setLong(1, post.getId());
@@ -769,7 +731,7 @@ public class Holder extends C3P0Store {
 			updateStatement.executeUpdate();
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 			Integer paramPercent = (Integer) abilityParam.get("percent");
 			Double totalPoint = paramPercent / 2.0;
 			insertStatement.setLong(1, post.getId());
@@ -804,7 +766,7 @@ public class Holder extends C3P0Store {
 				updateStatement.setLong(4, post.getEducationId());
 				updateStatement.addBatch();
 			} else {
-				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 				Integer paramPercent = (Integer) abilityParam.get("percent");
 				Double totalPoint = paramPercent / 2.0;
 				insertStatement.setLong(1, post.getId());
@@ -853,7 +815,7 @@ public class Holder extends C3P0Store {
 			post.setStatus(3);
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_post(post_aliases, post_name, post_code, headcounts, is_several, pjob_category, psalary, salary_type, tag_selected, post_remark, parea, post_address, lbs_id, data_src, data_url, update_date, publish_date, ent_id) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 			insertStatement.setString(1, post.getName());
 			insertStatement.setString(2, post.getCategory());
 			insertStatement.setString(3, post.getCategoryCode());
@@ -908,7 +870,7 @@ public class Holder extends C3P0Store {
 				updateStatement.addBatch();
 				post.setStatus(3);
 			} else {
-				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 				insertStatement.setString(1, post.getName());
 				insertStatement.setString(2, post.getCategory());
 				insertStatement.setString(3, post.getCategoryCode());
@@ -994,7 +956,7 @@ public class Holder extends C3P0Store {
 	private static Post savePostPromotion(Post post, Connection connection) throws Exception {
 		if (post.getPostPromotionId() == null) {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 			insertStatement.setLong(1, post.getId());
 			insertStatement.setLong(2, enterprise.getId());
 			insertStatement.setString(3, "");
@@ -1011,7 +973,7 @@ public class Holder extends C3P0Store {
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list)
 			if (post.getPostPromotionId() == null) {
-				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 				insertStatement.setLong(1, post.getId());
 				insertStatement.setLong(2, enterprise.getId());
 				insertStatement.setString(3, "");
@@ -1026,7 +988,7 @@ public class Holder extends C3P0Store {
 	}
 
 	private static Post savePostView(Post post, Connection connection) throws Exception {
-		Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+		Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 		if (post.getPostViewId() != null) {
 			PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=?, publish_date=? where id=?");
 			updateStatement.setString(1, post.getName());
@@ -1116,7 +1078,7 @@ public class Holder extends C3P0Store {
 		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_view_ent_post(post_id, post_aliases, post_code, post_property_code, salary_code, min_salary, max_salary, salary_type, tag_selected, area_code, lon, lat, ent_id, ent_name, industry, property, employ_num, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list) {
-			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
 			if (post.getPostViewId() != null) {
 				updateStatement.setString(1, post.getName());
 				updateStatement.setString(2, post.getCategoryCode());
@@ -1333,8 +1295,8 @@ public class Holder extends C3P0Store {
 		if (enterprise.getEnterpriseAccountId() == null) {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_account(ent_id, account, pwd, create_mode, create_date, status) values(?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			insertStatement.setLong(1, enterprise.getId());
-			insertStatement.setString(2, String.format("zcdh%s", accountNumFormat.format(++lastAccountNum)));
-			insertStatement.setString(3, md5Encoder(passwordNumFormat.format(random.nextInt(1000000))));
+			insertStatement.setString(2, createAccount());
+			insertStatement.setString(3, createPassword());
 			insertStatement.setInt(4, 2);
 			insertStatement.setDate(5, new Date(enterprise.getCreateDate().getTime()));
 			insertStatement.setDouble(6, 1);
@@ -1352,8 +1314,8 @@ public class Holder extends C3P0Store {
 		for (Enterprise enterprise : list)
 			if (enterprise.getEnterpriseAccountId() == null) {
 				insertStatement.setLong(1, enterprise.getId());
-				insertStatement.setString(2, String.format("zcdh%s", accountNumFormat.format(++lastAccountNum)));
-				insertStatement.setString(3, md5Encoder(passwordNumFormat.format(random.nextInt(1000000))));
+				insertStatement.setString(2, createAccount());
+				insertStatement.setString(3, createPassword());
 				insertStatement.setInt(4, 2);
 				insertStatement.setDate(5, new Date(enterprise.getCreateDate().getTime()));
 				insertStatement.setDouble(6, 1);
@@ -1365,6 +1327,121 @@ public class Holder extends C3P0Store {
 		for (int i = 0; generatedSet.next(); i++)
 			inserted.get(i).setEnterpriseAccountId(generatedSet.getLong(1));
 		return list;
+	}
+
+	/*private static boolean holdPost(Post post) {
+		if (post.getLbsLon() != null && post.getLbsLat() != null)
+			postCluster.save(post);
+		if (Ver.nb(post.getDataUrl())) {
+			Integer postIndex = postUrlIndexes.get(post.getDataUrl());
+			if (postIndex != null) {
+				postList.set(postIndex, post);
+			} else {
+				postList.add(post);
+				postUrlIndexes.put(post.getDataUrl(), postList.size() - 1);
+			}
+		}
+		if (Ver.nb(post.getEnterpriseName()) && Ver.nb(post.getName())) {
+			Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
+			if (postNameMap == null) {
+				postNameMap = new HashMap<String, Post>();
+				postEntNameMap.put(post.getEnterpriseName(), postNameMap);
+			}
+			postNameMap.put(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""), post);
+		}
+		return true;
+	}*/
+
+	/*private static boolean holdAllPost(List<Post> list) {
+		for (Post post : list)
+			holdPost(post);
+		return true;
+	}*/
+
+	/*private static boolean holdEnterprise(Enterprise enterprise) {
+		if (Ver.nb(enterprise.getDataUrl()))
+			enterpriseUrlMap.put(enterprise.getDataUrl(), enterprise);
+		if (Ver.nb(enterprise.getName()))
+			enterpriseNameMap.put(enterprise.getName(), enterprise);
+		return true;
+	}*/
+
+	/*private static boolean holdAllEnterprise(List<Enterprise> list) {
+		for (Enterprise enterprise : list)
+			holdEnterprise(enterprise);
+		return true;
+	}*/
+
+	private static boolean stackPutPost(Post post) {
+		if (post.getLbsLon() != null && post.getLbsLat() != null)
+			postCluster.save(post);
+		if (Ver.nb(post.getDataUrl())) {
+			Integer postIndex = postUrlIndexes.get(post.getDataUrl());
+			if (postIndex != null) {
+				postList.set(postIndex, post);
+			} else {
+				postList.add(post);
+				postUrlIndexes.put(post.getDataUrl(), postList.size() - 1);
+			}
+		}
+		if (Ver.nb(post.getEnterpriseName()) && Ver.nb(post.getName())) {
+			Map<String, Post> postNameMap = postEntNameMap.get(post.getEnterpriseName());
+			if (postNameMap == null) {
+				postNameMap = new HashMap<String, Post>();
+				postEntNameMap.put(post.getEnterpriseName(), postNameMap);
+			}
+			postNameMap.put(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""), post);
+		}
+		return true;
+	}
+	
+	private static boolean stackPutAllPost(List<Post> list) {
+		for (Post post : list)
+			stackPutPost(post);
+		return true;
+	}
+	
+	private static boolean stackPutEnterprise(Enterprise enterprise) {
+		if (Ver.nn(enterprise.getId()))
+			Stack.hashPut("crawler-posttask-holder-enterpriseIdMap", enterprise.getId(), enterprise);
+		if (Ver.nb(enterprise.getDataUrl()))
+			Stack.hashPut("crawler-posttask-holder-enterpriseUrlMap", enterprise.getDataUrl(), enterprise.getId());
+		if (Ver.nb(enterprise.getName()))
+			Stack.hashPut("crawler-posttask-holder-enterpriseNameMap", enterprise.getName(), enterprise.getId());
+		return true;
+	}
+
+	private static boolean stackPutAllEnterprise(List<Enterprise> list) {
+		for (Enterprise enterprise : list)
+			stackPutEnterprise(enterprise);
+		return true;
+	}
+
+	private static boolean stackContainsEnterpriseName(String name) {
+		return (Boolean) Stack.hashContainKey("crawler-posttask-holder-enterpriseNameMap", name);
+	}
+
+	private static Enterprise stackGetEnterpriseByName(String name) {
+		return (Enterprise) Stack.hashGet("crawler-posttask-holder-enterpriseIdMap", Stack.hashGet("crawler-posttask-holder-enterpriseNameMap", name));
+	}
+
+	private static Enterprise stackGetEnterpriseByUrl(String url) {
+		return (Enterprise) Stack.hashGet("crawler-posttask-holder-enterpriseIdMap", Stack.hashGet("crawler-posttask-holder-enterpriseUrlMap", url));
+	}
+
+	private static Enterprise stackRemoveEnterpriseByName(String name) {
+		return (Enterprise) Stack.hashGet("crawler-posttask-holder-enterpriseIdMap", Stack.hashRemove("crawler-posttask-holder-enterpriseNameMap", name));
+	}
+
+	private static String createAccount() {
+		String account = String.format("zcdh%s", accountNumFormat.format(++lastAccountNum));
+		Stack.valuePut("crawler-posttask-holder-lastAccountNum", lastAccountNum);
+		return account;
+	}
+
+	private static String createPassword() {
+		String password = md5Encoder(passwordNumFormat.format(random.nextInt(1000000)));
+		return password;
 	}
 
 	private static String md5Encoder(String str) {

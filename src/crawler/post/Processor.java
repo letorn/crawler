@@ -505,11 +505,11 @@ public class Processor {
 	}
 
 	private void commitPosts() {
-		Holder.saveEnterprise(enterprises);
+		Holder.saveAllEnterprise(enterprises);
 		enterprises.clear();
 		enterpriseUrlIndexes.clear();
 
-		Holder.savePost(posts);
+		Holder.saveAllPost(posts);
 		collector.getPostCluster().saveAll(posts);
 		posts.clear();
 	}
