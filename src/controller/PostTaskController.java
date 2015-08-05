@@ -21,6 +21,7 @@ import crawler.post.Collector;
 import crawler.post.model.Bill;
 import crawler.post.model.Enterprise;
 import crawler.post.model.Post;
+import dao.data.Stack;
 
 @Controller
 @RequestMapping("/posttask/")
@@ -64,6 +65,8 @@ public class PostTaskController {
 	@RequestMapping("norms.do")
 	@ResponseBody
 	public Map<String, Object> norms() {
+		Stack.hashPut("a", "b", "c");
+		System.out.println(Stack.hashGet("a", "b"));
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
 		for (String norm : postTaskService.getBillNorms().keySet()) {

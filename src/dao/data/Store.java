@@ -5,24 +5,25 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Store<T> extends C3P0Store {
+import dao.data.C3P0Store.Iterator;
+import dao.data.C3P0Store.PreparedSetter;
+import dao.data.C3P0Store.ResultGetter;
 
-	private StoreModel<T> storeModel;
+public class Store<T> {
 
-	public Store() {
-		storeModel = new StoreModel<T>(Store.class, this.getClass());
-	}
+	private C3P0Store store = new C3P0Store();
+	private StoreModel<T> storeModel = new StoreModel<T>(Store.class, this.getClass());
 
-	public Boolean add(final T t) {
+	public boolean add(final T t) {
 		if (storeModel.tableModel() != null) {
-			executeWithGeneratedKey(storeModel.insertSQL(), new Setter() {
+			store.executeGenerate(storeModel.insertSQL(), new PreparedSetter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					Object[] params = storeModel.catchInsertValues(t);
 					for (int i = 0; i < params.length; i++)
 						preparedStatement.setObject(i + 1, params[i]);
 					preparedStatement.addBatch();
 				}
-			}, new Getter<T>() {
+			}, new ResultGetter<T>() {
 				public T invoke(ResultSet resultSet) throws Exception {
 					if (resultSet.next())
 						storeModel.idModel().set(t, resultSet.getObject(1));
@@ -34,9 +35,9 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean add(final List<T> list) {
+	public boolean add(final List<T> list) {
 		if (storeModel.tableModel() != null) {
-			executeWithGeneratedKey(storeModel.insertSQL(), new Setter() {
+			store.executeGenerate(storeModel.insertSQL(), new PreparedSetter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					for (T t : list) {
 						Object[] params = storeModel.catchInsertValues(t);
@@ -45,7 +46,7 @@ public class Store<T> extends C3P0Store {
 						preparedStatement.addBatch();
 					}
 				}
-			}, new Getter<List<T>>() {
+			}, new ResultGetter<List<T>>() {
 				public List<T> invoke(ResultSet resultSet) throws Exception {
 					for (int i = 0; resultSet.next(); i++)
 						storeModel.idModel().set(list.get(i), resultSet.getObject(1));
@@ -57,9 +58,9 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean update(final T t) {
+	public boolean update(final T t) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.updateSQL(), new Setter() {
+			return store.execute(storeModel.updateSQL(), new PreparedSetter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					Object[] params = storeModel.catchUpdateValues(t);
 					for (int i = 0; i < params.length; i++)
@@ -71,9 +72,9 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean update(final List<T> list) {
+	public boolean update(final List<T> list) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.updateSQL(), new Setter() {
+			return store.execute(storeModel.updateSQL(), new PreparedSetter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					for (T t : list) {
 						Object[] params = storeModel.catchUpdateValues(t);
@@ -87,15 +88,15 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean save(T t) {
+	public boolean save(T t) {
 		if (storeModel.idModel().get(t) == null)
 			return add(t);
 		else
 			return update(t);
 	}
 
-	public Boolean save(List<T> list) {
-		Boolean b = true;
+	public boolean save(List<T> list) {
+		boolean b = true;
 		for (T t : list)
 			if (storeModel.idModel().get(t) == null)
 				b &= add(t);
@@ -104,16 +105,9 @@ public class Store<T> extends C3P0Store {
 		return b;
 	}
 
-	public Boolean deleteAll() {
-		if (storeModel.tableModel() != null) {
-			return execute(storeModel.deleteAllSQL());
-		}
-		return false;
-	}
-
-	public Boolean delete(final Object t) {
+	public boolean delete(final Object t) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.deleteByIdSQL(), new Setter() {
+			return store.execute(storeModel.deleteByIdSQL(), new PreparedSetter() {
 				public void invoke(PreparedStatement preparedStatement) throws Exception {
 					if (t.getClass() == storeModel.tlazz())
 						preparedStatement.setObject(1, storeModel.idModel().get(t));
@@ -126,19 +120,26 @@ public class Store<T> extends C3P0Store {
 		return false;
 	}
 
-	public Boolean delete(Object[] ids) {
+	public boolean delete(Object[] ids) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
-			return execute(storeModel.deleteByIdsSQL(ids));
+			return store.execute(storeModel.deleteByIdsSQL(ids));
 		}
 		return false;
 	}
 
-	public Boolean delete(List<T> list) {
+	public boolean delete(List<T> list) {
 		if (storeModel.tableModel() != null && storeModel.idModel() != null) {
 			Object[] ids = new Object[list.size()];
 			for (int i = 0; i < ids.length; i++)
 				ids[i] = storeModel.idModel().get(list.get(i));
-			return execute(storeModel.deleteByIdsSQL(ids));
+			return store.execute(storeModel.deleteByIdsSQL(ids));
+		}
+		return false;
+	}
+
+	public boolean deleteAll() {
+		if (storeModel.tableModel() != null) {
+			return store.execute(storeModel.deleteAllSQL());
 		}
 		return false;
 	}
@@ -151,14 +152,14 @@ public class Store<T> extends C3P0Store {
 		return selectList(storeModel.selectByIdsSQL(ids));
 	}
 
-	public T select(Object id) {
-		return select(storeModel.selectByIdSQL(), new Object[] { id });
+	public List<T> getAll() {
+		return selectList(storeModel.selectAllSQL());
 	}
 
 	public T select(String sql) {
-		return executeWithResultSet(sql, new Getter<T>() {
+		return store.executeQuery(sql, new ResultGetter<T>() {
 			public T invoke(ResultSet resultSet) throws Exception {
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				if (resultSet.next())
 					return storeModel.newTlazz(resultSet, columnNames);
 				return null;
@@ -167,15 +168,15 @@ public class Store<T> extends C3P0Store {
 	}
 
 	public T select(String sql, final Object[] params) {
-		return executeWithResultSet(sql, new Setter() {
+		return store.executeQuery(sql, new PreparedSetter() {
 			public void invoke(PreparedStatement preparedStatement) throws Exception {
 				for (int i = 0; i < params.length; i++)
 					preparedStatement.setObject(i + 1, params[i]);
 				preparedStatement.addBatch();
 			}
-		}, new Getter<T>() {
+		}, new ResultGetter<T>() {
 			public T invoke(ResultSet resultSet) throws Exception {
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				if (resultSet.next())
 					return storeModel.newTlazz(resultSet, columnNames);
 				return null;
@@ -184,10 +185,10 @@ public class Store<T> extends C3P0Store {
 	}
 
 	public List<T> selectList(String sql) {
-		return executeWithResultSet(sql, new Getter<List<T>>() {
+		return store.executeQuery(sql, new ResultGetter<List<T>>() {
 			public List<T> invoke(ResultSet resultSet) throws Exception {
 				List<T> list = new ArrayList<T>();
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				while (resultSet.next())
 					list.add(storeModel.newTlazz(resultSet, columnNames));
 				return list;
@@ -196,16 +197,16 @@ public class Store<T> extends C3P0Store {
 	}
 
 	public List<T> selectList(String sql, final Object[] params) {
-		return executeWithResultSet(sql, new Setter() {
+		return store.executeQuery(sql, new PreparedSetter() {
 			public void invoke(PreparedStatement preparedStatement) throws Exception {
 				for (int i = 0; i < params.length; i++)
 					preparedStatement.setObject(i + 1, params[i]);
 				preparedStatement.addBatch();
 			}
-		}, new Getter<List<T>>() {
+		}, new ResultGetter<List<T>>() {
 			public List<T> invoke(ResultSet resultSet) throws Exception {
 				List<T> list = new ArrayList<T>();
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				while (resultSet.next())
 					list.add(storeModel.newTlazz(resultSet, columnNames));
 				return list;
@@ -214,25 +215,21 @@ public class Store<T> extends C3P0Store {
 	}
 
 	public void selectList(String sql, final Iterator<T> iterator) {
-		selectResultSet(sql, new Iterator<ResultSet>() {
+		store.selectResultSet(sql, new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int i) throws Exception {
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				return iterator.next(storeModel.newTlazz(resultSet, columnNames), i);
 			}
 		});
 	}
 
 	public void selectList(String sql, Object[] params, final Iterator<T> iterator) {
-		selectResultSet(sql, params, new Iterator<ResultSet>() {
+		store.selectResultSet(sql, params, new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int i) throws Exception {
-				String[] columnNames = columnNames(resultSet);
+				String[] columnNames = store.columnNames(resultSet);
 				return iterator.next(storeModel.newTlazz(resultSet, columnNames), i);
 			}
 		});
-	}
-
-	public List<T> selectAll() {
-		return selectList(storeModel.selectAllSQL());
 	}
 
 	public void selectAll(final Iterator<T> iterator) {

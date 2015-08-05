@@ -22,7 +22,6 @@
   </bean>
 
   <!-- redis -->
-  <!--
   <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
     <property name="hostName" value="redis" />
     <property name="port" value="6379" />
@@ -30,7 +29,6 @@
   <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
     <property name="connectionFactory" ref="jedisFactory" />
   </bean>
-  -->
 
   <!-- mysql -->
   <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
@@ -93,11 +91,11 @@
   </mvc:interceptors>
 
   <!-- 注解扫描 -->
-  <bean class="dao.data.Stack" init-method="init" />
   <context:component-scan base-package="util" />
   <context:component-scan base-package="init" />
-  <context:component-scan base-package="crawler" />
   <context:component-scan base-package="dao" />
+  <context:component-scan base-package="crawler" />
+  <bean class="dao.data.Stack" init-method="init" />
   <bean class="crawler.post.Holder" init-method="init" />
   <context:component-scan base-package="service" />
   <context:component-scan base-package="controller" />

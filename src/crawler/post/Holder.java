@@ -30,7 +30,9 @@ public class Holder extends C3P0Store {
 
 	private static Logger logger = Logger.getLogger(Holder.class);
 
-	private static boolean useCache = redisTemplate != null ? true : false;
+	private static C3P0Store store = new C3P0Store();
+	
+	private static boolean useCache = false;
 
 	private static boolean initedParams = false;
 	private static boolean initedEnterprises = false;
@@ -78,21 +80,21 @@ public class Holder extends C3P0Store {
 	public void init() {
 		logger.info("------ init holder ------");
 		if (useCache) {
-			tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
-			tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
-			areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
-			postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
-			technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
-			postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
-			postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
-			postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
-			abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
-			enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
-			enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
-			enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
-			lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
-			if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
-				initedParams = true;
+//			tagNameMap = (Map<String, String>) valueGet("crawler-post-holder-tagNameMap");
+//			tagCodeMap = (Map<String, String>) valueGet("crawler-post-holder-tagCodeMap");
+//			areaNameMap = (Map<String, String>) valueGet("crawler-post-holder-areaNameMap");
+//			postCategoryCodeMap = (Map<String, Map<String, String>>) valueGet("crawler-post-holder-postCategoryCodeMap");
+//			technologyCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-technologyCodeMap");
+//			postNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postNatureCodeMap");
+//			postExperienceCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postExperienceCodeMap");
+//			postEducationCodeMap = (Map<String, String>) valueGet("crawler-post-holder-postEducationCodeMap");
+//			abilityParamCodeMap = (Map<String, Map<String, Object>>) valueGet("crawler-post-holder-abilityParamCodeMap");
+//			enterpriseNatureCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseNatureCodeMap");
+//			enterpriseScaleCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseScaleCodeMap");
+//			enterpriseCategoryCodeMap = (Map<String, String>) valueGet("crawler-post-holder-enterpriseCategoryCodeMap");
+//			lastAccountNum = (Integer) valueGet("crawler-post-holder-lastAccountNum");
+//			if (tagNameMap != null && tagCodeMap != null && areaNameMap != null && postCategoryCodeMap != null && technologyCodeMap != null && postNatureCodeMap != null && postExperienceCodeMap != null && postEducationCodeMap != null && abilityParamCodeMap != null && enterpriseNatureCodeMap != null && enterpriseScaleCodeMap != null && enterpriseCategoryCodeMap != null && lastAccountNum != null)
+//				initedParams = true;
 		} else {
 			initParams();
 			initEnterprises();
@@ -121,7 +123,7 @@ public class Holder extends C3P0Store {
 		lastAccountNum = -1;
 
 		logger.info("binning tag ...");
-		selectResultSet("select tag_name, tag_code from zcdh_tag where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
+		store.selectResultSet("select tag_name, tag_code from zcdh_tag where is_delete=1 or is_delete is null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				tagNameMap.put(resultSet.getString("tag_name"), resultSet.getString("tag_code"));
 				tagCodeMap.put(resultSet.getString("tag_code"), resultSet.getString("tag_name"));
@@ -130,7 +132,7 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning area ...");
-		selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 or is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$' and area_name not regexp '行政'", new Iterator<ResultSet>() {
+		store.selectResultSet("select area_name, area_code from zcdh_area where (is_delete=1 or is_delete) and area_code regexp '^[0-9]{3}\\.[0-9]{3}$' and area_name not regexp '行政'", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				areaNameMap.put(resultSet.getString("area_name").replaceAll("\\s+|市$|盟$|地区$|族$|自治州$|族自治州$", ""), resultSet.getString("area_code"));
 				return true;
@@ -138,7 +140,7 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning post category ...");
-		selectResultSet("select p.post_name, p.post_code, cp.post_category_name from zcdh_post p join zcdh_category_post cp on p.post_category_code=cp.post_category_code where p.is_delete=1 or p.is_delete is null", new Iterator<ResultSet>() {
+		store.selectResultSet("select p.post_name, p.post_code, cp.post_category_name from zcdh_post p join zcdh_category_post cp on p.post_category_code=cp.post_category_code where p.is_delete=1 or p.is_delete is null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Map<String, String> postCategorie = new HashMap<String, String>();
 				postCategorie.put("name", resultSet.getString("post_name"));
@@ -150,7 +152,7 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning technology ...");
-		selectResultSet("select t.technical_code, t.match_type, c.technology_gategory_code, c.percent from zcdh_technology t join zcdh_technology_gategory c on c.technology_gategory_code=t.techonlogy_gategory_code where (t.is_delete=1 or t.is_delete is null) and t.technical_code in('-0000000000003', '-0000000000004')", new Iterator<ResultSet>() {
+		store.selectResultSet("select t.technical_code, t.match_type, c.technology_gategory_code, c.percent from zcdh_technology t join zcdh_technology_gategory c on c.technology_gategory_code=t.techonlogy_gategory_code where (t.is_delete=1 or t.is_delete is null) and t.technical_code in('-0000000000003', '-0000000000004')", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Map<String, Object> technology = new HashMap<String, Object>();
 				technology.put("code", resultSet.getString("technical_code"));
@@ -163,7 +165,7 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning param ...");
-		selectResultSet("select param_name, param_code, param_value, param_category_code from zcdh_param where (is_delete=1 or is_delete is null) and param_category_code in('007', '005', '004', '010', '011')", new Iterator<ResultSet>() {
+		store.selectResultSet("select param_name, param_code, param_value, param_category_code from zcdh_param where (is_delete=1 or is_delete is null) and param_category_code in('007', '005', '004', '010', '011')", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				String categoryCode = resultSet.getString("param_category_code");
 				if ("007".equals(categoryCode)) {
@@ -198,7 +200,7 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning enterprise category ...");
-		selectResultSet("select industry_name, industry_code from zcdh_industry where (is_delete=1 or is_delete is null) and industry_code regexp '^[0-9]{3}\\.[0-9]{3}$'", new Iterator<ResultSet>() {
+		store.selectResultSet("select industry_name, industry_code from zcdh_industry where (is_delete=1 or is_delete is null) and industry_code regexp '^[0-9]{3}\\.[0-9]{3}$'", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				enterpriseCategoryCodeMap.put(resultSet.getString("industry_code"), resultSet.getString("industry_name"));
 				return true;
@@ -206,33 +208,33 @@ public class Holder extends C3P0Store {
 		});
 
 		logger.info("binning last account num ...");
-		String lastAccount = selectString("select account from zcdh_ent_account where account regexp '^zcdh[0-9]{7}$' order by create_date desc limit 0,1");
+		String lastAccount = store.selectString("select account from zcdh_ent_account where account regexp '^zcdh[0-9]{7}$' order by create_date desc limit 0,1");
 		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 
 		initedParams = true;
 
 		if (useCache) {
-			valuePut("crawler-post-holder-tagNameMap", tagNameMap);
-			valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
-			valuePut("crawler-post-holder-areaNameMap", areaNameMap);
-			valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
-			valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
-			valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
-			valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
-			valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
-			valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
-			valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
-			valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
-			valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
-			valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
+//			valuePut("crawler-post-holder-tagNameMap", tagNameMap);
+//			valuePut("crawler-post-holder-tagCodeMap", tagCodeMap);
+//			valuePut("crawler-post-holder-areaNameMap", areaNameMap);
+//			valuePut("crawler-post-holder-postCategoryCodeMap", postCategoryCodeMap);
+//			valuePut("crawler-post-holder-technologyCodeMap", technologyCodeMap);
+//			valuePut("crawler-post-holder-postNatureCodeMap", postNatureCodeMap);
+//			valuePut("crawler-post-holder-postExperienceCodeMap", postExperienceCodeMap);
+//			valuePut("crawler-post-holder-postEducationCodeMap", postEducationCodeMap);
+//			valuePut("crawler-post-holder-abilityParamCodeMap", abilityParamCodeMap);
+//			valuePut("crawler-post-holder-enterpriseNatureCodeMap", enterpriseNatureCodeMap);
+//			valuePut("crawler-post-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
+//			valuePut("crawler-post-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
+//			valuePut("crawler-post-holder-lastAccountNum", lastAccountNum);
 		}
 		return true;
 	}
 
 	public static boolean initEnterprises() {
 		logger.info("binning enterprise ...");
-		selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
+		store.selectResultSet("select e.ent_id, e.ent_name, e.industry, e.property, e.employ_num, e.introduction, e.ent_web, e.parea, e.address, e.data_src, e.data_url, e.create_date, l.lbs_id, l.longitude, l.latitude, a.account_id, a.create_mode from zcdh_ent_enterprise e left join zcdh_ent_lbs l on l.lbs_id=e.lbs_id join zcdh_ent_account a on a.ent_id=e.ent_id", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Enterprise enterprise = new Enterprise();
 				enterprise.setId(resultSet.getLong("ent_id"));
@@ -270,7 +272,7 @@ public class Holder extends C3P0Store {
 
 	public static boolean initPosts() {
 		logger.info("binning post ...");
-		selectResultSet("select distinct p.id, p.post_aliases, p.post_name, p.post_code, p.headcounts, p.is_several, p.pjob_category, p.psalary, p.salary_type, p.tag_selected, p.post_remark, p.parea, p.post_address, p.data_src, p.data_url, p.update_date, p.publish_date, l.lbs_id, l.longitude, l.latitude, ex.ent_ability_id ex_id, ex.param_code ex_code, ed.ent_ability_id ed_id, ed.param_code ed_code, ps.ps_id status_id, v.id view_id, e.ent_name, e.data_url ent_url from zcdh_ent_post p left join zcdh_ent_lbs l on l.lbs_id=p.lbs_id left join zcdh_ent_ability_require ex on ex.post_id=p.id and ex.technology_code='-0000000000003' left join zcdh_ent_ability_require ed on ed.post_id=p.id and ed.technology_code='-0000000000004' left join zcdh_ent_post_status ps on ps.post_id=p.id join zcdh_view_ent_post v on v.post_id=p.id join zcdh_ent_enterprise e on e.ent_id=p.ent_id where p.data_src is not null and p.data_url is not null", new Iterator<ResultSet>() {
+		store.selectResultSet("select distinct p.id, p.post_aliases, p.post_name, p.post_code, p.headcounts, p.is_several, p.pjob_category, p.psalary, p.salary_type, p.tag_selected, p.post_remark, p.parea, p.post_address, p.data_src, p.data_url, p.update_date, p.publish_date, l.lbs_id, l.longitude, l.latitude, ex.ent_ability_id ex_id, ex.param_code ex_code, ed.ent_ability_id ed_id, ed.param_code ed_code, ps.ps_id status_id, v.id view_id, e.ent_name, e.data_url ent_url from zcdh_ent_post p left join zcdh_ent_lbs l on l.lbs_id=p.lbs_id left join zcdh_ent_ability_require ex on ex.post_id=p.id and ex.technology_code='-0000000000003' left join zcdh_ent_ability_require ed on ed.post_id=p.id and ed.technology_code='-0000000000004' left join zcdh_ent_post_status ps on ps.post_id=p.id join zcdh_view_ent_post v on v.post_id=p.id join zcdh_ent_enterprise e on e.ent_id=p.ent_id where p.data_src is not null and p.data_url is not null", new Iterator<ResultSet>() {
 			public boolean next(ResultSet resultSet, int index) throws Exception {
 				Post post = new Post();
 				post.setId(resultSet.getLong("id"));
@@ -456,7 +458,7 @@ public class Holder extends C3P0Store {
 	}
 
 	public static boolean savePost(List<Post> list) {
-		Connection connection = openConnection();
+		Connection connection = store.openConnection();
 		try {
 			connection.setAutoCommit(false);
 			saveAllPostLbs(list, connection);
@@ -477,12 +479,12 @@ public class Holder extends C3P0Store {
 			}
 			return false;
 		} finally {
-			closeConnection(connection);
+			store.closeConnection(connection);
 		}
 	}
 
 	public static boolean savePost(Post post) {
-		Connection connection = openConnection();
+		Connection connection = store.openConnection();
 		try {
 			connection.setAutoCommit(false);
 			savePostLbs(post, connection);
@@ -503,12 +505,12 @@ public class Holder extends C3P0Store {
 			}
 			return false;
 		} finally {
-			closeConnection(connection);
+			store.closeConnection(connection);
 		}
 	}
 
 	public static boolean saveEnterprise(List<Enterprise> list) {
-		Connection connection = openConnection();
+		Connection connection = store.openConnection();
 		try {
 			connection.setAutoCommit(false);
 			saveAllEnterpriseLbs(list, connection);
@@ -525,12 +527,12 @@ public class Holder extends C3P0Store {
 			}
 			return false;
 		} finally {
-			closeConnection(connection);
+			store.closeConnection(connection);
 		}
 	}
 
 	public static boolean saveEnterprise(Enterprise enterprise) {
-		Connection connection = openConnection();
+		Connection connection = store.openConnection();
 		try {
 			connection.setAutoCommit(false);
 			saveEnterpriseLbs(enterprise, connection);
@@ -547,7 +549,7 @@ public class Holder extends C3P0Store {
 			}
 			return false;
 		} finally {
-			closeConnection(connection);
+			store.closeConnection(connection);
 		}
 	}
 
