@@ -61,12 +61,12 @@ public class Holder {
 
 	private static Cluster<Post> postCluster = new Cluster<Post>();
 
-	// private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
-	// private static List<Post> postList = new ArrayList<Post>();
-	// private static ThreadLocal<Integer> localPostNameCount = new ThreadLocal<Integer>();
-	// private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
-	// private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
-	// private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
+	private static Map<String, Integer> postUrlIndexes = new ConcurrentHashMap<String, Integer>();
+	private static List<Post> postList = new ArrayList<Post>();
+	private static ThreadLocal<Integer> localPostNameCount = new ThreadLocal<Integer>();
+	private static Map<String, Map<String, Post>> postEntNameMap = new ConcurrentHashMap<String, Map<String, Post>>();
+	private static Map<String, Enterprise> enterpriseUrlMap = new ConcurrentHashMap<String, Enterprise>();
+	private static Map<String, Enterprise> enterpriseNameMap = new ConcurrentHashMap<String, Enterprise>();
 
 	private static MessageDigest messageDigest;
 	private static Random random = new Random();
@@ -80,7 +80,12 @@ public class Holder {
 
 	public void init() {
 		logger.info("------ init holder ------");
-		initedParams = (Boolean) Stack.valueGet("crawler-posttask-holder-initedParams");
+		initParams();
+		initEnterprises();
+		initPosts();
+		
+		// 改版中 。。。
+		/*initedParams = (Boolean) Stack.valueGet("crawler-posttask-holder-initedParams");
 		if (initedParams) {
 			tagNameMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-tagNameMap");
 			tagCodeMap = (Map<String, String>) Stack.valueGet("crawler-posttask-holder-tagCodeMap");
@@ -97,7 +102,7 @@ public class Holder {
 			lastAccountNum = (Integer) Stack.valueGet("crawler-posttask-holder-lastAccountNum");
 		}
 		initedEnterprises = (Boolean) Stack.valueGet("crawler-posttask-holder-initedEnterprises");
-		initedPosts = (Boolean) Stack.valueGet("crawler-posttask-holder-initedPosts");
+		initedPosts = (Boolean) Stack.valueGet("crawler-posttask-holder-initedPosts");*/
 		logger.info("-------------------------");
 	}
 
@@ -218,7 +223,9 @@ public class Holder {
 		if (lastAccount != null)
 			lastAccountNum = Integer.valueOf(lastAccount.replaceAll("zcdh", ""));
 		initedParams = true;
-		Stack.valuePut("crawler-posttask-holder-tagNameMap", tagNameMap);
+
+		// 改版中。。。
+		/*Stack.valuePut("crawler-posttask-holder-tagNameMap", tagNameMap);
 		Stack.valuePut("crawler-posttask-holder-tagCodeMap", tagCodeMap);
 		Stack.valuePut("crawler-posttask-holder-areaNameMap", areaNameMap);
 		Stack.valuePut("crawler-posttask-holder-postCategoryCodeMap", postCategoryCodeMap);
@@ -231,7 +238,8 @@ public class Holder {
 		Stack.valuePut("crawler-posttask-holder-enterpriseScaleCodeMap", enterpriseScaleCodeMap);
 		Stack.valuePut("crawler-posttask-holder-enterpriseCategoryCodeMap", enterpriseCategoryCodeMap);
 		Stack.valuePut("crawler-posttask-holder-lastAccountNum", lastAccountNum);
-		Stack.valuePut("crawler-posttask-holder-initedParams", initedParams);
+		Stack.valuePut("crawler-posttask-holder-initedParams", initedParams);*/
+
 		return true;
 	}
 
@@ -265,12 +273,12 @@ public class Holder {
 				}
 				enterprise.setEnterpriseAccountId(resultSet.getLong("account_id"));
 				enterprise.setEnterpriseAccountCreateMode(resultSet.getInt("create_mode"));
-				stackPutEnterprise(enterprise);// holdEnterprise(enterprise);
+				holdEnterprise(enterprise);// stackPutEnterprise(enterprise);// 改版中。。。
 				return true;
 			}
 		});
 		initedEnterprises = true;
-		Stack.valuePut("crawler-posttask-holder-initedEnterprises", initedEnterprises);
+		// Stack.valuePut("crawler-posttask-holder-initedEnterprises", initedEnterprises);// 改版中。。。
 		return true;
 	}
 
@@ -321,12 +329,12 @@ public class Holder {
 				post.setEnterpriseUrl(resultSet.getString("ent_url"));
 				post.setEnterpriseName(resultSet.getString("ent_name"));
 
-				stackPutPost(post);// holdPost(post);
+				holdPost(post);// stackPutPost(post);// 改版中。。。
 				return true;
 			}
 		});
 		initedPosts = true;
-		Stack.valuePut("crawler-posttask-holder-initedPosts", initedPosts);
+		// Stack.valuePut("crawler-posttask-holder-initedPosts", initedPosts);// 改版中。。。
 		return true;
 	}
 
@@ -394,7 +402,7 @@ public class Holder {
 	}
 
 	public static boolean existEnterprise(String enterpriseName) {
-		return stackContainsEnterpriseName(enterpriseName); // enterpriseNameMap.containsKey(enterpriseName);
+		return enterpriseNameMap.containsKey(enterpriseName);// stackContainsEnterpriseName(enterpriseName);// 改版中。。。
 	}
 
 	public static Post getPost(String url) {
@@ -451,11 +459,11 @@ public class Holder {
 	}
 
 	public static Enterprise getEnterprise(String url) {
-		return stackGetEnterpriseByUrl(url); // enterpriseUrlMap.get(url);
+		return enterpriseUrlMap.get(url);// stackGetEnterpriseByUrl(url);// 改版中。。。
 	}
 
 	public static Enterprise removeEnterprise(String name) {
-		return stackRemoveEnterpriseByName(name);// enterpriseNameMap.remove(name);
+		return enterpriseNameMap.remove(name);// stackRemoveEnterpriseByName(name);// 改版中。。。
 	}
 
 	public static Cluster<Post> getPostCluster() {
@@ -473,7 +481,7 @@ public class Holder {
 			savePostStatus(post, connection);
 			savePostView(post, connection);
 			connection.commit();
-			stackPutPost(post);// holdPost(post);
+			holdPost(post);// stackPutPost(post);// 改版中。。。
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -499,7 +507,7 @@ public class Holder {
 			saveAllPostStatus(list, connection);
 			saveAllPostView(list, connection);
 			connection.commit();
-			stackPutAllPost(list);// holdAllPost(list);
+			holdAllPost(list);// stackPutAllPost(list);// 改版中。。。
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -521,7 +529,7 @@ public class Holder {
 			saveEnterpriseLbs(enterprise, connection);
 			saveEnterprise(enterprise, connection);
 			connection.commit();
-			stackPutEnterprise(enterprise);// holdEnterprise(enterprise);
+			holdEnterprise(enterprise);// stackPutEnterprise(enterprise);// 改版中。。。
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -543,7 +551,7 @@ public class Holder {
 			saveAllEnterpriseLbs(list, connection);
 			saveAllEnterprise(list, connection);
 			connection.commit();
-			stackPutAllEnterprise(list);// holdAllEnterprise(list);
+			holdAllEnterprise(list);// stackPutAllEnterprise(list);// 改版中。。。
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -560,7 +568,7 @@ public class Holder {
 	
 	public static Enterprise mergeEnterprise(Enterprise ent) {
 		if (ent.getName() != null) {
-			Enterprise enterprise = stackGetEnterpriseByName(ent.getName());// enterpriseNameMap.get(ent.getName());
+			Enterprise enterprise = enterpriseNameMap.get(ent.getName());// stackGetEnterpriseByName(ent.getName());// 改版中。。。
 			if (enterprise != null) {
 				ent.setId(enterprise.getId());
 				if (enterprise.getEnterpriseAccountCreateMode() == null || enterprise.getEnterpriseAccountCreateMode() == 0) {
@@ -659,7 +667,7 @@ public class Holder {
 			updateStatement.executeUpdate();
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 			Integer paramPercent = (Integer) abilityParam.get("percent");
 			Double totalPoint = paramPercent / 2.0;
 			insertStatement.setLong(1, post.getId());
@@ -694,7 +702,7 @@ public class Holder {
 				updateStatement.setLong(4, post.getExperienceId());
 				updateStatement.addBatch();
 			} else {
-				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 				Integer paramPercent = (Integer) abilityParam.get("percent");
 				Double totalPoint = paramPercent / 2.0;
 				insertStatement.setLong(1, post.getId());
@@ -731,7 +739,7 @@ public class Holder {
 			updateStatement.executeUpdate();
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_ability_require(post_id, ent_id, post_code, param_code, grade, match_type, technology_code, technology_cate_code, total_point, weight_point) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 			Integer paramPercent = (Integer) abilityParam.get("percent");
 			Double totalPoint = paramPercent / 2.0;
 			insertStatement.setLong(1, post.getId());
@@ -766,7 +774,7 @@ public class Holder {
 				updateStatement.setLong(4, post.getEducationId());
 				updateStatement.addBatch();
 			} else {
-				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 				Integer paramPercent = (Integer) abilityParam.get("percent");
 				Double totalPoint = paramPercent / 2.0;
 				insertStatement.setLong(1, post.getId());
@@ -815,7 +823,7 @@ public class Holder {
 			post.setStatus(3);
 		} else {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_post(post_aliases, post_name, post_code, headcounts, is_several, pjob_category, psalary, salary_type, tag_selected, post_remark, parea, post_address, lbs_id, data_src, data_url, update_date, publish_date, ent_id) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 			insertStatement.setString(1, post.getName());
 			insertStatement.setString(2, post.getCategory());
 			insertStatement.setString(3, post.getCategoryCode());
@@ -870,7 +878,7 @@ public class Holder {
 				updateStatement.addBatch();
 				post.setStatus(3);
 			} else {
-				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 				insertStatement.setString(1, post.getName());
 				insertStatement.setString(2, post.getCategory());
 				insertStatement.setString(3, post.getCategoryCode());
@@ -956,7 +964,7 @@ public class Holder {
 	private static Post savePostPromotion(Post post, Connection connection) throws Exception {
 		if (post.getPostPromotionId() == null) {
 			PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_ent_promotion(ent_post_id, ent_id, promotion_value) values(?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 			insertStatement.setLong(1, post.getId());
 			insertStatement.setLong(2, enterprise.getId());
 			insertStatement.setString(3, "");
@@ -973,7 +981,7 @@ public class Holder {
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list)
 			if (post.getPostPromotionId() == null) {
-				Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+				Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 				insertStatement.setLong(1, post.getId());
 				insertStatement.setLong(2, enterprise.getId());
 				insertStatement.setString(3, "");
@@ -988,7 +996,7 @@ public class Holder {
 	}
 
 	private static Post savePostView(Post post, Connection connection) throws Exception {
-		Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+		Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 		if (post.getPostViewId() != null) {
 			PreparedStatement updateStatement = connection.prepareStatement("update zcdh_view_ent_post set post_aliases=?, post_code=?, post_property_code=?, salary_code=?, min_salary=?, max_salary=?, salary_type=?, tag_selected=?, area_code=?, lon=?, lat=?, ent_name=?, industry=?, property=?, employ_num=?, publish_date=? where id=?");
 			updateStatement.setString(1, post.getName());
@@ -1078,7 +1086,7 @@ public class Holder {
 		PreparedStatement insertStatement = connection.prepareStatement("insert into zcdh_view_ent_post(post_id, post_aliases, post_code, post_property_code, salary_code, min_salary, max_salary, salary_type, tag_selected, area_code, lon, lat, ent_id, ent_name, industry, property, employ_num, publish_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 		List<Post> inserted = new ArrayList<Post>();
 		for (Post post : list) {
-			Enterprise enterprise = stackGetEnterpriseByName(post.getEnterpriseName());// enterpriseNameMap.get(post.getEnterpriseName());
+			Enterprise enterprise = enterpriseNameMap.get(post.getEnterpriseName());// stackGetEnterpriseByName(post.getEnterpriseName());// 改版中。。。
 			if (post.getPostViewId() != null) {
 				updateStatement.setString(1, post.getName());
 				updateStatement.setString(2, post.getCategoryCode());
@@ -1329,7 +1337,7 @@ public class Holder {
 		return list;
 	}
 
-	/*private static boolean holdPost(Post post) {
+	private static boolean holdPost(Post post) {
 		if (post.getLbsLon() != null && post.getLbsLat() != null)
 			postCluster.save(post);
 		if (Ver.nb(post.getDataUrl())) {
@@ -1350,27 +1358,27 @@ public class Holder {
 			postNameMap.put(String.format("%s-%s", post.getName(), Ver.nb(post.getAreaCode()) ? post.getAreaCode() : ""), post);
 		}
 		return true;
-	}*/
+	}
 
-	/*private static boolean holdAllPost(List<Post> list) {
+	private static boolean holdAllPost(List<Post> list) {
 		for (Post post : list)
 			holdPost(post);
 		return true;
-	}*/
+	}
 
-	/*private static boolean holdEnterprise(Enterprise enterprise) {
+	private static boolean holdEnterprise(Enterprise enterprise) {
 		if (Ver.nb(enterprise.getDataUrl()))
 			enterpriseUrlMap.put(enterprise.getDataUrl(), enterprise);
 		if (Ver.nb(enterprise.getName()))
 			enterpriseNameMap.put(enterprise.getName(), enterprise);
 		return true;
-	}*/
+	}
 
-	/*private static boolean holdAllEnterprise(List<Enterprise> list) {
+	private static boolean holdAllEnterprise(List<Enterprise> list) {
 		for (Enterprise enterprise : list)
 			holdEnterprise(enterprise);
 		return true;
-	}*/
+	}
 
 	private static boolean stackPutPost(Post post) {
 		if (post.getLbsLon() != null && post.getLbsLat() != null)
@@ -1435,7 +1443,7 @@ public class Holder {
 
 	private static String createAccount() {
 		String account = String.format("zcdh%s", accountNumFormat.format(++lastAccountNum));
-		Stack.valuePut("crawler-posttask-holder-lastAccountNum", lastAccountNum);
+		// Stack.valuePut("crawler-posttask-holder-lastAccountNum", lastAccountNum);// 改版中。。。
 		return account;
 	}
 
